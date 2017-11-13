@@ -1,0 +1,19 @@
+{% extends "base.html" %}
+
+{% block body %}
+
+
+<h1>Task #{{tid}}</h1>
+
+<div id="logs" style="color: green"></div>
+
+
+<script>
+ document.onreadystatechange = function () {
+     if (document.readyState == 'complete') {
+         show_logs('{{logsliceuri}}')
+     }
+ }
+</script>
+
+{% endblock %}

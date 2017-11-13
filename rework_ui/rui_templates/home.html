@@ -1,0 +1,32 @@
+{% extends "base.html" %}
+
+{% block body %}
+
+<h1>Rework Monitoring UI</h1>
+
+<h2>Tasks</h2>
+<div id="tasks">
+</div>
+
+<h2>Workers</h2>
+<div id="workers">
+</div>
+
+<h2>Services</h2>
+<div id="services">
+</div>
+
+
+<script>
+ document.onreadystatechange = function () {
+     if (document.readyState == 'complete') {
+         refresh_section('services')
+         refresh_section('workers')
+         refresh_section('tasks')
+     }
+     setInterval(() => refresh_section('workers'), 10000)
+     setInterval(() => refresh_section('tasks'), 2000)
+ }
+</script>
+
+{% endblock %}
