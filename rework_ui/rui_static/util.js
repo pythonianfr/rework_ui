@@ -30,6 +30,13 @@ function shutdown_worker(wid) {
 }
 
 
+function kill_worker(wid) {
+    fetch(`kill-worker/${wid}`).then(
+        () => refresh_section('workers')
+    )
+}
+
+
 function abort_task(tid) {
     fetch(`abort-task/${tid}`).then(
         () => refresh_section('tasks')

@@ -97,9 +97,16 @@ def reworkui(engine):
             ).values(shutdown=True))
         return json.dumps(True)
 
+    @bp.route('/kill-worker/<wid>')
+    def kill_worker(wid):
+        with engine.connect() as cn:
+            cn.execute(worker.update().where(worker.c.id == wid
+            ).values(kill=True))
+        return json.dumps(True)
+
     @bp.route('/workers-table')
     def list_workers():
-        workers = engine.execute('select id, host, pid, mem, shutdown from rework.worker '
+        workers = engine.execute('select id, host, pid, mem, shutdown, kill from rework.worker '
                                  'where running = true '
                                  'order by id'
         ).fetchall()
@@ -112,7 +119,7 @@ def reworkui(engine):
                     r.th('pid@host')
                     r.th('memory (Mb)')
                     r.th('action')
-            for wid, host, pid, mem, shutdown in workers:
+            for wid, host, pid, mem, shutdown, kill in workers:
                 with r.tr() as r:
                     r.th(str(wid), scope='row')
                     r.td('{}@{}'.format(pid, host))
@@ -122,8 +129,15 @@ def reworkui(engine):
                             if shutdown:
                                 b('shutdown asked', klass='btn glyphicon glyphicon-ban-circle')
                             else:
-                                b('shutdown', type='button', klass='btn btn-danger btn-sm',
+                                b('shutdown', type='button', klass='btn btn-warning btn-sm',
                                   onclick='shutdown_worker({})'.format(wid))
+                        col.span(' ')
+                        with col.button() as b:
+                            if kill:
+                                b('kill asked', klass='btn glyphicon glyphicon-ban-circle')
+                            else:
+                                b('kill', type='button', klass='btn btn-danger btn-sm',
+                                  onclick='kill_worker({})'.format(wid))
 
         return str(h)
 
