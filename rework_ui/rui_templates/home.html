@@ -23,9 +23,9 @@
          refresh_section('services')
          refresh_section('workers')
          refresh_section('tasks')
+         setInterval(() => refresh_section('workers'), 10000)
+         setInterval(() => refresh_section('tasks'), 3000)
      }
-     setInterval(() => refresh_section('workers'), 10000)
-     setInterval(() => refresh_section('tasks'), 5000)
  }
 </script>
 
