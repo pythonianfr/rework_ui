@@ -106,7 +106,7 @@ def reworkui(engine):
 
     @bp.route('/workers-table')
     def list_workers():
-        workers = engine.execute('select id, host, pid, mem, shutdown, kill from rework.worker '
+        workers = engine.execute('select id, host, pid, mem, shutdown, kill, domain from rework.worker '
                                  'where running = true '
                                  'order by id'
         ).fetchall()
@@ -117,12 +117,14 @@ def reworkui(engine):
                 with th.tr() as r:
                     r.th('#')
                     r.th('pid@host')
+                    r.th('domain')
                     r.th('memory (Mb)')
                     r.th('action')
-            for wid, host, pid, mem, shutdown, kill in workers:
+            for wid, host, pid, mem, shutdown, kill, domain in workers:
                 with r.tr() as r:
                     r.th(str(wid), scope='row')
                     r.td('{}@{}'.format(pid, host))
+                    r.td(domain)
                     r.td(str(mem))
                     with r.td() as col:
                         with col.button() as b:
@@ -223,7 +225,7 @@ def reworkui(engine):
 
     @bp.route('/services-table')
     def list_services():
-        sql = 'select id, host, name, path from rework.operation order by id'
+        sql = 'select id, host, name, path, domain from rework.operation order by id'
         ops = engine.execute(sql)
 
         h = HTML()
@@ -234,12 +236,14 @@ def reworkui(engine):
                     r.th('host')
                     r.th('name')
                     r.th('path')
-            for opid, host, name, path in ops.fetchall():
+                    r.th('domain')
+            for opid, host, name, path, domain in ops.fetchall():
                 with t.tr() as r:
                     r.td(str(opid), scope='row')
                     r.td(host)
                     r.td(name)
                     r.td(path)
+                    r.td(domain)
 
         return str(h)
 
