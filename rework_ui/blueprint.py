@@ -106,7 +106,8 @@ def reworkui(engine):
 
     @bp.route('/workers-table')
     def list_workers():
-        workers = engine.execute('select id, host, pid, mem, shutdown, kill, domain from rework.worker '
+        workers = engine.execute('select id, host, pid, mem, debugport, shutdown, kill, domain '
+                                 'from rework.worker '
                                  'where running = true '
                                  'order by id'
         ).fetchall()
@@ -119,13 +120,15 @@ def reworkui(engine):
                     r.th('pid@host')
                     r.th('domain')
                     r.th('memory (Mb)')
+                    r.th('debug port')
                     r.th('action')
-            for wid, host, pid, mem, shutdown, kill, domain in workers:
+            for wid, host, pid, mem, debugport, shutdown, kill, domain in workers:
                 with r.tr() as r:
                     r.th(str(wid), scope='row')
                     r.td('{}@{}'.format(pid, host))
                     r.td(domain)
                     r.td(str(mem))
+                    r.td(debugport and str(debugport) or '')
                     with r.td() as col:
                         with col.button() as b:
                             if shutdown:
