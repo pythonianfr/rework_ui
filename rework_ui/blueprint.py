@@ -1,6 +1,13 @@
 import json
 
-from flask import Blueprint, request, render_template, url_for
+from flask import (
+    abort,
+    Blueprint,
+    request,
+    render_template,
+    url_for
+)
+
 from pml import HTML
 
 from rework.schema import task, worker
@@ -41,7 +48,7 @@ def reworkui(engine):
         job = getjob(engine, jobid)
 
         if job is None:
-            return 'NO SUCH JOB'
+            abort(404, 'NO SUCH JOB')
 
         return job.state
 
@@ -50,7 +57,7 @@ def reworkui(engine):
         job = getjob(engine, jobid)
 
         if job is None:
-            return
+            abort(404, 'job does not exists')
 
         args = sliceargs(request.args)
         logs = job.logs(fromid=args.from_log_id)
@@ -60,7 +67,7 @@ def reworkui(engine):
     def kill_job(jobid):
         job = getjob(engine, jobid)
         if job is None:
-            return 'no such job'
+            abort(404, 'NO SUCH JOB')
 
         if job.aborted:
             return 'was already aborted'
