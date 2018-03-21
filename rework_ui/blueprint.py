@@ -8,6 +8,8 @@ from flask import (
     url_for
 )
 
+from sqlalchemy import select
+
 from pml import HTML
 
 from rework.schema import task, worker
@@ -111,13 +113,22 @@ def reworkui(engine):
             ).values(kill=True))
         return json.dumps(True)
 
+    class uiargsdict(argsdict):
+        defaults = {
+            'domain': 'all'
+        }
+
     @bp.route('/workers-table')
     def list_workers():
-        workers = engine.execute('select id, host, pid, mem, debugport, shutdown, kill, domain '
-                                 'from rework.worker '
-                                 'where running = true '
-                                 'order by id'
-        ).fetchall()
+        sql = select([worker.c.id, worker.c.host, worker.c.domain, worker.c.pid,
+                      worker.c.mem, worker.c.shutdown, worker.c.kill, worker.c.debugport]
+        ).order_by(worker.c.id
+        ).where(worker.c.running == True)
+        domain = uiargsdict(request.args).domain
+        if domain != 'all':
+            sql = sql.where(worker.c.domain == domain)
+
+        workers = engine.execute(sql).fetchall()
 
         h = HTML()
         with h.table(klass='table table-sm table-bordered table-striped table-hover') as t:
@@ -129,7 +140,7 @@ def reworkui(engine):
                     r.th('memory (Mb)')
                     r.th('debug port')
                     r.th('action')
-            for wid, host, pid, mem, debugport, shutdown, kill, domain in workers:
+            for wid, host, domain, pid, mem, shutdown, kill, debugport in workers:
                 with r.tr() as r:
                     r.th(str(wid), scope='row')
                     r.td('{}@{}'.format(pid, host))
