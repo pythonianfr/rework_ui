@@ -31,12 +31,6 @@ def getjob(engine, jobid):
         return None
 
 
-class newjobargs(argsdict):
-    defaults = {
-        'user': '<unknown>'
-    }
-
-
 class sliceargs(argsdict):
     types = {
         'from_log_id': int
