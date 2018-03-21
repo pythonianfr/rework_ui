@@ -12,7 +12,7 @@ from sqlalchemy import select
 
 from pml import HTML
 
-from rework.schema import task, worker
+from rework.schema import task, worker, operation
 from rework.task import Task
 
 from rework_ui.helper import argsdict
@@ -43,7 +43,7 @@ class sliceargs(argsdict):
     }
 
 
-def reworkui(engine):
+def reworkui(engine, serviceactions=None):
 
     @bp.route('/job_status/<jobid>')
     def job_status(jobid):
@@ -246,9 +246,14 @@ def reworkui(engine):
 
     @bp.route('/services-table')
     def list_services():
-        sql = 'select id, host, name, path, domain from rework.operation order by id'
-        ops = engine.execute(sql)
+        args = uiargsdict(request.args)
+        sql = select([operation.c.id, operation.c.host, operation.c.name,
+                      operation.c.path, operation.c.domain]
+        ).order_by(operation.c.domain, operation.c.name)
+        if args.domain != 'all':
+            sql = sql.where(operation.c.domain == args.domain)
 
+        ops = engine.execute(sql)
         h = HTML()
         with h.table(klass='table table-sm table-bordered table-striped table-hover') as t:
             with t.thead(klass='thead-inverse') as th:
@@ -258,6 +263,8 @@ def reworkui(engine):
                     r.th('name')
                     r.th('path')
                     r.th('domain')
+                    if serviceactions:
+                        r.th('action')
             for opid, host, name, path, domain in ops.fetchall():
                 with t.tr() as r:
                     r.td(str(opid), scope='row')
@@ -265,6 +272,11 @@ def reworkui(engine):
                     r.td(name)
                     r.td(path)
                     r.td(domain)
+                    if not serviceactions:
+                        continue
+                    with r.td() as t:
+                        action = serviceactions.get(name, serviceactions.get('default'))
+                        action(t, host, name, domain)
 
         return str(h)
 
