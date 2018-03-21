@@ -1,10 +1,13 @@
+import io
 import json
 
 from flask import (
     abort,
     Blueprint,
+    make_response,
     request,
     render_template,
+    send_file,
     url_for
 )
 
@@ -12,6 +15,7 @@ from sqlalchemy import select
 
 from pml import HTML
 
+from rework import api
 from rework.schema import task, worker, operation
 from rework.task import Task
 
@@ -38,6 +42,54 @@ class sliceargs(argsdict):
 
 
 def reworkui(engine, serviceactions=None):
+
+    @bp.route('/relaunch-task/<int:tid>', methods=['PUT'])
+    def relaunch_task(tid):
+        t = Task.byid(engine, tid)
+        if t is None:
+            return json.dumps(0)
+
+        servicename, hostid, domain = engine.execute(
+            select([operation.c.name, operation.c.host, operation.c.domain]
+            ).where(operation.c.id == task.c.operation
+            ).where(task.c.id == t.tid)
+        ).fetchone()
+
+        newtask = api.schedule(engine,
+                               servicename,
+                               rawinputdata=t.raw_input,
+                               domain=domain,
+                               hostid=hostid,
+                               metadata=t.metadata)
+        return json.dumps(newtask.tid)
+
+    @bp.route('/job_input/<jobid>')
+    def job_input(jobid):
+        job = getjob(engine, jobid)
+        if job is None:
+            abort(404, 'no such job')
+
+        archive = job.raw_input
+        return send_file(io.BytesIO(archive),
+                         mimetype='application/octet-stream')
+
+
+    @bp.route('/job_results/<jobid>')
+    def job_results(jobid):
+        job = getjob(engine, jobid)
+        if job is None:
+            abort(404, 'NO SUCH JOB')
+
+        if job.status != 'done':
+            return make_response('job still in state: {}'.format(job.status), 204)
+
+        if job.traceback:
+            return send_file(io.BytesIO(job.traceback.encode('utf-8')),
+                             mimetype='text/plain')
+
+        archive = job.raw_output
+        return send_file(io.BytesIO(archive),
+                         mimetype='application/zip')
 
     @bp.route('/job_status/<jobid>')
     def job_status(jobid):
