@@ -86,7 +86,7 @@ def reworkui(engine):
 
         output = []
         for jid, in jobids:
-            job = getjob(jid)
+            job = getjob(engine, jid)
             stat = job.status
             if stat == 'done':
                 if job.traceback:
