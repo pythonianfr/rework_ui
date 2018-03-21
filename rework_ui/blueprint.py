@@ -1,4 +1,5 @@
 import io
+import base64
 import json
 
 from flask import (
@@ -7,6 +8,7 @@ from flask import (
     make_response,
     request,
     render_template,
+    render_template_string,
     send_file,
     url_for
 )
@@ -14,12 +16,16 @@ from flask import (
 from sqlalchemy import select
 
 from pml import HTML
+from pygments import highlight
+from pygments.lexers import PythonTracebackLexer
+from pygments.formatters import HtmlFormatter
 
 from rework import api
 from rework.schema import task, worker, operation
 from rework.task import Task
 
 from rework_ui.helper import argsdict
+from rework_ui import taskstable
 
 
 bp = Blueprint('reworkui', __name__,
@@ -41,7 +47,62 @@ class sliceargs(argsdict):
     }
 
 
-def reworkui(engine, serviceactions=None):
+def _schedule_job(engine,
+                  service,
+                  args,
+                  inputfile):
+    user = args.user
+    if user is None:
+        abort(400, 'user parameter is mandatory')
+
+    hostid = args.hostid or api.host()
+    domain = args.domain
+    metadata = {'user': user}
+
+    if args.options:
+        metadata['options'] = args.options
+
+    try:
+        task = api.schedule(engine, service,
+                            rawinputdata=inputfile,
+                            hostid=hostid,
+                            domain=domain,
+                            metadata=metadata)
+    except Exception as err:
+        abort(400, str(err))
+    return json.dumps(task.tid)
+
+
+def alldomains(engine):
+    return [
+        dom for dom, in engine.execute(
+            'select domain from rework.operation group by domain order by domain'
+        ).fetchall()
+    ]
+
+
+def initialdomain(domains):
+    return 'all' if len(domains) > 1 else domains and domains[0] or 'default'
+
+
+def reworkui(engine,
+             serviceactions=None,
+             alttemplate=None):
+
+    @bp.route('/new_job/<service>', methods=['PUT'])
+    def submit_job(service):
+        args = argsdict()
+        args.update(argsdict(request.form))
+        args.update(argsdict(request.args))
+        fileargs = argsdict(request.files)
+
+        if 'input_file' not in fileargs:
+            abort(400, 'input file is mandatory')
+
+        return _schedule_job(engine,
+                             service,
+                             args,
+                             fileargs.input_file.read())
 
     @bp.route('/relaunch-task/<int:tid>', methods=['PUT'])
     def relaunch_task(tid):
@@ -72,7 +133,6 @@ def reworkui(engine, serviceactions=None):
         archive = job.raw_input
         return send_file(io.BytesIO(archive),
                          mimetype='application/octet-stream')
-
 
     @bp.route('/job_results/<jobid>')
     def job_results(jobid):
@@ -161,7 +221,7 @@ def reworkui(engine, serviceactions=None):
 
     class uiargsdict(argsdict):
         defaults = {
-            'domain': 'all'
+            'domain': initialdomain(alldomains(engine))
         }
 
     @bp.route('/workers-table')
@@ -196,7 +256,7 @@ def reworkui(engine, serviceactions=None):
                     with r.td() as col:
                         with col.button() as b:
                             if shutdown:
-                                b('shutdown asked', klass='btn glyphicon glyphicon-ban-circle')
+                                b('shutdown asked', klass='btn gltyphicon glyphicon-ban-circle')
                             else:
                                 b('shutdown', type='button', klass='btn btn-warning btn-sm',
                                   onclick='shutdown_worker({})'.format(wid))
@@ -225,62 +285,40 @@ def reworkui(engine, serviceactions=None):
             cn.execute(sql)
         return json.dumps(True)
 
+    @bp.route('/taskerror/<int:taskid>')
+    def taskerror(taskid):
+        job = getjob(engine, taskid)
+        if job is None:
+            abort(404, 'job does not exists')
+
+        formatter = HtmlFormatter()
+        traceback = highlight(job.traceback,
+                              PythonTracebackLexer(),
+                              formatter)
+        return render_template(
+            'taskerror.html',
+            tid=taskid,
+            css=formatter.get_style_defs(),
+            traceback=traceback
+        )
+
+    @bp.route('/tasks-table-hash')
+    def tasks_table_hash():
+        args = uiargsdict(request.args)
+        thash = taskstable.latest_table_hash(engine, args.domain)
+        return thash or 'no-hash-yet'
+
     @bp.route('/tasks-table')
     def list_tasks():
-        tids = engine.execute('select id from rework.task order by id desc').fetchall()
-        opsql = 'select id, name from rework.operation'
-        ops = dict(engine.execute(opsql).fetchall())
+        args = uiargsdict(request.args)
+        content = engine.execute('select content from rework.taskstable '
+                                 'where domain = %(domain)s '
+                                 'order by id desc limit 1',
+                                 domain=args.domain).scalar()
+        if content is None:
+            return '<p>Table under construction ...</p>'
 
-        h = HTML()
-        with h.table(klass='table table-sm table-bordered table-striped table-hover') as t:
-            with t.thead(klass='thead-inverse') as th:
-                with th.tr() as r:
-                    r.th('#')
-                    r.th('service')
-                    r.th('created')
-                    r.th('user')
-                    r.th('worker')
-                    r.th('status')
-                    r.th('action')
-            for tid, in tids:
-                task = Task.byid(engine, tid)
-                if task is None:
-                    continue  # avoid a `delete` + refresh tasks race condition
-                with t.tr() as r:
-                    r.th(str(task.tid), scope='row')
-
-                    with r.td() as col:
-                        col.a(ops[task.operation],
-                              title='show the tasks log (if any)',
-                              target='_blank',
-                              href='tasklogs/{}'.format(tid))
-
-                    r.td(task._propvalue('created').strftime('%Y-%m-%d %H:%M:%S'))
-                    r.td(task.metadata.get('user', '<unknown>'))
-
-                    worker = task._propvalue('worker')
-                    r.td('#{}'.format(worker or ''))
-
-                    state = task.state
-                    stateattrs = {'klass': state}
-                    if state == 'failed':
-                        stateattrs['title'] = task.traceback
-                    r.td(state, **stateattrs)
-
-                    with r.td() as col:
-                        state = task.state
-                        with col.button() as b:
-                            if state == 'running':
-                                b('abort', type='button', klass='btn btn-danger btn-sm',
-                                  onclick='abort_task({})'.format(task.tid))
-                            elif state == 'aborting':
-                                b('wait', klass='btn glyphicon glyphicon-ban-circle')
-                            else:
-                                b('delete', type='button', klass='btn btn-warning btn-sm',
-                                  onclick='delete_task({})'.format(task.tid))
-                        col.span(' ')
-
-        return str(h)
+        return content
 
     @bp.route('/tasklogs/<int:taskid>')
     def tasklogs(taskid):
@@ -326,8 +364,29 @@ def reworkui(engine, serviceactions=None):
 
         return str(h)
 
-    @bp.route('/rework')
+    @bp.route('/')
     def home():
-        return render_template('home.html')
+        domains = alldomains(engine)
+
+        h = HTML()
+        firstdomain = initialdomain(domains)
+        with h.select(id='domain-filter', name='domain-filter',
+                      title='domain',
+                      onchange='setdomain(this)')as s:
+            if len(domains) > 1:
+                s.option('all')
+                for domain in domains:
+                    s.option(domain, value=domain)
+            else:
+                s.option(domains[0])
+
+        if alttemplate:
+            return render_template_string(alttemplate,
+                                          domain_filter=str(h),
+                                          initialdomain=firstdomain)
+
+        return render_template('rui_home.html',
+                               domain_filter=str(h),
+                               initialdomain=firstdomain)
 
     return bp

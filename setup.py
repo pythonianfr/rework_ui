@@ -13,6 +13,7 @@ setup(name='rework_ui',
           'rework',
           'flask',
           'pml',
+          'sqlalchemy',
           'webtest'
       ],
       package_data={'rework_ui': [
@@ -20,7 +21,9 @@ setup(name='rework_ui',
           'rui_templates/*'
       ]},
       entry_points={'rework.subcommands': [
-          'view=rework_ui.cli:view'
+          'view=rework_ui.cli:view',
+          'complete-db=rework_ui.cli:complete_db',
+          'generate-tasks-table=rework_ui.cli:generate_tasks_table'
       ]},
       classifiers=[
           'Development Status :: 4 - Beta',

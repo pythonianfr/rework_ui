@@ -1,0 +1,18 @@
+{% extends "rui_base.html" %}
+
+{% block body %}
+
+<style>
+ {{css}}
+</style>
+
+
+<h1>Task #{{tid}}</h1>
+
+<div id="error">
+  {{traceback | safe}}
+</div>
+
+
+
+{% endblock %}

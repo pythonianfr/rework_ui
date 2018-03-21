@@ -2,6 +2,10 @@
 
 {% block body %}
 
+<div id="filter" style="float: right">
+  {{ domain_filter | safe }}
+</div>
+
 <h1>Rework Monitoring UI</h1>
 
 <h2>Tasks</h2>
@@ -18,6 +22,7 @@
 
 
 <script>
+ let domain = '{{initialdomain}}'
  document.onreadystatechange = function () {
      if (document.readyState == 'complete') {
          refresh_section('services')
