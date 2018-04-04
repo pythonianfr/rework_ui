@@ -374,11 +374,11 @@ def reworkui(engine,
                       title='domain',
                       onchange='setdomain(this)')as s:
             if len(domains) > 1:
-                s.option('all')
+                s.option('all', value='all', selected='selected')
                 for domain in domains:
                     s.option(domain, value=domain)
             else:
-                s.option(domains[0])
+                s.option(domains[0], value=domains[0], selected='selected')
 
         if alttemplate:
             return render_template_string(alttemplate,
