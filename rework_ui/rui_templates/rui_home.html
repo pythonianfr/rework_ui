@@ -1,37 +1,58 @@
 {% extends "rui_base.html" %}
 
 {% block body %}
+<script src="https://code.jquery.com/jquery-2.2.4.min.js"></script>
+<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
+<script src="https://fastcdn.org/FileSaver.js/1.1.20151003/FileSaver.min.js"></script>
 
 <div id="filter" style="float: right">
   {{ domain_filter | safe }}
 </div>
 
-<h1>Rework Monitoring UI</h1>
+<h1>Tasks Monitoring UI</h1>
 
-<h2>Tasks</h2>
-<div id="tasks">
+<ul class="nav nav-tabs" role="tablist" id="tabs">
+  <li class="active" role="presentation">
+    <a href="#tasks" aria-controls="tasks" role="tab" data-toggle="tab">Tasks</a>
+  </li>
+  <li role="presentation">
+    <a href="#services" aria-controls="services" role="tab" data-toggle="tab">Services</a>
+  </li>
+  <li role="presentation">
+    <a href="#workers" aria-controls="workers" role="tab" data-toggle="tab">Ponies</a>
+  </li>
+</ul>
+
+<div class="tab-content">
+  <div role="tabpanel" class="tab-pane active" id="tasks"></div>
+  <div role="tabpanel" class="tab-pane" id="services"></div>
+  <div role="tabpanel" class="tab-pane" id="workers"></div>
 </div>
-
-<h2>Workers</h2>
-<div id="workers">
-</div>
-
-<h2>Services</h2>
-<div id="services">
-</div>
-
 
 <script>
+ const service_latency = {
+     'tasks': 1000,
+     'workers': 2000,
+     'services': 10000,
+ }
+ let hash = ''
  let domain = '{{initialdomain}}'
+ let refresher = null
  document.onreadystatechange = function () {
      if (document.readyState == 'complete') {
-         refresh_section('services')
-         refresh_section('workers')
          refresh_section('tasks')
-         setInterval(() => refresh_section('workers'), 10000)
-         setInterval(() => refresh_section('tasks'), 3000)
+         refresher = setInterval(() => refresh_tasks(), 1000)
      }
  }
+
+ $('#tabs a').click(function (e) {
+     e.preventDefault()
+     $(this).tab('show')
+     clearInterval(refresher)
+     const section = e.target.attributes['aria-controls'].value
+     refresh_section(section)
+     refresher = setInterval(() => refresh_section(section), service_latency[section])
+ })
 </script>
 
 {% endblock %}
