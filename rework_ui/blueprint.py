@@ -367,6 +367,8 @@ def reworkui(engine,
     @bp.route('/')
     def home():
         domains = alldomains(engine)
+        if not len(domains):
+            return 'No operation registered: nothing to see here'
 
         h = HTML()
         firstdomain = initialdomain(domains)
