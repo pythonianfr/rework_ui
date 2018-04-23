@@ -14,7 +14,6 @@ setup(name='rework_ui',
           'flask',
           'pml',
           'sqlalchemy',
-          'webtest'
       ],
       package_data={'rework_ui': [
           'rui_static/*',
