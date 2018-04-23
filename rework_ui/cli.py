@@ -20,7 +20,7 @@ def view(db_uri):
     server.daemon = True
     server.start()
 
-    webbrowser.open('http://{ipaddr}:{port}/rework'.format(ipaddr=ipaddr, port=port))
+    webbrowser.open('http://{ipaddr}:{port}'.format(ipaddr=ipaddr, port=port))
     input()
 
 
