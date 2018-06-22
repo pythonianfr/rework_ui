@@ -14,7 +14,7 @@ function update(domid, html) {
 }
 
 function refresh_tasks() {
-    fetch(`tasks-table-hash?domain=${domain}`).then(
+    fetch(`tasks-table-hash?domain=${domain}`, {credentials: 'same-origin'}).then(
         resp => resp.text()
     ).then(
         newhash => {
@@ -36,7 +36,7 @@ function setdomain(form) {
 
 
 function refresh_section(section) {
-    fetch(`${section}-table?domain=${domain}`).then(
+    fetch(`${section}-table?domain=${domain}`, {credentials: 'same-origin'}).then(
         resp => resp.text()
     ).then(
         resp => update(section, resp)
@@ -46,41 +46,41 @@ function refresh_section(section) {
 
 function start_job(operation, form) {
     fetch(`new_job/${operation}?user=WEBUI`,
-          {method: 'PUT', body: new FormData(form)})
+          {method: 'PUT', body: new FormData(form), credentials: 'same-origin'})
     refresh_section('services')
 }
 
 
 function shutdown_worker(wid) {
-    fetch(`shutdown-worker/${wid}`).then(
+    fetch(`shutdown-worker/${wid}`, {credentials: 'same-origin'}).then(
         () => refresh_section('workers')
     )
 }
 
 
 function kill_worker(wid) {
-    fetch(`kill-worker/${wid}`).then(
+    fetch(`kill-worker/${wid}`, {credentials: 'same-origin'}).then(
         () => refresh_section('workers')
     )
 }
 
 
 function abort_task(tid) {
-    fetch(`abort-task/${tid}`).then(
+    fetch(`abort-task/${tid}`, {credentials: 'same-origin'}).then(
         () => refresh_section('tasks')
     )
 }
 
 
 function relaunch_task(tid) {
-    fetch(`relaunch-task/${tid}`, {method: 'PUT'}).then(
+    fetch(`relaunch-task/${tid}`, {method: 'PUT', credentials: 'same-origin'}).then(
         () => refresh_section('tasks')
     )
 }
 
 
 function delete_task(tid) {
-    fetch(`delete-task/${tid}`).then(
+    fetch(`delete-task/${tid}`, {credentials: 'same-origin'}).then(
         () => refresh_section('tasks')
     )
 }
@@ -90,7 +90,7 @@ function show_logs(logsliceuri) {
     let lastid = 0
     console.log('logslice uri', logsliceuri)
     function _getmore() {
-        fetch(`${logsliceuri}?from_log_id=${lastid}`).then(
+        fetch(`${logsliceuri}?from_log_id=${lastid}`, {credentials: 'same-origin'}).then(
             resp => {
                 if (resp.status != 200) {
                     clearInterval(ival)
