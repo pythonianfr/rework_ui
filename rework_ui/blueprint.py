@@ -1,7 +1,9 @@
 import io
 import base64
 import json
+from datetime import datetime
 
+import tzlocal
 from flask import (
     abort,
     Blueprint,
@@ -21,7 +23,7 @@ from pygments.lexers import PythonTracebackLexer
 from pygments.formatters import HtmlFormatter
 
 from rework import api
-from rework.schema import task, worker, operation
+from rework.schema import task, worker, operation, monitor
 from rework.task import Task
 
 from rework_ui.helper import argsdict
@@ -32,6 +34,7 @@ bp = Blueprint('reworkui', __name__,
                template_folder='rui_templates',
                static_folder='rui_static',
 )
+TZ = tzlocal.get_localzone()
 
 
 def getjob(engine, jobid):
@@ -226,6 +229,7 @@ def reworkui(engine,
 
     @bp.route('/workers-table')
     def list_workers():
+        # workers
         sql = select([worker.c.id, worker.c.host, worker.c.domain, worker.c.pid,
                       worker.c.mem, worker.c.shutdown, worker.c.kill, worker.c.debugport]
         ).order_by(worker.c.id
@@ -236,7 +240,38 @@ def reworkui(engine,
 
         workers = engine.execute(sql).fetchall()
 
+        # monitors
+        sql = select([monitor.c.id, monitor.c.domain, monitor.c.lastseen, monitor.c.options])
+        if domain != 'all':
+            sql = sql.where(monitor.c.domain == domain)
+
+        monitors = {row.domain: row for row in engine.execute(sql).fetchall()}
+        now = TZ.localize(datetime.utcnow())
+
         h = HTML()
+        with h.table(klass='table table-sm table-bordered table-striped table-hover') as t:
+            with t.thead(klass='thead-inverse') as th:
+                with th.tr() as r:
+                    r.th('#')
+                    r.th('domain')
+                    r.th('seen last')
+                    r.th('options')
+            for domain, row in sorted(monitors.items()):
+                with t.tr() as r:
+                    r.td(str(row.id))
+                    r.td(row.domain)
+
+                    delta = (now - row.lastseen).total_seconds()
+                    color = 'DarkGreen'
+                    if delta > 60:
+                        color = 'DarkRed'
+                    elif delta > 10:
+                        color = 'DarkMagenta'
+
+                    r.td(row.lastseen.astimezone(TZ).strftime('%Y-%m-%d %H:%M:%S%z'),
+                         style='color: {}'.format(color))
+                    r.td(', '.join('{}={}'.format(k, v) for k, v in sorted(row.options.items())))
+
         with h.table(klass='table table-sm table-bordered table-striped table-hover') as t:
             with t.thead(klass='thead-inverse') as th:
                 with th.tr() as r:
@@ -247,7 +282,7 @@ def reworkui(engine,
                     r.th('debug port')
                     r.th('action')
             for wid, host, domain, pid, mem, shutdown, kill, debugport in workers:
-                with r.tr() as r:
+                with t.tr() as r:
                     r.th(str(wid), scope='row')
                     r.td('{}@{}'.format(pid, host))
                     r.td(domain)
