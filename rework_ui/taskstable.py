@@ -100,6 +100,7 @@ def generate_tasks_table(engine, taskstates):
     ops = dict(engine.execute(opsql).fetchall())
 
     h = HTML()
+    h.br()
     with h.table(klass='table table-sm table-bordered table-striped table-hover') as t:
         with t.thead(klass='thead-inverse') as th:
             with th.tr() as r:

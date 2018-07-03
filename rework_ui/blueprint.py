@@ -249,6 +249,7 @@ def reworkui(engine,
         now = TZ.localize(datetime.utcnow())
 
         h = HTML()
+        h.br()
         with h.table(klass='table table-sm table-bordered table-striped table-hover') as t:
             with t.thead(klass='thead-inverse') as th:
                 with th.tr() as r:
@@ -374,6 +375,7 @@ def reworkui(engine,
 
         ops = engine.execute(sql)
         h = HTML()
+        h.br()
         with h.table(klass='table table-sm table-bordered table-striped table-hover') as t:
             with t.thead(klass='thead-inverse') as th:
                 with th.tr() as r:
