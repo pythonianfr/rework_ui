@@ -2,7 +2,7 @@ from setuptools import setup
 
 
 setup(name='rework_ui',
-      version='0.1.1',
+      version='0.2.0',
       author='Aurelien Campeas',
       author_email='aurelien.campeas@pythonian.fr',
       description='A web ui for the rework distributed task dispatcher',
