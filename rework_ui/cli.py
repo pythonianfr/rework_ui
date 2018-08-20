@@ -5,6 +5,7 @@ import webbrowser
 import click
 from sqlalchemy import create_engine
 
+from rework import schema as baseschema
 from rework_ui.app import startapp
 from rework_ui import schema, taskstable
 
@@ -24,12 +25,13 @@ def view(db_uri):
     input()
 
 
-@click.command(name='complete-db')
+@click.command(name='init-db')
 @click.argument('dburi')
-def complete_db(dburi):
-    """create the db table necessary for handling big tasks table views in the client"""
+def init_db(dburi):
+    "initialize the database schema for rework in its own namespace"
     engine = create_engine(dburi)
-    schema.reset(engine)
+    baseschema.reset(engine)
+    baseschema.init(engine)
     schema.init(engine)
 
 
