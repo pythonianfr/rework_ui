@@ -1,0 +1,48 @@
+<!DOCTYPE html PUBLIC "-//W<X>C//DTD HTML <X>.<X> Transitional//EN" "http://www.w<X>.org/TR/REC-html<X>/loose.dtd">
+<html><body>
+<br>
+<table class="table table-sm table-bordered table-striped table-hover">
+<thead class="thead-inverse"><tr>
+<th>#</th>
+<th>service</th>
+<th>domain</th>
+<th>created</th>
+<th>user</th>
+<th>worker</th>
+<th>status</th>
+<th>action</th>
+</tr></thead>
+<tr>
+<th scope="row"><X></th>
+<td>
+<span><a title="show the tasks log (if any)" target="_blank" href="tasklogs/<X>">bad_job</a></span><span> <a title="show the error" target="_blank" href="taskerror/<X>">[traceback]</a></span>
+</td>
+<td>default</td>
+<td><X>-<X>-<X> <X>:<X>:<X></td>
+<td>Babar</td>
+<td>#<X></td>
+<td class="failed" title="Traceback (most recent call last):
+  /path/to/src/file, line <X>, in run
+    func(self)
+  /path/to/src/file, line <X>, in bad_job
+    raise Exception('I am a little crasher.')
+Exception: I am a little crasher.
+">failed</td>
+<td>
+<button type="button" class="btn btn-warning btn-sm" onclick="delete_task(<X>)">delete</button><span> </span><button type="button" class="btn btn-primary btn-sm" onclick="relaunch_task(<X>)">relaunch</button><span> </span><button type="button" class="btn btn-info btn-sm" onclick='download_input(<X>, "xml")'>input</button>
+</td>
+</tr>
+<tr>
+<th scope="row"><X></th>
+<td><span><a title="show the tasks log (if any)" target="_blank" href="tasklogs/<X>">good_job</a></span></td>
+<td>default</td>
+<td><X>-<X>-<X> <X>:<X>:<X></td>
+<td>Babar</td>
+<td>#<X></td>
+<td class="done">done</td>
+<td>
+<button type="button" class="btn btn-warning btn-sm" onclick="delete_task(<X>)">delete</button><span> </span><button type="button" class="btn btn-primary btn-sm" onclick="relaunch_task(<X>)">relaunch</button><span> </span><button type="button" class="btn btn-info btn-sm" onclick='download_input(<X>, "xml")'>input</button><span> </span><button type="button" class="btn btn-success btn-sm" onclick="download_results(<X>)">results</button>
+</td>
+</tr>
+</table>
+</body></html>
