@@ -35,7 +35,7 @@ def refresh_tasks(engine, inithash, domain):
             domain=domain,
             content=htmltable
         )
-        with engine.connect() as cn:
+        with engine.begin() as cn:
             cn.execute(sql)
         inithash = thash
         # cleanup old tables
@@ -44,7 +44,7 @@ def refresh_tasks(engine, inithash, domain):
         ).where(
             taskstable.c.domain == domain
         )
-        with engine.connect() as cn:
+        with engine.begin() as cn:
             cn.execute(sql)
     return inithash
 
@@ -75,7 +75,7 @@ def refresh_tasks_file(engine, loop=False, sleeptime=2):
 
 
 def tasks_info(engine, domain):
-    with engine.connect() as cn:
+    with engine.begin() as cn:
         sql = select(
             [task.c.id, task.c.status, operation.c.domain]
         ).order_by(desc(task.c.id)

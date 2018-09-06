@@ -189,7 +189,7 @@ def reworkui(engine,
 
     @bp.route('/list_jobs')
     def list_jobs():
-        with engine.connect() as cn:
+        with engine.begin() as cn:
             tsql = 'select id from rework.task order by id'
             jobids = cn.execute(tsql).fetchall()
             opsql = 'select id, name from rework.operation'
@@ -210,14 +210,14 @@ def reworkui(engine,
 
     @bp.route('/shutdown-worker/<wid>')
     def shutdown_worker(wid):
-        with engine.connect() as cn:
+        with engine.begin() as cn:
             cn.execute(worker.update().where(worker.c.id == wid
             ).values(shutdown=True))
         return json.dumps(True)
 
     @bp.route('/kill-worker/<wid>')
     def kill_worker(wid):
-        with engine.connect() as cn:
+        with engine.begin() as cn:
             cn.execute(worker.update().where(worker.c.id == wid
             ).values(kill=True))
         return json.dumps(True)
@@ -308,14 +308,14 @@ def reworkui(engine,
 
     @bp.route('/delete-task/<tid>')
     def delete_task(tid):
-        with engine.connect() as cn:
+        with engine.begin() as cn:
             cn.execute("delete from rework.task where id = %(tid)s and status != 'running'",
                        tid=tid)
         return json.dumps(True)
 
     @bp.route('/abort-task/<tid>')
     def abort_task(tid):
-        with engine.connect() as cn:
+        with engine.begin() as cn:
             sql = task.update().where(task.c.id == tid
             ).values(abort=True)
             cn.execute(sql)

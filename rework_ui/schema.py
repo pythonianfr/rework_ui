@@ -14,10 +14,10 @@ taskstable = Table(
 
 
 def init(engine):
-    with engine.connect() as cn:
+    with engine.begin() as cn:
         taskstable.create(cn)
 
 
 def reset(engine):
-    with engine.connect() as cn:
+    with engine.begin() as cn:
         taskstable.drop(cn, checkfirst=True)

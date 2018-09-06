@@ -126,7 +126,7 @@ def test_task_life_cycle(engine, client, refresh):
 
 
 def test_tasks_table(engine, client, refresh):
-    with engine.connect() as cn:
+    with engine.begin() as cn:
         cn.execute('delete from rework.task')
 
     with workers(engine):
