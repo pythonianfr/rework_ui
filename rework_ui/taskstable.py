@@ -108,6 +108,7 @@ def generate_tasks_table(engine, taskstates):
                 r.th('service')
                 r.th('domain')
                 r.th('created')
+                r.th('finished')
                 r.th('user')
                 r.th('worker')
                 r.th('status')
@@ -133,6 +134,11 @@ def generate_tasks_table(engine, taskstates):
 
                 r.td(row.domain)
                 r.td(job._propvalue('created').strftime('%Y-%m-%d %H:%M:%S'))
+                finished = job._propvalue('finished')
+                if finished is None:
+                    r.td('')
+                else:
+                    r.td(finished.strftime('%Y-%m-%d %H:%M:%S'))
 
                 # user plus maybe run name
                 meta = job.metadata
