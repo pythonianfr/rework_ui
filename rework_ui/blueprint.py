@@ -174,19 +174,6 @@ def reworkui(engine,
         logs = job.logs(fromid=args.from_log_id)
         return json.dumps([[lid, line] for lid, line in logs])
 
-    @bp.route('/kill_job/<jobid>')
-    def kill_job(jobid):
-        job = getjob(engine, jobid)
-        if job is None:
-            abort(404, 'NO SUCH JOB')
-
-        if job.aborted:
-            return 'was already aborted'
-
-        job.abort()
-
-        return 'job terminated'
-
     @bp.route('/list_jobs')
     def list_jobs():
         with engine.begin() as cn:
@@ -315,10 +302,14 @@ def reworkui(engine,
 
     @bp.route('/abort-task/<tid>')
     def abort_task(tid):
-        with engine.begin() as cn:
-            sql = task.update().where(task.c.id == tid
-            ).values(abort=True)
-            cn.execute(sql)
+        t = Task.byid(engine, tid)
+        if t is None:
+            abort(404, 'NO SUCH JOB')
+
+        if t.aborted:
+            return json.dumps(False)
+
+        t.abort()
         return json.dumps(True)
 
     @bp.route('/taskerror/<int:taskid>')

@@ -1,5 +1,6 @@
 import re
 from pathlib import Path
+import time
 
 from lxml import etree
 
@@ -38,6 +39,14 @@ def bad_job(task):
     raise Exception('I am a little crasher.')
 
 
+@api.task
+def abortme(task):
+    while True:
+        time.sleep(1)
+
+
+# tests
+
 def test_no_job(client):
     res = client.get('/job_status/babar')
     assert res.status_code == 404
@@ -63,6 +72,18 @@ def test_bad_request(engine, client):
     res = client.put('/new_job/good_job?user={}'.format('Babar'))
     assert res.status == '400 BAD REQUEST'
     assert b'input file is mandatory' in res.body
+
+
+def test_abort(engine, client):
+    with workers(engine) as mon:
+        res = client.put('/new_job/abortme?user=Babar',
+                         upload_files=[('input_file', 'input.xml', b'the file', 'text/xml')])
+        tid = int(res.body)
+        t = Task.byid(engine, tid)
+        assert not t.aborted
+        res = client.get(f'/abort-task/{tid}')
+        mon.preemptive_kill()
+        assert t.aborted
 
 
 def test_task_life_cycle(engine, client, refresh):
@@ -192,7 +213,7 @@ def test_tasks_table(engine, client, refresh):
         t.join()
         taskstable.refresh_tasks_file(engine)
         res = client.get('/tasks-table-hash?domain=uranus')
-        assert res.text == 'ce14320fb847e8e7443ffca102315671'
+        assert res.text == '98cc14b1de9bdd660aaa61f8b2ac4144'
         res = client.get('/tasks-table?domain=uranus')
         refpath = DATADIR / 'tasks-table-uranus.html'
         if refresh:
