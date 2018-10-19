@@ -92,8 +92,9 @@ def reworkui(engine,
              serviceactions=None,
              alttemplate=None):
 
-    @bp.route('/new_job/<service>', methods=['PUT'])
-    def submit_job(service):
+    @bp.route('/schedule-task/<service>', methods=['PUT'])
+    @bp.route('/new_job/<service>', methods=['PUT'])  # bw compat
+    def schedule_task(service):
         args = argsdict()
         args.update(argsdict(request.form))
         args.update(argsdict(request.args))

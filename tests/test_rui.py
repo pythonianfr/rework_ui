@@ -55,28 +55,28 @@ def test_no_job(client):
 
 def test_bad_request(engine, client):
     # bad hostid
-    res = client.put('/new_job/good_job?user={}&hostid={}'.format('Babar', 'fancyhost'),
+    res = client.put('/schedule-task/good_job?user={}&hostid={}'.format('Babar', 'fancyhost'),
                      upload_files=[('input_file', 'input.xml', b'the file', 'text/xml')]
     )
     assert res.status == '400 BAD REQUEST'
     assert b'No operation was found' in res.body
 
     # bad operation
-    res = client.put('/new_job/fake_job?user={}'.format('Babar'),
+    res = client.put('/schedule-task/fake_job?user={}'.format('Babar'),
                      upload_files=[('input_file', 'input.xml', b'the file', 'text/xml')]
     )
     assert res.status == '400 BAD REQUEST'
     assert b'No operation was found' in res.body
 
     # bad operation
-    res = client.put('/new_job/good_job?user={}'.format('Babar'))
+    res = client.put('/schedule-task/good_job?user={}'.format('Babar'))
     assert res.status == '400 BAD REQUEST'
     assert b'input file is mandatory' in res.body
 
 
 def test_abort(engine, client):
     with workers(engine) as mon:
-        res = client.put('/new_job/abortme?user=Babar',
+        res = client.put('/schedule-task/abortme?user=Babar',
                          upload_files=[('input_file', 'input.xml', b'the file', 'text/xml')])
         tid = int(res.body)
         t = Task.byid(engine, tid)
@@ -90,7 +90,7 @@ def test_task_life_cycle(engine, client, refresh):
     with workers(engine):
         tasks = []
         for user in ('Babar', 'Babar', 'Celeste'):
-            res = client.put('/new_job/good_job?user={}'.format(user),
+            res = client.put('/schedule-task/good_job?user={}'.format(user),
                              upload_files=[('input_file', 'input.xml', b'the file', 'text/xml')]
             )
             tid = int(res.body)
@@ -105,7 +105,7 @@ def test_task_life_cycle(engine, client, refresh):
 
             tasks.append(t1)
 
-        res = client.put('/new_job/bad_job?user=Celeste',
+        res = client.put('/schedule-task/bad_job?user=Celeste',
                          upload_files=[('input_file', 'input.xml', b'the file', 'text/xml')]
         )
         tid = int(res.body)

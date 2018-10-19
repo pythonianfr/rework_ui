@@ -45,7 +45,7 @@ function refresh_section(section) {
 
 
 function start_job(operation, form) {
-    fetch(`new_job/${operation}?user=WEBUI`,
+    fetch(`schedule-task/${operation}?user=WEBUI`,
           {method: 'PUT', body: new FormData(form), credentials: 'same-origin'})
     refresh_section('services')
 }
