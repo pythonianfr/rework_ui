@@ -21,7 +21,13 @@ def view(db_uri):
     server.daemon = True
     server.start()
 
-    webbrowser.open('http://{ipaddr}:{port}'.format(ipaddr=ipaddr, port=port))
+    browser = webbrowser.open(
+        'http://{ipaddr}:{port}'.format(ipaddr=ipaddr, port=port)
+    )
+    if not browser:  # no DISPLAY
+        print('You can point your browser to http://{ipaddr}:{port}'.format(
+            ipaddr=ipaddr, port=port)
+        )
     input()
 
 
