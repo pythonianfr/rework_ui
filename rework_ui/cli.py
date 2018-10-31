@@ -5,7 +5,7 @@ import webbrowser
 import click
 from sqlalchemy import create_engine
 
-from rework import schema as baseschema
+from rework import schema as baseschema, helper
 from rework_ui.app import startapp
 from rework_ui import schema, taskstable
 
@@ -14,7 +14,7 @@ from rework_ui import schema, taskstable
 @click.argument('db-uri')
 def view(db_uri):
     """monitor and control workers and tasks"""
-    ipaddr = socket.gethostbyname(socket.gethostname())
+    ipaddr = helper.host()
     port = 5679
     server = Thread(name='reworkui.webapp', target=startapp,
                     kwargs={'host': ipaddr, 'port': port, 'dburi': db_uri})
