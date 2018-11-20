@@ -6,6 +6,7 @@ import click
 from sqlalchemy import create_engine
 
 from rework import schema as baseschema, helper
+from rework.helper import find_dburi
 from rework_ui.app import startapp
 from rework_ui import schema, taskstable
 
@@ -35,7 +36,7 @@ def view(db_uri):
 @click.argument('dburi')
 def init_db(dburi):
     "initialize the database schema for rework in its own namespace"
-    engine = create_engine(dburi)
+    engine = create_engine(find_dburi(dburi))
     baseschema.reset(engine)
     baseschema.init(engine)
     schema.init(engine)
@@ -47,6 +48,5 @@ def init_db(dburi):
 @click.option('--period', type=int, default=2)
 def generate_tasks_table(dburi, loop=False, period=2):
     """fill (periodically if needed) the tasks table used by the tasks view"""
-
-    engine = create_engine(dburi)
+    engine = create_engine(find_dburi(dburi))
     taskstable.refresh_tasks_file(engine, loop=loop, sleeptime=period)
