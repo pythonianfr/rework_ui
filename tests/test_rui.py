@@ -163,7 +163,7 @@ def test_tasks_table(engine, client, refresh):
             '<br>\n'
             '<table class="table table-sm table-bordered table-striped table-hover">\n'
             '<thead class="thead-inverse"><tr><th>#</th><th>service</th><th>domain</th>'
-            '<th>created</th><th>finished</th>'
+            '<th>queued</th><th>started</th><th>finished</th>'
             '<th>user</th><th>worker</th><th>status</th><th>action</th></tr></thead>\n</table>'
         )
 

@@ -107,7 +107,8 @@ def generate_tasks_table(engine, taskstates):
                 r.th('#')
                 r.th('service')
                 r.th('domain')
-                r.th('created')
+                r.th('queued')
+                r.th('started')
                 r.th('finished')
                 r.th('user')
                 r.th('worker')
@@ -133,7 +134,12 @@ def generate_tasks_table(engine, taskstates):
                                  href='taskerror/{}'.format(row.id))
 
                 r.td(row.domain)
-                r.td(job._propvalue('created').strftime('%Y-%m-%d %H:%M:%S'))
+                r.td(job._propvalue('queued').strftime('%Y-%m-%d %H:%M:%S'))
+                started = job._propvalue('started')
+                if started is None:
+                    r.td('')
+                else:
+                    r.td(started.strftime('%Y-%m-%d %H:%M:%S'))
                 finished = job._propvalue('finished')
                 if finished is None:
                     r.td('')
