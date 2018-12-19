@@ -219,7 +219,8 @@ def reworkui(engine,
     def list_workers():
         # workers
         sql = select([worker.c.id, worker.c.host, worker.c.domain, worker.c.pid,
-                      worker.c.mem, worker.c.shutdown, worker.c.kill, worker.c.debugport]
+                      worker.c.mem, worker.c.shutdown, worker.c.kill,
+                      worker.c.debugport, worker.c.started]
         ).order_by(worker.c.id
         ).where(worker.c.running == True)
         domain = uiargsdict(request.args).domain
@@ -269,14 +270,18 @@ def reworkui(engine,
                     r.th('domain')
                     r.th('memory (Mb)')
                     r.th('debug port')
+                    r.th('started')
                     r.th('action')
-            for wid, host, domain, pid, mem, shutdown, kill, debugport in workers:
+            for wid, host, domain, pid, mem, shutdown, kill, debugport, started in workers:
                 with t.tr() as r:
                     r.th(str(wid), scope='row')
                     r.td('{}@{}'.format(pid, host))
                     r.td(domain)
                     r.td(str(mem))
                     r.td(debugport and str(debugport) or '')
+                    if started:
+                        started = started.astimezone(TZ).strftime('%Y-%m-%d %H:%M:%S%z')
+                    r.td(started or '')
                     with r.td() as col:
                         with col.button() as b:
                             if shutdown:
