@@ -14,6 +14,12 @@ DATADIR = Path(__file__).parent / 'data'
 
 # html editor
 
+def normalize(htmlstr):
+    tree = etree.fromstring(htmlstr, parser=etree.HTMLParser())
+    return etree.tostring(tree.getroottree(),
+                          pretty_print=True, method='html')
+
+
 def edittag(tag, editor, anstr):
     if isinstance(tag, str):
         tags = [tag]
@@ -146,6 +152,30 @@ def test_task_life_cycle(engine, client, refresh):
         assert html == refpath.read_bytes()
 
 
+def test_monitors_table(engine, client, refresh):
+    with engine.begin() as cn:
+        cn.execute('delete from rework.monitor')
+        cn.execute('delete from rework.worker')
+
+
+    with workers(engine):
+        res = client.get('/workers-table')
+        html = normalize(scrub(res.text))
+        refpath = DATADIR / 'monitors-table.html'
+        if refresh:
+            refpath.write_bytes(html)
+        assert html == refpath.read_bytes()
+
+        t = api.schedule(engine, 'abortme')
+        t.join('running')
+        res = client.get('/workers-table')
+        html = normalize(scrub(res.text))
+        refpath = DATADIR / 'monitors-table-1-task.html'
+        if refresh:
+            refpath.write_bytes(html)
+        assert html == refpath.read_bytes()
+
+
 def test_tasks_table(engine, client, refresh):
     with engine.begin() as cn:
         cn.execute('delete from rework.task')
@@ -213,7 +243,7 @@ def test_tasks_table(engine, client, refresh):
         t.join()
         taskstable.refresh_tasks_file(engine)
         res = client.get('/tasks-table-hash?domain=uranus')
-        assert res.text == '98cc14b1de9bdd660aaa61f8b2ac4144'
+        assert res.text == 'cbcf36e551ad8fdc0aef16fbefd7c6be'
         res = client.get('/tasks-table?domain=uranus')
         refpath = DATADIR / 'tasks-table-uranus.html'
         if refresh:
