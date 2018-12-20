@@ -1,7 +1,6 @@
 import io
 import base64
 import json
-from datetime import datetime
 
 import tzlocal
 from flask import (
@@ -23,6 +22,7 @@ from pygments.lexers import PythonTracebackLexer
 from pygments.formatters import HtmlFormatter
 
 from rework import api
+from rework.helper import utcnow
 from rework.schema import task, worker, operation, monitor
 from rework.task import Task
 
@@ -235,7 +235,7 @@ def reworkui(engine,
             sql = sql.where(monitor.c.domain == domain)
 
         monitors = {row.domain: row for row in engine.execute(sql).fetchall()}
-        now = TZ.localize(datetime.utcnow())
+        now = utcnow().astimezone(TZ)
 
         h = HTML()
         h.br()
