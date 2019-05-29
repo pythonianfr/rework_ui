@@ -1,23 +1,12 @@
-from sqlalchemy import Table, Column, Integer, String
+from pathlib import Path
 
-from rework.schema import meta
+from sqlhelp import sqlfile
 
 
-taskstable = Table(
-    'taskstable', meta,
-    Column('id', Integer, primary_key=True),
-    Column('domain', String, default='default', index=True),
-    Column('hash', String, nullable=False, index=True),
-    Column('content', String, nullable=False),
-    schema='rework'
-)
+SCHEMAFILE = Path(__file__).parent / 'schema.sql'
 
 
 def init(engine):
+    sql = sqlfile(SCHEMAFILE, ns='rework')
     with engine.begin() as cn:
-        taskstable.create(cn)
-
-
-def reset(engine):
-    with engine.begin() as cn:
-        taskstable.drop(cn, checkfirst=True)
+        cn.execute(sql)

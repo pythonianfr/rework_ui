@@ -4,25 +4,18 @@ from time import sleep
 from pkg_resources import iter_entry_points
 
 from pml import HTML
-from sqlalchemy import select, desc
-
+from sqlhelp import select, insert
 from rework.task import Task
-from rework.schema import task, operation
-
-from rework_ui.schema import taskstable
 
 
 def latest_table_hash(engine, domain):
-    sql = select(
-        [taskstable.c.hash]
-    ).order_by(
-        desc(taskstable.c.id)
-    ).limit(
-        1
-    ).where(
-        taskstable.c.domain == domain
-    )
-    return engine.execute(sql).scalar()
+    q = select(
+        'hash'
+    ).table('rework.taskstable'
+    ).order('hash'
+    ).limit(1
+    ).where(domain=domain)
+    return q.do(engine).scalar()
 
 
 def refresh_tasks(engine, inithash, domain):
@@ -30,22 +23,20 @@ def refresh_tasks(engine, inithash, domain):
     thash = md5(str(taskstates).encode('ascii')).hexdigest()
     if thash != inithash:
         htmltable = generate_tasks_table(engine, taskstates)
-        sql = taskstable.insert().values(
+        q = insert('rework.taskstable').values(
             hash=thash,
             domain=domain,
             content=htmltable
         )
         with engine.begin() as cn:
-            cn.execute(sql)
+            q.do(cn)
         inithash = thash
         # cleanup old tables
-        sql = taskstable.delete().where(
-            taskstable.c.hash != thash
-        ).where(
-            taskstable.c.domain == domain
-        )
+        sql = ('delete from rework.taskstable '
+               'where hash != %(hash)s '
+               'and   domain = %(domain)s')
         with engine.begin() as cn:
-            cn.execute(sql)
+            cn.execute(sql, hash=thash, domain=domain)
     return inithash
 
 
@@ -76,15 +67,14 @@ def refresh_tasks_file(engine, loop=False, sleeptime=2):
 
 def tasks_info(engine, domain):
     with engine.begin() as cn:
-        sql = select(
-            [task.c.id, task.c.status, operation.c.domain]
-        ).order_by(desc(task.c.id)
-        ).where(task.c.operation == operation.c.id)
+        q = select(
+            't.id', 't.status', 'op.domain'
+        ).table('rework.task as t'
+        ).join('rework.operation as op on (op.id = t.operation)'
+        ).order('t.id', 'desc')
         if domain != 'all':
-            sql = sql.where(
-                operation.c.domain == domain
-            )
-        return cn.execute(sql).fetchall()
+            q.where(domain=domain)
+        return q.do(cn).fetchall()
 
 
 MORE_TASKS_ACTIONS = set()

@@ -14,16 +14,14 @@ from flask import (
     url_for
 )
 
-from sqlalchemy import select
-
 from pml import HTML
 from pygments import highlight
 from pygments.lexers import PythonTracebackLexer
 from pygments.formatters import HtmlFormatter
 
+from sqlhelp import select, update
 from rework import api
 from rework.helper import utcnow
-from rework.schema import task, worker, operation, monitor
 from rework.task import Task
 
 from rework_ui.helper import argsdict
@@ -114,17 +112,21 @@ def reworkui(engine,
         if t is None:
             return json.dumps(0)
 
-        servicename, hostid, domain = engine.execute(
-            select([operation.c.name, operation.c.host, operation.c.domain]
-            ).where(operation.c.id == task.c.operation
-            ).where(task.c.id == t.tid)
-        ).fetchone()
+        op = select(
+            'name', 'host', 'domain'
+        ).table(
+            'rework.operation'
+        ).join(
+            'rework.task as task on (task.operation = operation.id)'
+        ).where(
+            'task.id = %(tid)s', tid=t.tid
+        ).do(engine).fetchone()
 
         newtask = api.schedule(engine,
-                               servicename,
+                               op.name,
                                rawinputdata=t.raw_input,
-                               domain=domain,
-                               hostid=hostid,
+                               domain=op.domain,
+                               hostid=op.host,
                                metadata=t.metadata)
         return json.dumps(newtask.tid)
 
@@ -199,15 +201,17 @@ def reworkui(engine,
     @bp.route('/shutdown-worker/<wid>')
     def shutdown_worker(wid):
         with engine.begin() as cn:
-            cn.execute(worker.update().where(worker.c.id == wid
-            ).values(shutdown=True))
+            update('rework.worker').where(id=wid).values(
+                shutdown=True
+            ).do(cn)
         return json.dumps(True)
 
     @bp.route('/kill-worker/<wid>')
     def kill_worker(wid):
         with engine.begin() as cn:
-            cn.execute(worker.update().where(worker.c.id == wid
-            ).values(kill=True))
+            update('rework.worker').where(id=wid).values(
+                kill=True
+            ).do(cn)
         return json.dumps(True)
 
     class uiargsdict(argsdict):
@@ -218,23 +222,30 @@ def reworkui(engine,
     @bp.route('/workers-table')
     def list_workers():
         # workers
-        sql = select([worker.c.id, worker.c.host, worker.c.domain, worker.c.pid,
-                      worker.c.mem, worker.c.shutdown, worker.c.kill,
-                      worker.c.debugport, worker.c.started]
-        ).order_by(worker.c.id
-        ).where(worker.c.running == True)
+        q = select(
+            'id', 'host', 'domain', 'pid', 'mem', 'shutdown',
+            'kill', 'debugport', 'started'
+        ).table('rework.worker'
+        ).where('running = true'
+        ).order('id')
+
         domain = uiargsdict(request.args).domain
         if domain != 'all':
-            sql = sql.where(worker.c.domain == domain)
+            q.where(domain=domain)
 
-        workers = engine.execute(sql).fetchall()
+        workers = q.do(engine).fetchall()
 
         # monitors
-        sql = select([monitor.c.id, monitor.c.domain, monitor.c.lastseen, monitor.c.options])
+        q = select(
+            'id', 'domain', 'lastseen', 'options'
+        ).table('rework.monitor')
         if domain != 'all':
-            sql = sql.where(monitor.c.domain == domain)
+            q.where(domain=domain)
 
-        monitors = {row.domain: row for row in engine.execute(sql).fetchall()}
+        monitors = {
+            row.domain: row
+            for row in q.do(engine).fetchall()
+        }
         now = utcnow().astimezone(TZ)
 
         h = HTML()
@@ -364,13 +375,14 @@ def reworkui(engine,
     @bp.route('/services-table')
     def list_services():
         args = uiargsdict(request.args)
-        sql = select([operation.c.id, operation.c.host, operation.c.name,
-                      operation.c.path, operation.c.domain]
-        ).order_by(operation.c.domain, operation.c.name)
+        q = select(
+            'id', 'host', 'name', 'path', 'domain'
+        ).table('rework.operation'
+        ).order('domain, name')
         if args.domain != 'all':
-            sql = sql.where(operation.c.domain == args.domain)
+            q.where(domain=args.domain)
 
-        ops = engine.execute(sql)
+        ops = q.do(engine)
         h = HTML()
         h.br()
         with h.table(klass='table table-sm table-bordered table-striped table-hover') as t:

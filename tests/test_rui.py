@@ -92,6 +92,19 @@ def test_abort(engine, client):
         assert t.aborted
 
 
+def test_relaunch(engine, client):
+    with workers(engine) as mon:
+        res = client.put('/schedule-task/good_job?user=Babar',
+                         upload_files=[('input_file', 'input.xml', b'the file', 'text/xml')])
+        tid = int(res.body)
+        t = Task.byid(engine, tid)
+        t.join()
+        res = client.put(f'/relaunch-task/{tid}')
+        newtid = int(res.body)
+        t2 = Task.byid(engine, newtid)
+        t2.join()
+
+
 def test_task_life_cycle(engine, client, refresh):
     with workers(engine):
         tasks = []
@@ -243,7 +256,7 @@ def test_tasks_table(engine, client, refresh):
         t.join()
         taskstable.refresh_tasks_file(engine)
         res = client.get('/tasks-table-hash?domain=uranus')
-        assert res.text == 'cbcf36e551ad8fdc0aef16fbefd7c6be'
+        assert res.text == '05265be5adad9bb8b0ee50f837535cfa'
         res = client.get('/tasks-table?domain=uranus')
         refpath = DATADIR / 'tasks-table-uranus.html'
         if refresh:
