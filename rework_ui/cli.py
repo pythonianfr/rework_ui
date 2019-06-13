@@ -37,8 +37,7 @@ def view(db_uri):
 def init_db(dburi):
     "initialize the database schema for rework in its own namespace"
     engine = create_engine(find_dburi(dburi))
-    baseschema.reset(engine)
-    baseschema.init(engine)
+    baseschema.init(engine, drop=True)
     schema.init(engine)
 
 
