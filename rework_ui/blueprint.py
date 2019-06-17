@@ -290,7 +290,7 @@ def reworkui(engine,
                     r.td('{}@{}'.format(pid, host))
                     r.td(domain)
                     r.td(str(mem))
-                    r.td(str(cpu))
+                    r.td(str(cpu / 100.))
                     r.td(debugport and str(debugport) or '')
                     if started:
                         started = started.astimezone(TZ).strftime('%Y-%m-%d %H:%M:%S%z')
