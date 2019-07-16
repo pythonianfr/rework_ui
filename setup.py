@@ -2,7 +2,7 @@ from setuptools import setup
 
 
 setup(name='rework_ui',
-      version='0.5.0',
+      version='0.6.0',
       author='Aurelien Campeas',
       author_email='aurelien.campeas@pythonian.fr',
       description='A web ui for the rework distributed task dispatcher',
@@ -29,7 +29,6 @@ setup(name='rework_ui',
           'Intended Audience :: Developers',
           'License :: OSI Approved :: GNU Lesser General Public License v3 (LGPLv3)',
           'Operating System :: OS Independent',
-          'Programming Language :: Python :: 2',
           'Programming Language :: Python :: 3',
           'Environment :: Web Environment',
           'Topic :: System :: Distributed Computing',
