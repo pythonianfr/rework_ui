@@ -2,10 +2,13 @@ from hashlib import md5
 from time import sleep
 
 from pkg_resources import iter_entry_points
+import tzlocal
 
 from pml import HTML
 from sqlhelp import select, insert
 from rework.task import Task
+
+TZ = tzlocal.get_localzone()
 
 
 def latest_table_hash(engine, domain):
@@ -124,17 +127,17 @@ def generate_tasks_table(engine, taskstates):
                                  href='taskerror/{}'.format(row.id))
 
                 r.td(row.domain)
-                r.td(job._propvalue('queued').strftime('%Y-%m-%d %H:%M:%S'))
+                r.td(job._propvalue('queued').astimezone(TZ).strftime('%Y-%m-%d %H:%M:%S%z'))
                 started = job._propvalue('started')
                 if started is None:
                     r.td('')
                 else:
-                    r.td(started.strftime('%Y-%m-%d %H:%M:%S'))
+                    r.td(started.astimezone(TZ).strftime('%Y-%m-%d %H:%M:%S%z'))
                 finished = job._propvalue('finished')
                 if finished is None:
                     r.td('')
                 else:
-                    r.td(finished.strftime('%Y-%m-%d %H:%M:%S'))
+                    r.td(finished.astimezone(TZ).strftime('%Y-%m-%d %H:%M:%S%z'))
 
                 # user plus maybe run name
                 meta = job.metadata
