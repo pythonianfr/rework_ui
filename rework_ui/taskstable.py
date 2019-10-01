@@ -154,6 +154,8 @@ def generate_tasks_table(engine, taskstates):
                 stateattrs = {'klass': state}
                 if state == 'failed':
                     stateattrs['title'] = job.traceback
+                else:
+                    stateattrs['title'] = job.deathinfo or ''
                 r.td(state, **stateattrs)
 
                 with r.td() as col:
