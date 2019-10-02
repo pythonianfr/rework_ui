@@ -109,16 +109,33 @@ def generate_tasks_table(engine, taskstates):
                 r.th('action')
         for row in taskstates:
             job = Task.byid(engine, row.id)
+            if job is None:  # deleted
+                continue
+            try:
+                tid = job.tid
+                operation = job.operation
+                traceback = job.traceback
+                queued = job._propvalue('queued')
+                started = job._propvalue('started')
+                finished = job._propvalue('finished')
+                meta = job.metadata
+                worker = job._propvalue('worker')
+                state = job.state
+                deathinfo = job.deathinfo
+            except Exception as e:
+                print(e)
+                continue
+
             with t.tr() as r:
-                r.th(str(job.tid), scope='row')
+                r.th(str(tid), scope='row')
 
                 with r.td() as col:
                     with col.span() as sp:
-                        sp.a(ops[job.operation],
+                        sp.a(ops[operation],
                              title='show the tasks log (if any)',
                              target='_blank',
                              href='tasklogs/{}'.format(row.id))
-                    if job.traceback:
+                    if traceback:
                         with col.span() as sp:
                             sp(' ')
                             sp.a('[traceback]',
@@ -127,52 +144,47 @@ def generate_tasks_table(engine, taskstates):
                                  href='taskerror/{}'.format(row.id))
 
                 r.td(row.domain)
-                r.td(job._propvalue('queued').astimezone(TZ).strftime('%Y-%m-%d %H:%M:%S%z'))
-                started = job._propvalue('started')
+                r.td(queued.astimezone(TZ).strftime('%Y-%m-%d %H:%M:%S%z'))
                 if started is None:
                     r.td('')
                 else:
                     r.td(started.astimezone(TZ).strftime('%Y-%m-%d %H:%M:%S%z'))
-                finished = job._propvalue('finished')
                 if finished is None:
                     r.td('')
                 else:
                     r.td(finished.astimezone(TZ).strftime('%Y-%m-%d %H:%M:%S%z'))
 
                 # user plus maybe run name
-                meta = job.metadata
                 user = meta.get('user', '<unknown>')
                 run_name = meta.get('options', {}).get('run_name', None)
                 if run_name:
                     user = '{} [{}]'.format(user, run_name)
                 r.td(user)
 
-                worker = job._propvalue('worker')
                 r.td('#{}'.format(worker or ''))
 
-                state = job.state
                 stateattrs = {'klass': state}
                 if state == 'failed':
-                    stateattrs['title'] = job.traceback
+                    stateattrs['title'] = traceback
                 else:
-                    stateattrs['title'] = job.deathinfo or ''
+                    stateattrs['title'] = deathinfo or ''
                 r.td(state, **stateattrs)
 
                 with r.td() as col:
                     with col.button() as b:
                         if state == 'running':
                             b('abort', type='button', klass='btn btn-danger btn-sm',
-                              onclick='abort_task({})'.format(job.tid))
+                              onclick='abort_task({})'.format(tid))
                         elif state == 'aborting':
                             b('wait', klass='btn glyphicon glyphicon-ban-circle')
                         else:
                             b('delete', type='button', klass='btn btn-warning btn-sm',
-                              onclick='delete_task({})'.format(job.tid))
+                              onclick='delete_task({})'.format(tid))
                     if row.status == 'done':
                         col.span(' ')
                         with col.button() as b:
                             b('relaunch', type='button', klass='btn btn-primary btn-sm',
-                              onclick='relaunch_task({})'.format(job.tid))
+                              onclick='relaunch_task({})'.format(tid))
                     for action in MORE_TASKS_ACTIONS:
                         action(col, job, state, ops)
 
