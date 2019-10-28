@@ -1,4 +1,8 @@
+from pathlib import Path
 from setuptools import setup
+
+
+doc = Path(__file__).parent / 'README.md'
 
 
 setup(name='rework_ui',
@@ -6,7 +10,10 @@ setup(name='rework_ui',
       author='Aurelien Campeas',
       author_email='aurelien.campeas@pythonian.fr',
       description='A web ui for the rework distributed task dispatcher',
+      long_description=doc.read_text(),
+      long_description_content_type='text/markdown',
       url='https://bitbucket.org/pythonian/rework_ui',
+
       packages=['rework_ui'],
       zip_safe=False,
       install_requires=[
