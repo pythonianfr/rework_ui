@@ -2,7 +2,7 @@ from setuptools import setup
 
 
 setup(name='rework_ui',
-      version='0.6.0',
+      version='0.7.0',
       author='Aurelien Campeas',
       author_email='aurelien.campeas@pythonian.fr',
       description='A web ui for the rework distributed task dispatcher',
@@ -17,7 +17,8 @@ setup(name='rework_ui',
       ],
       package_data={'rework_ui': [
           'rui_static/*',
-          'rui_templates/*'
+          'rui_templates/*',
+          'schema.sql'
       ]},
       entry_points={'rework.subcommands': [
           'view=rework_ui.cli:view',
