@@ -88,11 +88,15 @@ def initialdomain(domains):
 
 def reworkui(engine,
              serviceactions=None,
-             alttemplate=None):
+             alttemplate=None,
+             has_permission=lambda perm: True):
 
     @bp.route('/schedule-task/<service>', methods=['PUT'])
     @bp.route('/new_job/<service>', methods=['PUT'])  # bw compat
     def schedule_task(service):
+        if not has_permission('schedule'):
+            return json.dumps(-1)
+
         args = argsdict()
         args.update(argsdict(request.form))
         args.update(argsdict(request.args))
@@ -108,6 +112,9 @@ def reworkui(engine,
 
     @bp.route('/relaunch-task/<int:tid>', methods=['PUT'])
     def relaunch_task(tid):
+        if not has_permission('relaunch'):
+            return json.dumps(0)
+
         t = Task.byid(engine, tid)
         if t is None:
             return json.dumps(0)
@@ -132,6 +139,9 @@ def reworkui(engine,
 
     @bp.route('/job_input/<jobid>')
     def job_input(jobid):
+        if not has_permission('read'):
+            abort(403, 'Nothing to see there.')
+
         job = getjob(engine, jobid)
         if job is None:
             abort(404, 'no such job')
@@ -142,6 +152,9 @@ def reworkui(engine,
 
     @bp.route('/job_results/<jobid>')
     def job_results(jobid):
+        if not has_permission('read'):
+            abort(403, 'Nothing to see there.')
+
         job = getjob(engine, jobid)
         if job is None:
             abort(404, 'NO SUCH JOB')
@@ -159,6 +172,9 @@ def reworkui(engine,
 
     @bp.route('/job_status/<jobid>')
     def job_status(jobid):
+        if not has_permission('read'):
+            abort(403, 'Nothing to see there.')
+
         job = getjob(engine, jobid)
 
         if job is None:
@@ -168,6 +184,9 @@ def reworkui(engine,
 
     @bp.route('/job_logslice/<jobid>')
     def job_logslice(jobid):
+        if not has_permission('read'):
+            abort(403, 'Nothing to see there.')
+
         job = getjob(engine, jobid)
 
         if job is None:
@@ -179,6 +198,9 @@ def reworkui(engine,
 
     @bp.route('/list_jobs')
     def list_jobs():
+        if not has_permission('read'):
+            abort(403, 'Nothing to see there.')
+
         with engine.begin() as cn:
             tsql = 'select id from rework.task order by id'
             jobids = cn.execute(tsql).fetchall()
@@ -200,6 +222,9 @@ def reworkui(engine,
 
     @bp.route('/shutdown-worker/<wid>')
     def shutdown_worker(wid):
+        if not has_permission('shutdown'):
+            abort(403, 'You cannoy do that.')
+
         with engine.begin() as cn:
             update('rework.worker').where(id=wid).values(
                 shutdown=True
@@ -208,6 +233,9 @@ def reworkui(engine,
 
     @bp.route('/kill-worker/<wid>')
     def kill_worker(wid):
+        if not has_permission('kill'):
+            abort(403, 'You cannoy do that.')
+
         with engine.begin() as cn:
             update('rework.worker').where(id=wid).values(
                 kill=True
@@ -221,6 +249,9 @@ def reworkui(engine,
 
     @bp.route('/workers-table')
     def list_workers():
+        if not has_permission('read'):
+            abort(403, 'Nothing to see there.')
+
         # workers
         q = select(
             'id', 'host', 'domain', 'pid', 'mem', 'cpu',
@@ -314,6 +345,9 @@ def reworkui(engine,
 
     @bp.route('/delete-task/<tid>')
     def delete_task(tid):
+        if not has_permission('delete'):
+            abort(403, 'You cannot do that.')
+
         with engine.begin() as cn:
             cn.execute("delete from rework.task where id = %(tid)s and status != 'running'",
                        tid=tid)
@@ -321,6 +355,10 @@ def reworkui(engine,
 
     @bp.route('/abort-task/<tid>')
     def abort_task(tid):
+        if not has_permission('abort'):
+            abort(403, 'You cannoy do that.')
+            return
+
         t = Task.byid(engine, tid)
         if t is None:
             abort(404, 'NO SUCH JOB')
@@ -333,6 +371,9 @@ def reworkui(engine,
 
     @bp.route('/taskerror/<int:taskid>')
     def taskerror(taskid):
+        if not has_permission('read'):
+            abort(403, 'Nothing to see there.')
+
         job = getjob(engine, taskid)
         if job is None:
             abort(404, 'job does not exists')
@@ -350,12 +391,18 @@ def reworkui(engine,
 
     @bp.route('/tasks-table-hash')
     def tasks_table_hash():
+        if not has_permission('read'):
+            return 'no-hash-yet'
+
         args = uiargsdict(request.args)
         thash = taskstable.latest_table_hash(engine, args.domain)
         return thash or 'no-hash-yet'
 
     @bp.route('/tasks-table')
     def list_tasks():
+        if not has_permission('read'):
+            abort(403, 'Nothing to see there.')
+
         args = uiargsdict(request.args)
         content = engine.execute('select content from rework.taskstable '
                                  'where domain = %(domain)s '
@@ -368,6 +415,9 @@ def reworkui(engine,
 
     @bp.route('/tasklogs/<int:taskid>')
     def tasklogs(taskid):
+        if not has_permission('read'):
+            abort(403, 'Nothing to see there.')
+
         return render_template(
             'tasklogs.html',
             tid=taskid,
@@ -376,6 +426,9 @@ def reworkui(engine,
 
     @bp.route('/services-table')
     def list_services():
+        if not has_permission('read'):
+            abort(403, 'Nothing to see there.')
+
         args = uiargsdict(request.args)
         q = select(
             'id', 'host', 'name', 'path', 'domain'
@@ -414,6 +467,9 @@ def reworkui(engine,
 
     @bp.route('/')
     def home():
+        if not has_permission('read'):
+            abort(403, 'Nothing to see there.')
+
         domains = alldomains(engine)
         if not len(domains):
             return 'No operation registered: nothing to see here'
