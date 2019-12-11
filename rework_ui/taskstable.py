@@ -1,3 +1,5 @@
+import threading
+import logging
 from hashlib import md5
 from time import sleep
 
@@ -88,9 +90,80 @@ def add_plugin_actions():
 add_plugin_actions()
 
 
+def threadpool(maxthreads):
+    L = logging.getLogger('parallel')
+
+    def run(func, argslist):
+        count = 0
+        threads = []
+        L.debug('// run %s %s', func.__name__, len(argslist))
+
+        # initial threads
+        for count, args in enumerate(argslist, start=1):
+            th = threading.Thread(target=func, args=args)
+            threads.append(th)
+            L.debug('// start thread %s', th.name)
+            th.daemon = True
+            th.start()
+            if count == maxthreads:
+                break
+
+        while threads:
+            for th in threads[:]:
+                th.join(1. / maxthreads)
+                if not th.is_alive():
+                    threads.remove(th)
+                    L.debug('// thread %s exited, %s remaining', th.name, len(threads))
+                    if count < len(argslist):
+                        newth = threading.Thread(target=func, args=argslist[count])
+                        threads.append(newth)
+                        L.debug('// thread %s started', newth.name)
+                        newth.daemon = True
+                        newth.start()
+                        count += 1
+
+    return run
+
+
 def generate_tasks_table(engine, taskstates):
     opsql = 'select id, name from rework.operation'
     ops = dict(engine.execute(opsql).fetchall())
+
+    # build all data from the db first
+    rows = []
+    def buildrow(id, domain, status):
+        job = Task.byid(engine, id)
+        if job is None:  # deleted
+            return
+        try:
+            tid = job.tid
+            operation = job.operation
+            traceback = job.traceback
+            queued = job._propvalue('queued')
+            started = job._propvalue('started')
+            finished = job._propvalue('finished')
+            meta = job.metadata
+            worker = job._propvalue('worker')
+            state = job.state
+            deathinfo = job.deathinfo
+        except Exception as e:
+            print(e)
+            return
+        rows.append(
+            (tid, domain, status, operation, traceback,
+             queued, started, finished,
+             meta, worker, state, deathinfo)
+        )
+
+    poolrun = threadpool(24)
+    poolrun(
+        buildrow,
+        [
+            (row.id, row.domain, row.status)
+            for row in taskstates
+        ]
+    )
+    rows.sort(reverse=True)
 
     h = HTML()
     h.br()
@@ -107,24 +180,9 @@ def generate_tasks_table(engine, taskstates):
                 r.th('worker')
                 r.th('status')
                 r.th('action')
-        for row in taskstates:
-            job = Task.byid(engine, row.id)
-            if job is None:  # deleted
-                continue
-            try:
-                tid = job.tid
-                operation = job.operation
-                traceback = job.traceback
-                queued = job._propvalue('queued')
-                started = job._propvalue('started')
-                finished = job._propvalue('finished')
-                meta = job.metadata
-                worker = job._propvalue('worker')
-                state = job.state
-                deathinfo = job.deathinfo
-            except Exception as e:
-                print(e)
-                continue
+        for (tid, domain, status, operation, traceback,
+             queued, started, finished, meta, worker,
+             state, deathinfo) in rows:
 
             with t.tr() as r:
                 r.th(str(tid), scope='row')
@@ -134,16 +192,16 @@ def generate_tasks_table(engine, taskstates):
                         sp.a(ops[operation],
                              title='show the tasks log (if any)',
                              target='_blank',
-                             href='tasklogs/{}'.format(row.id))
+                             href='tasklogs/{}'.format(tid))
                     if traceback:
                         with col.span() as sp:
                             sp(' ')
                             sp.a('[traceback]',
                                  title='show the error',
                                  target='_blank',
-                                 href='taskerror/{}'.format(row.id))
+                                 href='taskerror/{}'.format(tid))
 
-                r.td(row.domain)
+                r.td(domain)
                 r.td(queued.astimezone(TZ).strftime('%Y-%m-%d %H:%M:%S%z'))
                 if started is None:
                     r.td('')
@@ -180,12 +238,12 @@ def generate_tasks_table(engine, taskstates):
                         else:
                             b('delete', type='button', klass='btn btn-warning btn-sm',
                               onclick='delete_task({})'.format(tid))
-                    if row.status == 'done':
+                    if status == 'done':
                         col.span(' ')
                         with col.button() as b:
                             b('relaunch', type='button', klass='btn btn-primary btn-sm',
                               onclick='relaunch_task({})'.format(tid))
                     for action in MORE_TASKS_ACTIONS:
-                        action(col, job, state, ops)
+                        action(col, tid, operation, state, ops)
 
     return str(h)
