@@ -1,6 +1,6 @@
 from warnings import warn
 
-from werkzeug import ImmutableMultiDict
+from werkzeug.datastructures import ImmutableMultiDict
 
 
 class dictobj(dict):

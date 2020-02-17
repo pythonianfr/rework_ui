@@ -19,6 +19,7 @@ setup(name='rework_ui',
       install_requires=[
           'rework',
           'flask',
+          'werkzeug >= 1.0.0',
           'pml',
           'sqlalchemy',
       ],
