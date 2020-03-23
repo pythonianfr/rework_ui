@@ -29,8 +29,7 @@ setup(name='rework_ui',
       ]},
       entry_points={'rework.subcommands': [
           'view=rework_ui.cli:view',
-          'init-db=rework_ui.cli:init_db',
-          'generate-tasks-table=rework_ui.cli:generate_tasks_table'
+          'init-db=rework_ui.cli:init_db'
       ]},
       classifiers=[
           'Development Status :: 4 - Beta',

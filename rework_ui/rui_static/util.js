@@ -8,22 +8,22 @@ function append(domid, html) {
  }
 
 
-function update(domid, html) {
-    const elt = document.getElementById(domid)
-    elt.innerHTML = html
-}
-
-function refresh_tasks() {
-    fetch(`tasks-table-hash?domain=${domain}`, {credentials: 'same-origin'}).then(
-        resp => resp.text()
-    ).then(
-        newhash => {
-            if (newhash != hash) {
-                hash = newhash
-                refresh_section('tasks')
-            }
-        }
-    )
+function update(section, input) {
+    const elt = document.getElementById(section)
+    if (section != 'tasks') {
+        elt.innerHTML = input
+    } else {
+        let html = []
+        JSON.parse(input).forEach(item => {
+            html.push(
+                `<tr> id=${item.tid} status=${item.status} abort=${item.abort} domain=${item.domain} operation=${item.operation} queued=${item.queued} started=${item.started} finished=${item.finished} metadata=${item.metadata} deathinfo=${item.deathinfo} traceback=${item.traceback}
+</tr>`)
+        })
+        let all = html.join('<br>')
+        console.log(all)
+        console.log(elt)
+        elt.innterHTML = `<table>${all}</table>`
+    }
 }
 
 

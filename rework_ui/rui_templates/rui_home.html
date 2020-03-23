@@ -40,7 +40,7 @@
  document.onreadystatechange = function () {
      if (document.readyState == 'complete') {
          refresh_section('tasks')
-         refresher = setInterval(() => refresh_tasks(), 1000)
+         refresher = setInterval(() => refresh_section('tasks'), 1000)
      }
  }
 

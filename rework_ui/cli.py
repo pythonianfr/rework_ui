@@ -8,7 +8,7 @@ from sqlalchemy import create_engine
 from rework import schema as baseschema, helper
 from rework.helper import find_dburi
 from rework_ui.app import startapp
-from rework_ui import schema, taskstable
+from rework_ui import schema
 
 
 @click.command()
@@ -39,13 +39,3 @@ def init_db(dburi):
     engine = create_engine(find_dburi(dburi))
     baseschema.init(engine, drop=True)
     schema.init(engine)
-
-
-@click.command(name='generate-tasks-table')
-@click.argument('dburi')
-@click.option('--loop', is_flag=True, default=False)
-@click.option('--period', type=int, default=2)
-def generate_tasks_table(dburi, loop=False, period=2):
-    """fill (periodically if needed) the tasks table used by the tasks view"""
-    engine = create_engine(find_dburi(dburi))
-    taskstable.refresh_tasks_file(engine, loop=loop, sleeptime=period)

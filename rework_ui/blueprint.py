@@ -25,7 +25,6 @@ from rework.helper import utcnow
 from rework.task import Task
 
 from rework_ui.helper import argsdict
-from rework_ui import taskstable
 
 
 TZ = tzlocal.get_localzone()
@@ -392,29 +391,39 @@ def reworkui(engine,
             traceback=traceback
         )
 
-    @bp.route('/tasks-table-hash')
-    def tasks_table_hash():
-        if not has_permission('read'):
-            return 'no-hash-yet'
-
-        args = uiargsdict(request.args)
-        thash = taskstable.latest_table_hash(engine, args.domain)
-        return thash or 'no-hash-yet'
-
     @bp.route('/tasks-table')
-    def list_tasks():
+    def tasks_table():
         if not has_permission('read'):
             abort(403, 'Nothing to see there.')
 
         args = uiargsdict(request.args)
-        content = engine.execute('select content from rework.taskstable '
-                                 'where domain = %(domain)s '
-                                 'order by id desc limit 1',
-                                 domain=args.domain).scalar()
-        if content is None:
-            return '<p>Table under construction ...</p>'
+        with engine.begin() as cn:
+            q = select(
+                't.id', 't.status', 'op.domain',
+                't.operation', 't.traceback', 't.abort',
+                't.queued', 't.started', 't.finished',
+                't.metadata', 'w.deathinfo'
+            ).table('rework.task as t'
+            ).join('rework.operation as op on (op.id = t.operation)'
+            ).join('rework.worker as w on (w.id = t.worker)')
+            if args.domain != 'all':
+                q.where('w.domain = %(domain)s', domain=args.domain)
 
-        return content
+            return json.dumps([
+                {'tid': row.id,
+                 'status': row.status,
+                 'abort': row.abort,
+                 'domain': row.domain,
+                 'operation': row.operation,
+                 'queued': row.queued.astimezone(TZ).strftime('%Y-%m-%d %H:%M:%S%z'),
+                 'started': row.queued.astimezone(TZ).strftime('%Y-%m-%d %H:%M:%S%z'),
+                 'finished': row.finished.astimezone(TZ).strftime('%Y-%m-%d %H:%M:%S%z'),
+                 'metadata': row.metadata,
+                 'deathinfo': row.deathinfo,
+                 'traceback': row.traceback
+                }
+                for row in q.do(cn).fetchall()
+            ])
 
     @bp.route('/tasklogs/<int:taskid>')
     def tasklogs(taskid):
