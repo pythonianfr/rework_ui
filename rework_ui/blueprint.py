@@ -399,7 +399,7 @@ def reworkui(engine,
         args = uiargsdict(request.args)
         with engine.begin() as cn:
             q = select(
-                't.id', 't.status', 'op.domain',
+                't.id', 'op.name', 't.status', 'op.domain',
                 't.operation', 't.traceback', 't.abort',
                 't.queued', 't.started', 't.finished',
                 't.metadata', 'w.deathinfo'
@@ -411,6 +411,7 @@ def reworkui(engine,
 
             return json.dumps([
                 {'tid': row.id,
+                 'name' : row.name,
                  'status': row.status,
                  'abort': row.abort,
                  'domain': row.domain,
