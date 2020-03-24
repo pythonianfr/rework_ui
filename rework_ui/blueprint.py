@@ -402,7 +402,7 @@ def reworkui(engine,
                 't.id', 'op.name', 't.status', 'op.domain',
                 't.operation', 't.traceback', 't.abort',
                 't.queued', 't.started', 't.finished',
-                't.metadata', 'w.deathinfo'
+                't.metadata', 't.worker', 'w.deathinfo'
             ).table('rework.task as t'
             ).join('rework.operation as op on (op.id = t.operation)'
             ).join('rework.worker as w on (w.id = t.worker)')
@@ -420,6 +420,7 @@ def reworkui(engine,
                  'started': row.queued.astimezone(TZ).strftime('%Y-%m-%d %H:%M:%S%z'),
                  'finished': row.finished.astimezone(TZ).strftime('%Y-%m-%d %H:%M:%S%z'),
                  'metadata': row.metadata,
+                 'worker': row.worker,
                  'deathinfo': row.deathinfo,
                  'traceback': row.traceback
                 }
