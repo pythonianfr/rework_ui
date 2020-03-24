@@ -1,10 +1,11 @@
-module Main exposing (main)
+module Main exposing (Task, main, taskDecoder)
 
 import AssocList as AL
 import Browser
 import Html as H
 import Html.Attributes as HA
 import Html.Events as HE
+import Json.Decode as D
 
 
 type alias Model =
@@ -184,6 +185,11 @@ type Msg
     | OnWait Int
     | OnAbort Int
     | OnRelaunch Int
+
+
+taskDecoder : D.Decoder Task
+taskDecoder =
+    D.fail "taskDecoder TODO"
 
 
 renderRow : Task -> H.Html Msg
