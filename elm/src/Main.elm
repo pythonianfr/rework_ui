@@ -26,6 +26,7 @@ initialModel =
               , user = "<unknown>"
               , worker = "#7"
               , status = Failed "toto"
+              , deathInfo = Nothing
               , actions = [ Abort, Wait, Delete, Relaunch ]
               }
             ]
@@ -91,6 +92,7 @@ type alias Task =
     , user : String
     , worker : String
     , status : Status
+    , deathInfo : Maybe String
     , actions : List Action
     }
 
@@ -238,24 +240,28 @@ renderRow task =
 
         renderStatus : Status -> H.Html msg
         renderStatus status =
+            let
+                title =
+                    Maybe.withDefault "" task.deathInfo
+            in
             case status of
                 Queued ->
-                    tdStatus "queued" ""
+                    tdStatus "queued" title
 
                 Running ->
-                    tdStatus "running" ""
+                    tdStatus "running" title
 
                 Done ->
-                    tdStatus "done" ""
+                    tdStatus "done" title
 
                 Failed x ->
                     tdStatus "failed" x
 
                 Aborting ->
-                    tdStatus "aborting" ""
+                    tdStatus "aborting" title
 
                 Aborted ->
-                    tdStatus "aborted" ""
+                    tdStatus "aborted" title
 
         buttonAction : String -> String -> (Int -> Msg) -> H.Html Msg
         buttonAction class title msg =
