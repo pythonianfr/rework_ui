@@ -14,6 +14,7 @@ type alias Task =
     , started : String
     , finished : String
     , worker : Int
+    , status : Status
     }
 
 
@@ -50,11 +51,12 @@ taskHello =
         "2020-03-24 20:24:37+0100"
         "2020-03-24 20:24:51+0100"
         14
+        Done
 
 
 taskDecoder : D.Decoder Task
 taskDecoder =
-    D.map7
+    D.map8
         Task
         (D.field "tid" D.int)
         (D.field "name" D.string)
@@ -63,6 +65,7 @@ taskDecoder =
         (D.field "started" D.string)
         (D.field "finished" D.string)
         (D.field "worker" D.int)
+        statusDecoder
 
 
 statusInput : String
