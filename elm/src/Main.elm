@@ -1,4 +1,4 @@
-module Main exposing (Status(..), Task, main, taskDecoder)
+module Main exposing (Status(..), Task, TaskResult(..), main, taskDecoder)
 
 import AssocList as AL
 import Browser

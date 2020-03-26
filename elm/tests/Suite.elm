@@ -2,7 +2,7 @@ module Suite exposing (testParser)
 
 import Expect
 import Json.Decode as D
-import Main exposing (Status(..))
+import Main exposing (Status(..), TaskResult(..))
 import Test as T
 
 
@@ -187,6 +187,21 @@ statusDecoder =
                     D.fail <| "Unknown status : " ++ status
     in
     jsonStatusDecoder |> D.andThen matchStatus
+
+
+taskResultDecoder : D.Decoder TaskResult
+taskResultDecoder =
+    let
+        matchTaskResult : Status -> D.Decoder TaskResult
+        matchTaskResult status =
+            case status of
+                Failed _ ->
+                    D.succeed Failure
+
+                _ ->
+                    D.succeed Success
+    in
+    statusDecoder |> D.andThen matchTaskResult
 
 
 testParser : T.Test
