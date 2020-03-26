@@ -137,18 +137,6 @@ type alias JsonStatus =
     }
 
 
-statusResult : List Status
-statusResult =
-    [ Queued
-    , Aborting
-    , Running
-    , Aborting
-    , Aborted
-    , Failed "Python Traceback"
-    , Done
-    ]
-
-
 statusDecoder : D.Decoder Status
 statusDecoder =
     let
@@ -217,7 +205,16 @@ testParser =
             (\_ ->
                 Expect.equal
                     (D.decodeString (D.list statusDecoder) statusInput)
-                    (Ok statusResult)
+                    (Ok
+                        [ Queued
+                        , Aborting
+                        , Running
+                        , Aborting
+                        , Aborted
+                        , Failed "Python Traceback"
+                        , Done
+                        ]
+                    )
             )
         , T.test "statusParser failure"
             (\_ ->
@@ -227,5 +224,20 @@ testParser =
                         |> Result.mapError (String.contains "Unknown status :")
                     )
                     (Err True)
+            )
+        , T.test "taskResult"
+            (\_ ->
+                Expect.equal
+                    (D.decodeString (D.list taskResultDecoder) statusInput)
+                    (Ok
+                        [ Success
+                        , Success
+                        , Success
+                        , Success
+                        , Success
+                        , Failure
+                        , Success
+                        ]
+                    )
             )
         ]
