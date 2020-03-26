@@ -24,7 +24,7 @@ initialModel =
               , started = "2020-03-12 10:46:08+0100"
               , finished = "2020-03-12 10:46:18+0100"
               , user = "<unknown>"
-              , worker = "#7"
+              , worker = 7
               , status = Failed "toto"
               , deathInfo = Nothing
               , actions = [ Abort, Wait, Delete, Relaunch ]
@@ -90,7 +90,7 @@ type alias Task =
     , started : String
     , finished : String
     , user : String
-    , worker : String
+    , worker : Int
     , status : Status
     , deathInfo : Maybe String
     , actions : List Action
@@ -296,7 +296,7 @@ renderRow task =
         , td task.started
         , td task.finished
         , td task.user
-        , td task.worker
+        , td <| "#" ++ String.fromInt task.worker
         , renderStatus task.status
         , H.td [] (List.map renderAction task.actions)
         ]
