@@ -2,20 +2,32 @@ module Suite exposing (testParser)
 
 import Expect
 import Json.Decode as D
-import Main exposing (Status(..), TaskResult(..))
+import Main exposing (Status(..), Task, TaskResult(..))
 import Test as T
 
 
-type alias Task =
-    { id : Int
-    , name : String
-    , domain : String
-    , queued : String
-    , started : String
-    , finished : String
-    , worker : Int
-    , status : Status
-    }
+map12 :
+    (a -> b -> c -> d -> e -> f -> g -> h -> i -> j -> k -> l -> value)
+    -> D.Decoder a
+    -> D.Decoder b
+    -> D.Decoder c
+    -> D.Decoder d
+    -> D.Decoder e
+    -> D.Decoder f
+    -> D.Decoder g
+    -> D.Decoder h
+    -> D.Decoder i
+    -> D.Decoder j
+    -> D.Decoder k
+    -> D.Decoder l
+    -> D.Decoder value
+map12 func da db dc dd de df dg dh di dj dk dl =
+    let
+        map4 : (i -> j -> k -> l -> value) -> D.Decoder value
+        map4 funcIJKL =
+            D.map4 funcIJKL di dj dk dl
+    in
+    D.map8 func da db dc dd de df dg dh |> D.andThen map4
 
 
 inputHello : String
@@ -45,27 +57,40 @@ taskHello : Task
 taskHello =
     Task
         1
+        Success
         "hello"
         "default"
         "2020-03-24 20:24:37+0100"
         "2020-03-24 20:24:37+0100"
         "2020-03-24 20:24:51+0100"
+        ""
         14
         Done
+        Nothing
+        []
 
 
 taskDecoder : D.Decoder Task
 taskDecoder =
-    D.map8
+    statusDecoder |> D.andThen decodeTask
+
+
+decodeTask : Status -> D.Decoder Task
+decodeTask status =
+    map12
         Task
         (D.field "tid" D.int)
+        (D.succeed <| matchTaskResult status)
         (D.field "name" D.string)
         (D.field "domain" D.string)
         (D.field "queued" D.string)
         (D.field "started" D.string)
         (D.field "finished" D.string)
+        (D.succeed "")
         (D.field "worker" D.int)
-        statusDecoder
+        (D.succeed status)
+        (D.succeed Nothing)
+        (D.succeed [])
 
 
 statusInput : String
@@ -177,19 +202,24 @@ statusDecoder =
     jsonStatusDecoder |> D.andThen matchStatus
 
 
+matchTaskResult : Status -> TaskResult
+matchTaskResult status =
+    case status of
+        Failed _ ->
+            Failure
+
+        _ ->
+            Success
+
+
 taskResultDecoder : D.Decoder TaskResult
 taskResultDecoder =
     let
-        matchTaskResult : Status -> D.Decoder TaskResult
-        matchTaskResult status =
-            case status of
-                Failed _ ->
-                    D.succeed Failure
-
-                _ ->
-                    D.succeed Success
+        decodeTaskResult : Status -> D.Decoder TaskResult
+        decodeTaskResult status =
+            D.succeed (matchTaskResult status)
     in
-    statusDecoder |> D.andThen matchTaskResult
+    statusDecoder |> D.andThen decodeTaskResult
 
 
 testParser : T.Test
