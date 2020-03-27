@@ -1,4 +1,4 @@
-module Main exposing (Status(..), Task, TaskResult(..), main, taskDecoder)
+module Main exposing (Action(..), Status(..), Task, TaskResult(..), main, taskDecoder)
 
 import AssocList as AL
 import Browser
@@ -276,10 +276,10 @@ renderRow task =
         renderAction action =
             case action of
                 Abort ->
-                    buttonAction "btn btn-warning btn-sm" "abort" OnAbort
+                    buttonAction "btn btn-danger btn-sm" "abort" OnAbort
 
                 Wait ->
-                    buttonAction "btn btn-warning btn-sm" "wait" OnWait
+                    buttonAction "btn glyphicon glyphicon-ban-circle" "wait" OnWait
 
                 Delete ->
                     buttonAction "btn btn-warning btn-sm" "delete" OnDelete
