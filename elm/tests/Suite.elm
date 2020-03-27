@@ -2,7 +2,7 @@ module Suite exposing (testParser)
 
 import Expect
 import Json.Decode as D
-import Main exposing (Status(..), Task, TaskResult(..))
+import Main exposing (Action(..), Status(..), Task, TaskResult(..))
 import Test as T
 
 
@@ -46,7 +46,7 @@ inputHello =
     "finished": "2020-03-24 20:24:51+0100",
     "metadata": null,
     "worker": 14,
-    "deathinfo": "Got a TERMINATE/15 signal while at <frame at 0x7f9640e74af8, file '/home/pythonian/src/rework/rework/monitor.py', line 523, code _run>",
+    "deathinfo": "Got a TERMINATE/15",
     "traceback": null
   }
 ]
@@ -66,8 +66,8 @@ taskHello =
         ""
         14
         Done
-        Nothing
-        []
+        (Just "Got a TERMINATE/15")
+        [ Relaunch, Delete ]
 
 
 taskDecoder : D.Decoder Task
@@ -89,8 +89,8 @@ decodeTask status =
         (D.succeed "")
         (D.field "worker" D.int)
         (D.succeed status)
-        (D.succeed Nothing)
-        (D.succeed [])
+        (D.field "deathinfo" (D.nullable D.string))
+        (D.succeed <| matchActionResult status)
 
 
 statusInput : String
@@ -200,6 +200,22 @@ statusDecoder =
                     D.fail <| "Unknown status : " ++ status
     in
     jsonStatusDecoder |> D.andThen matchStatus
+
+
+matchActionResult : Status -> List Action
+matchActionResult status =
+    case status of
+        Running ->
+            [ Abort ]
+
+        Aborting ->
+            [ Wait ]
+
+        Done ->
+            [ Relaunch, Delete ]
+
+        _ ->
+            [ Delete ]
 
 
 matchTaskResult : Status -> TaskResult
