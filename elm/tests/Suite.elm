@@ -1,4 +1,4 @@
-module Suite exposing (testParser)
+module Suite exposing (testParser, userDecoder)
 
 import Expect
 import Json.Decode as D
@@ -91,6 +91,40 @@ decodeTask status =
         (D.succeed status)
         (D.field "deathinfo" (D.nullable D.string))
         (D.succeed <| matchActionResult status)
+
+
+type User
+    = UnknownUser
+    | NamedUser String
+    | RunUser String String
+
+
+type alias JsonUser =
+    { user : Maybe String
+    , runName : Maybe String
+    }
+
+
+userDecoder : D.Decoder User
+userDecoder =
+    let
+        jsonUserDecoder : D.Decoder JsonUser
+        jsonUserDecoder =
+            D.fail "todo"
+    in
+    D.succeed UnknownUser
+
+
+userInput : String
+userInput =
+    """
+[   {},
+    {"user" : "toto"},
+    {"user" : "titi","options":{}},
+    {"user" : "titi","options":{"run_name": "tutu"}},
+    {"options":{"run_name": "tutu"}}
+]
+    """
 
 
 statusInput : String
@@ -285,5 +319,11 @@ testParser =
                         , Success
                         ]
                     )
+            )
+        , T.test "userDecoder"
+            (\_ ->
+                Expect.equal
+                    (D.decodeString (D.list userDecoder) userInput)
+                    (Ok [ UnknownUser, UnknownUser, UnknownUser, UnknownUser, UnknownUser ])
             )
         ]
