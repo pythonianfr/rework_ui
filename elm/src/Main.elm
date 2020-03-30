@@ -5,42 +5,8 @@ import Browser
 import Html as H
 import Html.Attributes as HA
 import Html.Events as HE
+import Http
 import Json.Decode as D
-
-
-type alias Model =
-    AL.Dict Int Task
-
-
-initialModel : Model
-initialModel =
-    let
-        listTask =
-            [ { id = 1
-              , result = Failure
-              , name = "crash"
-              , domain = "default"
-              , queued = "2020-03-11 16:06:29+0100"
-              , started = "2020-03-12 10:46:08+0100"
-              , finished = "2020-03-12 10:46:18+0100"
-              , user = "<unknown>"
-              , worker = 7
-              , status = Failed "toto"
-              , deathInfo = Nothing
-              , actions = [ Abort, Wait, Delete, Relaunch ]
-              }
-            ]
-
-        listTuple : List Task -> List ( Int, Task )
-        listTuple listtask =
-            let
-                creatTuple : Task -> ( Int, Task )
-                creatTuple task =
-                    ( task.id, task )
-            in
-            List.map creatTuple listtask
-    in
-    AL.fromList (listTuple listTask)
 
 
 role : String -> H.Attribute msg
@@ -149,7 +115,7 @@ view model =
                         [ H.tr []
                             (List.map th headers)
                         ]
-                    , H.tbody [] (List.map renderRow (AL.values model))
+                    , H.tbody [] (List.map renderRow (AL.values model.task))
                     ]
                 ]
             ]
@@ -187,11 +153,127 @@ type Msg
     | OnWait Int
     | OnAbort Int
     | OnRelaunch Int
+    | GotTasks (Result Http.Error (List Task))
+
+
+type alias JsonStatus =
+    { status : String
+    , abort : Bool
+    , traceback : Maybe String
+    }
+
+
+statusDecoder : D.Decoder Status
+statusDecoder =
+    let
+        jsonStatusDecoder : D.Decoder JsonStatus
+        jsonStatusDecoder =
+            D.map3 JsonStatus
+                (D.field "status" D.string)
+                (D.field "abort" D.bool)
+                (D.field "traceback" (D.nullable D.string))
+
+        matchStatus : JsonStatus -> D.Decoder Status
+        matchStatus x =
+            case ( x.status, x.abort, x.traceback ) of
+                ( "queued", False, _ ) ->
+                    D.succeed Queued
+
+                ( "queued", True, _ ) ->
+                    D.succeed Aborting
+
+                ( "running", False, _ ) ->
+                    D.succeed Running
+
+                ( "running", True, _ ) ->
+                    D.succeed Aborting
+
+                ( "done", True, _ ) ->
+                    D.succeed Aborted
+
+                ( "done", False, Just traceback ) ->
+                    D.succeed (Failed traceback)
+
+                ( "done", False, Nothing ) ->
+                    D.succeed Done
+
+                ( status, _, _ ) ->
+                    D.fail <| "Unknown status : " ++ status
+    in
+    jsonStatusDecoder |> D.andThen matchStatus
+
+
+matchTaskResult : Status -> TaskResult
+matchTaskResult status =
+    case status of
+        Failed _ ->
+            Failure
+
+        _ ->
+            Success
+
+
+matchActionResult : Status -> List Action
+matchActionResult status =
+    case status of
+        Running ->
+            [ Abort ]
+
+        Aborting ->
+            [ Wait ]
+
+        Done ->
+            [ Relaunch, Delete ]
+
+        _ ->
+            [ Delete ]
+
+
+map12 :
+    (a -> b -> c -> d -> e -> f -> g -> h -> i -> j -> k -> l -> value)
+    -> D.Decoder a
+    -> D.Decoder b
+    -> D.Decoder c
+    -> D.Decoder d
+    -> D.Decoder e
+    -> D.Decoder f
+    -> D.Decoder g
+    -> D.Decoder h
+    -> D.Decoder i
+    -> D.Decoder j
+    -> D.Decoder k
+    -> D.Decoder l
+    -> D.Decoder value
+map12 func da db dc dd de df dg dh di dj dk dl =
+    let
+        map4 : (i -> j -> k -> l -> value) -> D.Decoder value
+        map4 funcIJKL =
+            D.map4 funcIJKL di dj dk dl
+    in
+    D.map8 func da db dc dd de df dg dh |> D.andThen map4
+
+
+decodeTask : Status -> D.Decoder Task
+decodeTask status =
+    map12
+        Task
+        (D.field "tid" D.int)
+        (D.succeed <| matchTaskResult status)
+        (D.field "name" D.string)
+        (D.field "domain" D.string)
+        (D.field "queued" D.string)
+        (D.field "started" D.string)
+        (D.field "finished" D.string)
+        (D.succeed "")
+        (D.field "worker" D.int)
+        (D.succeed status)
+        (D.field "deathinfo" (D.nullable D.string))
+        (D.succeed <| matchActionResult status)
 
 
 taskDecoder : D.Decoder Task
 taskDecoder =
-    D.fail "taskDecoder TODO"
+    statusDecoder |> D.andThen decodeTask
 
 
 renderRow : Task -> H.Html Msg
@@ -302,24 +384,44 @@ renderRow task =
         ]
 
 
-update : Msg -> Model -> Model
+update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
+    let
+        listTuple : List Task -> List ( Int, Task )
+        listTuple listtask =
+            let
+                creatTuple : Task -> ( Int, Task )
+                creatTuple task =
+                    ( task.id, task )
+            in
+            List.map creatTuple listtask
+
+        setTask : TaskDict -> Model
+        setTask task =
+            { model | task = task }
+    in
     case msg of
         OnDelete taskId ->
-            AL.remove taskId model
+            ( setTask <| AL.remove taskId model.task, Cmd.none )
 
         OnAbort taskId ->
-            creatCase taskId Aborted model
+            ( setTask <| creatCase taskId Aborted model.task, Cmd.none )
 
         OnRelaunch taskId ->
-            creatCase taskId Queued model
+            ( setTask <| creatCase taskId Queued model.task, Cmd.none )
 
         OnWait taskId ->
-            creatCase taskId Running model
+            ( setTask <| creatCase taskId Running model.task, Cmd.none )
+
+        GotTasks (Ok tasks) ->
+            ( setTask <| AL.fromList (listTuple tasks), Cmd.none )
+
+        GotTasks (Err _) ->
+            ( { model | errorMessage = Just "Could not load tasks" }, Cmd.none )
 
 
-creatCase : Int -> Status -> Model -> Model
-creatCase taskId status model =
+creatCase : Int -> Status -> TaskDict -> TaskDict
+creatCase taskId status =
     let
         updateTasks : Task -> Task
         updateTasks task =
@@ -329,13 +431,39 @@ creatCase taskId status model =
         justUpate task =
             Maybe.map updateTasks task
     in
-    AL.update taskId justUpate model
+    AL.update taskId justUpate
+
+
+initialCmd : Cmd Msg
+initialCmd =
+    Http.get
+        { url = "http://rework_ui_orig.test.pythonian.fr/tasks-table"
+        , expect = Http.expectJson GotTasks (D.list taskDecoder)
+        }
+
+
+type alias TaskDict =
+    AL.Dict Int Task
+
+
+type alias Model =
+    { errorMessage : Maybe String
+    , task : TaskDict
+    }
+
+
+initialModel : Model
+initialModel =
+    Model
+        Nothing
+        AL.empty
 
 
 main : Program () Model Msg
 main =
-    Browser.sandbox
-        { init = initialModel
+    Browser.element
+        { init = \flags -> ( initialModel, initialCmd )
         , view = view
         , update = update
+        , subscriptions = \_ -> Sub.none
         }
