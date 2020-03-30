@@ -1,4 +1,4 @@
-module Suite exposing (testParser, userDecoder)
+module Suite exposing (testParser)
 
 import Expect
 import Json.Decode as D
