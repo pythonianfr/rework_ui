@@ -1,4 +1,14 @@
-module Main exposing (Action(..), Status(..), Task, TaskResult(..), main, taskDecoder)
+module Main exposing
+    ( Action(..)
+    , Status(..)
+    , Task
+    , TaskResult(..)
+    , User(..)
+    , matchTaskResult
+    , statusDecoder
+    , taskDecoder
+    , userDecoder
+    )
 
 import AssocList as AL
 import Browser
@@ -47,6 +57,25 @@ li controle title =
         ]
 
 
+type User
+    = UnknownUser
+    | NamedUser String
+    | RunUser String String
+
+
+user2String : User -> String
+user2String user =
+    case user of
+        UnknownUser ->
+            "Unknown"
+
+        NamedUser name ->
+            name
+
+        RunUser name runName ->
+            name ++ " [" ++ runName ++ "]"
+
+
 type alias Task =
     { id : Int
     , result : TaskResult
@@ -55,7 +84,7 @@ type alias Task =
     , queued : String
     , started : String
     , finished : String
-    , user : String
+    , user : User
     , worker : Int
     , status : Status
     , deathInfo : Maybe String
@@ -253,6 +282,42 @@ map12 func da db dc dd de df dg dh di dj dk dl =
     D.map8 func da db dc dd de df dg dh |> D.andThen map4
 
 
+type alias JsonUser =
+    { user : Maybe String
+    , runName : Maybe String
+    }
+
+
+optionalAt : List String -> D.Decoder a -> D.Decoder (Maybe a)
+optionalAt path da =
+    D.oneOf [ D.at path (D.nullable da), D.succeed Nothing ]
+
+
+matchUser : JsonUser -> User
+matchUser x =
+    case ( x.user, x.runName ) of
+        ( Just u, Just r ) ->
+            RunUser u r
+
+        ( Just u, Nothing ) ->
+            NamedUser u
+
+        _ ->
+            UnknownUser
+
+
+userDecoder : D.Decoder User
+userDecoder =
+    let
+        jsonUserDecoder : D.Decoder JsonUser
+        jsonUserDecoder =
+            D.map2 JsonUser
+                (optionalAt [ "user" ] D.string)
+                (optionalAt [ "options", "run_name" ] D.string)
+    in
+    jsonUserDecoder |> D.andThen (matchUser >> D.succeed)
+
+
 decodeTask : Status -> D.Decoder Task
 decodeTask status =
     map12
@@ -264,7 +329,7 @@ decodeTask status =
         (D.field "queued" D.string)
         (D.field "started" D.string)
         (D.field "finished" D.string)
-        (D.succeed "")
+        userDecoder
         (D.field "worker" D.int)
         (D.succeed status)
         (D.field "deathinfo" (D.nullable D.string))
@@ -377,7 +442,7 @@ renderRow task =
         , td task.queued
         , td task.started
         , td task.finished
-        , td task.user
+        , td <| user2String task.user
         , td <| "#" ++ String.fromInt task.worker
         , renderStatus task.status
         , H.td [] (List.map renderAction task.actions)

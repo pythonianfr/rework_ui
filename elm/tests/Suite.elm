@@ -2,32 +2,19 @@ module Suite exposing (testParser)
 
 import Expect
 import Json.Decode as D
-import Main exposing (Action(..), Status(..), Task, TaskResult(..))
+import Main
+    exposing
+        ( Action(..)
+        , Status(..)
+        , Task
+        , TaskResult(..)
+        , User(..)
+        , matchTaskResult
+        , statusDecoder
+        , taskDecoder
+        , userDecoder
+        )
 import Test as T
-
-
-map12 :
-    (a -> b -> c -> d -> e -> f -> g -> h -> i -> j -> k -> l -> value)
-    -> D.Decoder a
-    -> D.Decoder b
-    -> D.Decoder c
-    -> D.Decoder d
-    -> D.Decoder e
-    -> D.Decoder f
-    -> D.Decoder g
-    -> D.Decoder h
-    -> D.Decoder i
-    -> D.Decoder j
-    -> D.Decoder k
-    -> D.Decoder l
-    -> D.Decoder value
-map12 func da db dc dd de df dg dh di dj dk dl =
-    let
-        map4 : (i -> j -> k -> l -> value) -> D.Decoder value
-        map4 funcIJKL =
-            D.map4 funcIJKL di dj dk dl
-    in
-    D.map8 func da db dc dd de df dg dh |> D.andThen map4
 
 
 inputHello : String
@@ -63,76 +50,11 @@ taskHello =
         "2020-03-24 20:24:37+0100"
         "2020-03-24 20:24:37+0100"
         "2020-03-24 20:24:51+0100"
-        ""
+        UnknownUser
         14
         Done
         (Just "Got a TERMINATE/15")
         [ Relaunch, Delete ]
-
-
-taskDecoder : D.Decoder Task
-taskDecoder =
-    statusDecoder |> D.andThen decodeTask
-
-
-decodeTask : Status -> D.Decoder Task
-decodeTask status =
-    map12
-        Task
-        (D.field "tid" D.int)
-        (D.succeed <| matchTaskResult status)
-        (D.field "name" D.string)
-        (D.field "domain" D.string)
-        (D.field "queued" D.string)
-        (D.field "started" D.string)
-        (D.field "finished" D.string)
-        (D.succeed "")
-        (D.field "worker" D.int)
-        (D.succeed status)
-        (D.field "deathinfo" (D.nullable D.string))
-        (D.succeed <| matchActionResult status)
-
-
-type User
-    = UnknownUser
-    | NamedUser String
-    | RunUser String String
-
-
-type alias JsonUser =
-    { user : Maybe String
-    , runName : Maybe String
-    }
-
-
-optionalAt : List String -> D.Decoder a -> D.Decoder (Maybe a)
-optionalAt path da =
-    D.oneOf [ D.at path (D.nullable da), D.succeed Nothing ]
-
-
-matchUser : JsonUser -> User
-matchUser x =
-    case ( x.user, x.runName ) of
-        ( Just u, Just r ) ->
-            RunUser u r
-
-        ( Just u, Nothing ) ->
-            NamedUser u
-
-        _ ->
-            UnknownUser
-
-
-userDecoder : D.Decoder User
-userDecoder =
-    let
-        jsonUserDecoder : D.Decoder JsonUser
-        jsonUserDecoder =
-            D.map2 JsonUser
-                (optionalAt [ "user" ] D.string)
-                (optionalAt [ "options", "run_name" ] D.string)
-    in
-    jsonUserDecoder |> D.andThen (matchUser >> D.succeed)
 
 
 userInput : String
@@ -197,6 +119,16 @@ statusInput =
 """
 
 
+taskResultDecoder : D.Decoder TaskResult
+taskResultDecoder =
+    let
+        decodeTaskResult : Status -> D.Decoder TaskResult
+        decodeTaskResult status =
+            D.succeed (matchTaskResult status)
+    in
+    statusDecoder |> D.andThen decodeTaskResult
+
+
 statusFailure : String
 statusFailure =
     """
@@ -207,89 +139,6 @@ statusFailure =
         "traceback": null
     }
     """
-
-
-type alias JsonStatus =
-    { status : String
-    , abort : Bool
-    , traceback : Maybe String
-    }
-
-
-statusDecoder : D.Decoder Status
-statusDecoder =
-    let
-        jsonStatusDecoder : D.Decoder JsonStatus
-        jsonStatusDecoder =
-            D.map3 JsonStatus
-                (D.field "status" D.string)
-                (D.field "abort" D.bool)
-                (D.field "traceback" (D.nullable D.string))
-
-        matchStatus : JsonStatus -> D.Decoder Status
-        matchStatus x =
-            case ( x.status, x.abort, x.traceback ) of
-                ( "queued", False, _ ) ->
-                    D.succeed Queued
-
-                ( "queued", True, _ ) ->
-                    D.succeed Aborting
-
-                ( "running", False, _ ) ->
-                    D.succeed Running
-
-                ( "running", True, _ ) ->
-                    D.succeed Aborting
-
-                ( "done", True, _ ) ->
-                    D.succeed Aborted
-
-                ( "done", False, Just traceback ) ->
-                    D.succeed (Failed traceback)
-
-                ( "done", False, Nothing ) ->
-                    D.succeed Done
-
-                ( status, _, _ ) ->
-                    D.fail <| "Unknown status : " ++ status
-    in
-    jsonStatusDecoder |> D.andThen matchStatus
-
-
-matchActionResult : Status -> List Action
-matchActionResult status =
-    case status of
-        Running ->
-            [ Abort ]
-
-        Aborting ->
-            [ Wait ]
-
-        Done ->
-            [ Relaunch, Delete ]
-
-        _ ->
-            [ Delete ]
-
-
-matchTaskResult : Status -> TaskResult
-matchTaskResult status =
-    case status of
-        Failed _ ->
-            Failure
-
-        _ ->
-            Success
-
-
-taskResultDecoder : D.Decoder TaskResult
-taskResultDecoder =
-    let
-        decodeTaskResult : Status -> D.Decoder TaskResult
-        decodeTaskResult status =
-            D.succeed (matchTaskResult status)
-    in
-    statusDecoder |> D.andThen decodeTaskResult
 
 
 testParser : T.Test
