@@ -105,14 +105,34 @@ type alias JsonUser =
     }
 
 
+optionalAt : List String -> D.Decoder a -> D.Decoder (Maybe a)
+optionalAt path da =
+    D.oneOf [ D.at path (D.nullable da), D.succeed Nothing ]
+
+
+matchUser : JsonUser -> User
+matchUser x =
+    case ( x.user, x.runName ) of
+        ( Just u, Just r ) ->
+            RunUser u r
+
+        ( Just u, Nothing ) ->
+            NamedUser u
+
+        _ ->
+            UnknownUser
+
+
 userDecoder : D.Decoder User
 userDecoder =
     let
         jsonUserDecoder : D.Decoder JsonUser
         jsonUserDecoder =
-            D.fail "todo"
+            D.map2 JsonUser
+                (optionalAt [ "user" ] D.string)
+                (optionalAt [ "options", "run_name" ] D.string)
     in
-    D.succeed UnknownUser
+    jsonUserDecoder |> D.andThen (matchUser >> D.succeed)
 
 
 userInput : String
@@ -324,6 +344,13 @@ testParser =
             (\_ ->
                 Expect.equal
                     (D.decodeString (D.list userDecoder) userInput)
-                    (Ok [ UnknownUser, UnknownUser, UnknownUser, UnknownUser, UnknownUser ])
+                    (Ok
+                        [ UnknownUser
+                        , NamedUser "toto"
+                        , NamedUser "titi"
+                        , RunUser "titi" "tutu"
+                        , UnknownUser
+                        ]
+                    )
             )
         ]
