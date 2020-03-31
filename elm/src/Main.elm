@@ -175,14 +175,17 @@ type Action
     | Wait
     | Delete
     | Relaunch
+    | Pending Action
 
 
 type Msg
     = OnDelete Int
-    | OnWait Int
+    | NoOperation
     | OnAbort Int
     | OnRelaunch Int
     | GotTasks (Result Http.Error (List Task))
+    | GotBool (Result Http.Error Bool)
+    | RelaunchMsg (Result Http.Error Int)
 
 
 type alias JsonStatus =
@@ -255,7 +258,7 @@ matchActionResult status =
             [ Relaunch, Delete ]
 
         _ ->
-            [ Delete ]
+            [ Relaunch, Delete ]
 
 
 map12 :
@@ -419,20 +422,25 @@ renderRow task =
                 ]
                 [ H.text title ]
 
-        renderAction : Action -> H.Html Msg
-        renderAction action =
+        renderAction : String -> Action -> H.Html Msg
+        renderAction prefix action =
             case action of
                 Abort ->
-                    buttonAction "btn btn-danger btn-sm" "abort" OnAbort
+                    buttonAction "btn btn-danger btn-sm" (prefix ++ "abort") OnAbort
 
                 Wait ->
-                    buttonAction "btn glyphicon glyphicon-ban-circle" "wait" OnWait
+                    buttonAction "btn glyphicon glyphicon-ban-circle"
+                        (prefix ++ "wait")
+                        (always NoOperation)
 
                 Delete ->
-                    buttonAction "btn btn-warning btn-sm" "delete" OnDelete
+                    buttonAction "btn btn-warning btn-sm" (prefix ++ "delete") OnDelete
 
                 Relaunch ->
-                    buttonAction "btn btn-primary btn-sm" "relaunch" OnRelaunch
+                    buttonAction "btn btn-primary btn-sm" (prefix ++ "relaunch") OnRelaunch
+
+                Pending act ->
+                    renderAction "Pending " act
     in
     H.tr []
         [ H.th [ HA.scope "row" ]
@@ -445,7 +453,7 @@ renderRow task =
         , td <| user2String task.user
         , td <| "#" ++ String.fromInt task.worker
         , renderStatus task.status
-        , H.td [] (List.map renderAction task.actions)
+        , H.td [] (List.map (renderAction "") task.actions)
         ]
 
 
@@ -460,43 +468,101 @@ update msg model =
                     ( task.id, task )
             in
             List.map creatTuple listtask
-
-        setTask : TaskDict -> Model
-        setTask task =
-            { model | task = task }
     in
     case msg of
         OnDelete taskId ->
-            ( setTask <| AL.remove taskId model.task, Cmd.none )
+            ( modifyTask taskId (updateTaskActions Delete) model
+            , cmdGet
+                ("http://rework_ui_orig.test.pythonian.fr/delete-task/"
+                    ++ String.fromInt taskId
+                )
+                (Http.expectJson GotBool D.bool)
+            )
 
         OnAbort taskId ->
-            ( setTask <| creatCase taskId Aborted model.task, Cmd.none )
+            ( modifyTask taskId (updateTaskActions Abort) model
+            , cmdGet
+                ("http://rework_ui_orig.test.pythonian.fr/abort-task/"
+                    ++ String.fromInt taskId
+                )
+                (Http.expectJson GotBool D.bool)
+            )
 
         OnRelaunch taskId ->
-            ( setTask <| creatCase taskId Queued model.task, Cmd.none )
+            ( modifyTask taskId (updateTaskActions Relaunch) model
+            , cmdPut
+                ("http://rework_ui_orig.test.pythonian.fr/relaunch-task/"
+                    ++ String.fromInt taskId
+                )
+                (Http.expectJson RelaunchMsg D.int)
+            )
 
-        OnWait taskId ->
-            ( setTask <| creatCase taskId Running model.task, Cmd.none )
+        NoOperation ->
+            ( model, Cmd.none )
 
         GotTasks (Ok tasks) ->
-            ( setTask <| AL.fromList (listTuple tasks), Cmd.none )
+            ( setTask (AL.fromList (listTuple tasks)) model, Cmd.none )
 
         GotTasks (Err _) ->
             ( { model | errorMessage = Just "Could not load tasks" }, Cmd.none )
 
+        _ ->
+            ( model, Cmd.none )
 
-creatCase : Int -> Status -> TaskDict -> TaskDict
-creatCase taskId status =
+
+toPendingAction : Action -> List Action -> List Action
+toPendingAction pastAction listAction =
     let
-        updateTasks : Task -> Task
-        updateTasks task =
-            { task | status = status }
+        matchPastAction : Action -> Action
+        matchPastAction action =
+            if action == pastAction then
+                Pending action
 
+            else
+                action
+    in
+    List.map matchPastAction listAction
+
+
+updateTaskActions : Action -> Task -> Task
+updateTaskActions action task =
+    { task | actions = toPendingAction action task.actions }
+
+
+cmdGet : String -> Http.Expect msg -> Cmd msg
+cmdGet url expect =
+    Http.get
+        { url = url
+        , expect = expect
+        }
+
+
+cmdPut : String -> Http.Expect msg -> Cmd msg
+cmdPut url expect =
+    Http.request
+        { method = "PUT"
+        , headers = []
+        , url = url
+        , body = Http.emptyBody
+        , expect = expect
+        , timeout = Nothing
+        , tracker = Nothing
+        }
+
+
+setTask : TaskDict -> Model -> Model
+setTask task model =
+    { model | task = task }
+
+
+modifyTask : Int -> (Task -> Task) -> Model -> Model
+modifyTask taskId modify model =
+    let
         justUpate : Maybe Task -> Maybe Task
         justUpate task =
-            Maybe.map updateTasks task
+            Maybe.map modify task
     in
-    AL.update taskId justUpate
+    setTask (AL.update taskId justUpate model.task) model
 
 
 initialCmd : Cmd Msg
