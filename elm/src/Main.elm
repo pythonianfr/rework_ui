@@ -530,23 +530,9 @@ update msg model =
             ( model, Cmd.none )
 
 
-toPendingAction : Action -> List Action -> List Action
-toPendingAction pastAction listAction =
-    let
-        matchPastAction : Action -> Action
-        matchPastAction action =
-            if action == pastAction then
-                Pending action
-
-            else
-                action
-    in
-    List.map matchPastAction listAction
-
-
 updateTaskActions : Action -> Task -> Task
 updateTaskActions action task =
-    { task | actions = toPendingAction action task.actions }
+    { task | actions = [ Pending action ] }
 
 
 cmdGet : String -> Http.Expect msg -> Cmd msg
