@@ -412,35 +412,6 @@ renderRow task =
 
                 Aborted ->
                     tdStatus "aborted" title
-
-        buttonAction : String -> String -> (Int -> Msg) -> H.Html Msg
-        buttonAction class title msg =
-            H.button
-                [ HA.class class
-                , HA.type_ "button"
-                , HE.onClick (msg task.id)
-                ]
-                [ H.text title ]
-
-        renderAction : String -> Action -> H.Html Msg
-        renderAction prefix action =
-            case action of
-                Abort ->
-                    buttonAction "btn btn-danger btn-sm" (prefix ++ "abort") OnAbort
-
-                Wait ->
-                    buttonAction "btn glyphicon glyphicon-ban-circle"
-                        (prefix ++ "wait")
-                        (always NoOperation)
-
-                Delete ->
-                    buttonAction "btn btn-warning btn-sm" (prefix ++ "delete") OnDelete
-
-                Relaunch ->
-                    buttonAction "btn btn-primary btn-sm" (prefix ++ "relaunch") OnRelaunch
-
-                Pending act ->
-                    renderAction "Pending " act
     in
     H.tr []
         [ H.th [ HA.scope "row" ]
@@ -453,8 +424,57 @@ renderRow task =
         , td <| user2String task.user
         , td <| "#" ++ String.fromInt task.worker
         , renderStatus task.status
-        , H.td [] (List.map (renderAction "") task.actions)
+        , H.td [] (List.map (renderAction task False) task.actions)
         ]
+
+
+renderAction : Task -> Bool -> Action -> H.Html Msg
+renderAction task pending action =
+    let
+        prefix =
+            if pending then
+                "Pending "
+
+            else
+                ""
+
+        buttonAction : String -> String -> (Int -> Msg) -> H.Html Msg
+        buttonAction class title msg =
+            H.button
+                [ HA.class class
+                , HA.type_ "button"
+                , HE.onClick (msg task.id)
+                , HA.disabled pending
+                ]
+                [ H.text (prefix ++ title) ]
+    in
+    case action of
+        Abort ->
+            buttonAction
+                "btn btn-danger btn-sm"
+                "abort"
+                OnAbort
+
+        Wait ->
+            buttonAction
+                "btn glyphicon glyphicon-ban-circle"
+                "wait"
+                (always NoOperation)
+
+        Delete ->
+            buttonAction
+                "btn btn-warning btn-sm"
+                "delete"
+                OnDelete
+
+        Relaunch ->
+            buttonAction
+                "btn btn-primary btn-sm"
+                "relaunch"
+                OnRelaunch
+
+        Pending act ->
+            renderAction task True act
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
