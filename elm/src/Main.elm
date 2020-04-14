@@ -77,7 +77,12 @@ updateTaskActions action task =
     { task | actions = [ Pending action ] }
 
 
-
+cmdGet : String -> Http.Expect msg -> Cmd msg
+cmdGet url expect =
+    Http.get
+        { url = url
+        , expect = expect
+        }
 
 
 cmdPut : String -> Http.Expect msg -> Cmd msg
