@@ -1,20 +1,23 @@
 module Suite exposing (testParser)
 
+import Decoder
+    exposing
+        ( matchTaskResult
+        , statusDecoder
+        , taskDecoder
+        , userDecoder
+        )
 import Expect
 import Json.Decode as D
-import Main
+import Test as T
+import Type
     exposing
         ( Action(..)
         , Status(..)
         , Task
         , TaskResult(..)
         , User(..)
-        , matchTaskResult
-        , statusDecoder
-        , taskDecoder
-        , userDecoder
         )
-import Test as T
 
 
 inputHello : String
