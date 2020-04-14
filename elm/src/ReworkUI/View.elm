@@ -1,10 +1,10 @@
-module View exposing (view)
+module ReworkUI.View exposing (view)
 
 import AssocList as AL
 import Html as H
 import Html.Attributes as HA
 import Html.Events as HE
-import Type
+import ReworkUI.Type
     exposing
         ( Action(..)
         , Model

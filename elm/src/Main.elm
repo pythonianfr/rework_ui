@@ -2,10 +2,10 @@ module Main exposing (main)
 
 import AssocList as AL
 import Browser
-import Decoder exposing (taskDecoder)
 import Http
 import Json.Decode as D
-import Type
+import ReworkUI.Decoder exposing (taskDecoder)
+import ReworkUI.Type
     exposing
         ( Action(..)
         , Model
@@ -16,7 +16,7 @@ import Type
         , TaskResult(..)
         , User(..)
         )
-import View exposing (view)
+import ReworkUI.View exposing (view)
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )

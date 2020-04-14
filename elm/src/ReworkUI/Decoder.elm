@@ -1,4 +1,4 @@
-module Decoder exposing
+module ReworkUI.Decoder exposing
     ( matchTaskResult
     , statusDecoder
     , taskDecoder
@@ -6,7 +6,7 @@ module Decoder exposing
     )
 
 import Json.Decode as D
-import Type
+import ReworkUI.Type
     exposing
         ( Action(..)
         , JsonStatus

@@ -1,4 +1,4 @@
-module Type exposing (..)
+module ReworkUI.Type exposing (..)
 
 import AssocList as AL
 import Http
