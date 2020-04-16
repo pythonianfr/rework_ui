@@ -1,4 +1,4 @@
-module Main exposing (main)
+port module Main exposing (..)
 
 import AssocList as AL
 import Browser
@@ -18,6 +18,9 @@ import ReworkUI.Type
         )
 import ReworkUI.View exposing (view)
 import Time
+
+
+port refreshTasks : (Bool -> msg) -> Sub msg
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -58,6 +61,9 @@ update msg model =
 
         GotTasks (Err _) ->
             ( { model | errorMessage = Just "Could not load tasks" }, Cmd.none )
+
+        DoRefresh doRefresh ->
+            ( { model | doRefresh = doRefresh }, Cmd.none )
 
         OnRefresh ->
             ( model, refreshTasksCmd )
@@ -125,25 +131,28 @@ refreshTasksCmd =
         }
 
 
-initialModel : String -> Model
-initialModel jsonTasks =
-    case D.decodeString (D.list taskDecoder) jsonTasks of
-        Ok tasks ->
-            Model
-                Nothing
-                (AL.fromList (listTuple tasks))
-
-        Err err ->
-            Model
-                (Just <| D.errorToString err)
-                AL.empty
+initialModel : Model
+initialModel =
+    Model
+        Nothing
+        AL.empty
+        True
 
 
-main : Program String Model Msg
+main : Program () Model Msg
 main =
     Browser.element
-        { init = \jsonTasks -> ( initialModel jsonTasks, Cmd.none )
+        { init = \_ -> ( initialModel, refreshTasksCmd )
         , view = view
         , update = update
-        , subscriptions = \_ -> Time.every 2000 (always OnRefresh)
+        , subscriptions =
+            \model ->
+                Sub.batch
+                    [ if model.doRefresh then
+                        Time.every 2000 (always OnRefresh)
+
+                      else
+                        Sub.none
+                    , refreshTasks DoRefresh
+                    ]
         }

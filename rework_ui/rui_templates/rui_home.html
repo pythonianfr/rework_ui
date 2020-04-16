@@ -39,8 +39,12 @@
  let hash = ''
  let domain = '{{initialdomain}}'
  let refresher = null
+ let app = null
  document.onreadystatechange = function () {
      if (document.readyState == 'complete') {
+         app = Elm.Main.init({
+            node: document.getElementById("elm_tasks")
+         });
          refresh_section('tasks')
      }
  }

@@ -40,6 +40,7 @@ type alias TaskDict =
 type alias Model =
     { errorMessage : Maybe String
     , task : TaskDict
+    , doRefresh : Bool
     }
 
 
@@ -79,4 +80,5 @@ type Msg
     | GotTasks (Result Http.Error (List Task))
     | GotBool (Result Http.Error Bool)
     | RelaunchMsg (Result Http.Error Int)
+    | DoRefresh Bool
     | OnRefresh

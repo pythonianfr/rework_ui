@@ -11,13 +11,11 @@ function append(domid, html) {
 function update(section, input) {
     const elt = document.getElementById(section)
     if (section != 'tasks') {
+        app.ports.refreshTasks.send(false)
         elt.innerHTML = input
     } else {
+        app.ports.refreshTasks.send(true)
         clearInterval(refresher)
-        var app = Elm.Main.init({
-            node: document.getElementById("elm_tasks"),
-            flags: input
-        })
     }
 }
 
