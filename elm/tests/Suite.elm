@@ -1,16 +1,15 @@
 module Suite exposing (testParser)
 
-import Decoder
+import Expect
+import Json.Decode as D
+import ReworkUI.Decoder
     exposing
         ( matchTaskResult
         , statusDecoder
         , taskDecoder
         , userDecoder
         )
-import Expect
-import Json.Decode as D
-import Test as T
-import Type
+import ReworkUI.Type
     exposing
         ( Action(..)
         , Status(..)
@@ -18,6 +17,7 @@ import Type
         , TaskResult(..)
         , User(..)
         )
+import Test as T
 
 
 inputHello : String
