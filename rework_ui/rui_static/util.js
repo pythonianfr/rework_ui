@@ -13,16 +13,11 @@ function update(section, input) {
     if (section != 'tasks') {
         elt.innerHTML = input
     } else {
-        let html = []
-        JSON.parse(input).forEach(item => {
-            html.push(
-                `<tr> id=${item.tid} status=${item.status} abort=${item.abort} domain=${item.domain} operation=${item.operation} queued=${item.queued} started=${item.started} finished=${item.finished} metadata=${item.metadata} deathinfo=${item.deathinfo} traceback=${item.traceback}
-</tr>`)
+        clearInterval(refresher)
+        var app = Elm.Main.init({
+            node: document.getElementById("elm_tasks"),
+            flags: input
         })
-        let all = html.join('<br>')
-        console.log(all)
-        console.log(elt)
-        elt.innterHTML = `<table>${all}</table>`
     }
 }
 

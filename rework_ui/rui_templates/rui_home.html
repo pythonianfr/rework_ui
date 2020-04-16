@@ -23,7 +23,9 @@
 </ul>
 
 <div class="tab-content">
-  <div role="tabpanel" class="tab-pane active" id="tasks"></div>
+  <div role="tabpanel" class="tab-pane active" id="tasks">
+    <div id="elm_tasks"></div>
+  </div>
   <div role="tabpanel" class="tab-pane" id="services"></div>
   <div role="tabpanel" class="tab-pane" id="workers"></div>
 </div>
@@ -40,7 +42,6 @@
  document.onreadystatechange = function () {
      if (document.readyState == 'complete') {
          refresh_section('tasks')
-         refresher = setInterval(() => refresh_section('tasks'), 1000)
      }
  }
 
