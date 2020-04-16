@@ -21,16 +21,6 @@ import ReworkUI.View exposing (view)
 
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
-    let
-        listTuple : List Task -> List ( Int, Task )
-        listTuple listtask =
-            let
-                creatTuple : Task -> ( Int, Task )
-                creatTuple task =
-                    ( task.id, task )
-            in
-            List.map creatTuple listtask
-    in
     case msg of
         OnDelete taskId ->
             ( modifyTask taskId (updateTaskActions Delete) model
@@ -70,6 +60,16 @@ update msg model =
 
         _ ->
             ( model, Cmd.none )
+
+
+listTuple : List Task -> List ( Int, Task )
+listTuple listtask =
+    let
+        creatTuple : Task -> ( Int, Task )
+        creatTuple task =
+            ( task.id, task )
+    in
+    List.map creatTuple listtask
 
 
 updateTaskActions : Action -> Task -> Task
@@ -121,17 +121,24 @@ initialCmd =
         }
 
 
-initialModel : Model
-initialModel =
-    Model
-        Nothing
-        AL.empty
+initialModel : String -> Model
+initialModel jsonTasks =
+    case D.decodeString (D.list taskDecoder) jsonTasks of
+        Ok tasks ->
+            Model
+                Nothing
+                (AL.fromList (listTuple tasks))
+
+        Err err ->
+            Model
+                (Just <| D.errorToString err)
+                AL.empty
 
 
-main : Program () Model Msg
+main : Program String Model Msg
 main =
     Browser.element
-        { init = \flags -> ( initialModel, initialCmd )
+        { init = \jsonTasks -> ( initialModel jsonTasks, Cmd.none )
         , view = view
         , update = update
         , subscriptions = \_ -> Sub.none
