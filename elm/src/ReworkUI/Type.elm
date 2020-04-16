@@ -79,3 +79,4 @@ type Msg
     | GotTasks (Result Http.Error (List Task))
     | GotBool (Result Http.Error Bool)
     | RelaunchMsg (Result Http.Error Int)
+    | OnRefresh

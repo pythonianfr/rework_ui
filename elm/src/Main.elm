@@ -17,6 +17,7 @@ import ReworkUI.Type
         , User(..)
         )
 import ReworkUI.View exposing (view)
+import Time
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -57,6 +58,9 @@ update msg model =
 
         GotTasks (Err _) ->
             ( { model | errorMessage = Just "Could not load tasks" }, Cmd.none )
+
+        OnRefresh ->
+            ( model, refreshTasksCmd )
 
         _ ->
             ( model, Cmd.none )
@@ -113,8 +117,8 @@ modifyTask taskId modify model =
     setTask (AL.update taskId justUpate model.task) model
 
 
-initialCmd : Cmd Msg
-initialCmd =
+refreshTasksCmd : Cmd Msg
+refreshTasksCmd =
     Http.get
         { url = "http://rework_ui_orig.test.pythonian.fr/tasks-table"
         , expect = Http.expectJson GotTasks (D.list taskDecoder)
@@ -141,5 +145,5 @@ main =
         { init = \jsonTasks -> ( initialModel jsonTasks, Cmd.none )
         , view = view
         , update = update
-        , subscriptions = \_ -> Sub.none
+        , subscriptions = \_ -> Time.every 2000 (always OnRefresh)
         }
