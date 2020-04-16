@@ -84,44 +84,17 @@ view model =
             ]
     in
     H.div []
-        [ H.div [ HA.id "filter", HA.style "float" "right" ]
-            [ H.select
-                [ HA.id "domain-filter"
-                , HA.name "domain-filter"
-                , HA.title "domain"
-                , onchange "setdomain(this)"
+        [ H.br [] []
+        , H.table [ HA.class """table
+                                table-sm
+                                table-bordered
+                                table-striped
+                                table-hover""" ]
+            [ H.thead [ HA.class "thead-inverse" ]
+                [ H.tr []
+                    (List.map th headers)
                 ]
-                [ H.option [ HA.value "default", HA.selected True ]
-                    [ H.text "default" ]
-                ]
-            ]
-        , H.h1 []
-            [ H.text "Tasks Monitoring UI"
-            ]
-        , H.ul [ HA.id "tabs", HA.class "nav nav-tabs", role "tablist" ]
-            [ li "tasks" "Tasks"
-            , li "services" "Services"
-            , li "workers" "Monitors"
-            ]
-        , H.div [ HA.class "tab-content" ]
-            [ H.div
-                [ HA.id "tasks"
-                , HA.class "tab-pane active"
-                , role "tabpanel"
-                ]
-                [ H.br [] []
-                , H.table [ HA.class """table
-                                     table-sm
-                                     table-bordered
-                                     table-striped
-                                     table-hover""" ]
-                    [ H.thead [ HA.class "thead-inverse" ]
-                        [ H.tr []
-                            (List.map th headers)
-                        ]
-                    , H.tbody [] (List.map renderRow (AL.values model.task))
-                    ]
-                ]
+            , H.tbody [] (List.map renderRow (AL.values model.task))
             ]
         ]
 
