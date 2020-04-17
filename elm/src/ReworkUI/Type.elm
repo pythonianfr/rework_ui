@@ -41,6 +41,7 @@ type alias Model =
     { errorMessage : Maybe String
     , task : TaskDict
     , doRefresh : Bool
+    , urlPrefix : String
     }
 
 

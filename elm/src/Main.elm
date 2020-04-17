@@ -19,6 +19,7 @@ import ReworkUI.Type
         )
 import ReworkUI.View exposing (view)
 import Time
+import Url.Builder as UB
 
 
 port refreshTasks : (Bool -> msg) -> Sub msg
@@ -35,8 +36,9 @@ update msg model =
         OnDelete taskId ->
             ( setActionModel taskId (Pending Delete)
             , cmdGet
-                ("http://rework_ui_orig.test.pythonian.fr/delete-task/"
-                    ++ String.fromInt taskId
+                (UB.absolute
+                    [ model.urlPrefix, "delete-task", String.fromInt taskId ]
+                    []
                 )
                 (Http.expectJson (GotBool taskId Delete) D.bool)
             )
@@ -44,8 +46,9 @@ update msg model =
         OnAbort taskId ->
             ( setActionModel taskId (Pending Abort)
             , cmdGet
-                ("http://rework_ui_orig.test.pythonian.fr/abort-task/"
-                    ++ String.fromInt taskId
+                (UB.absolute
+                    [ model.urlPrefix, "abort-task", String.fromInt taskId ]
+                    []
                 )
                 (Http.expectJson (GotBool taskId Abort) D.bool)
             )
@@ -53,8 +56,9 @@ update msg model =
         OnRelaunch taskId ->
             ( setActionModel taskId (Pending Relaunch)
             , cmdPut
-                ("http://rework_ui_orig.test.pythonian.fr/relaunch-task/"
-                    ++ String.fromInt taskId
+                (UB.absolute
+                    [ model.urlPrefix, "relaunch-task", String.fromInt taskId ]
+                    []
                 )
                 (Http.expectJson (RelaunchMsg taskId) D.int)
             )
@@ -72,7 +76,7 @@ update msg model =
             ( { model | doRefresh = doRefresh }, Cmd.none )
 
         OnRefresh ->
-            ( model, refreshTasksCmd )
+            ( model, refreshTasksCmd model.urlPrefix )
 
         GotBool taskId action (Ok True) ->
             setActionModel taskId (Completed action) |> withNoCmd
@@ -144,26 +148,31 @@ modifyTask taskId modify model =
     setTask (AL.update taskId justUpate model.task) model
 
 
-refreshTasksCmd : Cmd Msg
-refreshTasksCmd =
+refreshTasksCmd : String -> Cmd Msg
+refreshTasksCmd urlPrefix =
     Http.get
-        { url = "http://rework_ui_orig.test.pythonian.fr/tasks-table"
+        { url = UB.absolute [ urlPrefix, "tasks-table" ] []
         , expect = Http.expectJson GotTasks (D.list taskDecoder)
         }
 
 
-initialModel : Model
-initialModel =
+initialModel : String -> Model
+initialModel urlPrefix =
     Model
         Nothing
         AL.empty
         True
+        urlPrefix
 
 
-main : Program () Model Msg
+main : Program String Model Msg
 main =
     Browser.element
-        { init = \_ -> ( initialModel, refreshTasksCmd )
+        { init =
+            \urlPrefix ->
+                ( initialModel urlPrefix
+                , refreshTasksCmd urlPrefix
+                )
         , view = view
         , update = update
         , subscriptions =
