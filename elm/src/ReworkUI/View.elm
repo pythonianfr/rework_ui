@@ -184,19 +184,26 @@ renderRow task =
         , td <| user2String task.user
         , td <| "#" ++ String.fromInt task.worker
         , renderStatus task.status
-        , H.td [] (List.map (renderAction task False) task.actions)
+        , H.td [] (List.map (renderAction task) task.actions)
         ]
 
 
-renderAction : Task -> Bool -> Action -> H.Html Msg
-renderAction task pending action =
+renderAction : Task -> Action -> H.Html Msg
+renderAction task action =
     let
-        prefix =
-            if pending then
-                "Pending "
+        ( disabled, prefix, newAction ) =
+            case action of
+                Pending act ->
+                    ( True, "Pending ", act )
 
-            else
-                ""
+                Completed act ->
+                    ( True, "Done ", act )
+
+                Uncompleted act ->
+                    ( True, "Failed ", act )
+
+                _ ->
+                    ( False, "", action )
 
         buttonAction : String -> String -> (Int -> Msg) -> H.Html Msg
         buttonAction class title msg =
@@ -204,11 +211,11 @@ renderAction task pending action =
                 [ HA.class class
                 , HA.type_ "button"
                 , HE.onClick (msg task.id)
-                , HA.disabled pending
+                , HA.disabled disabled
                 ]
                 [ H.text (prefix ++ title) ]
     in
-    case action of
+    case newAction of
         Abort ->
             buttonAction
                 "btn btn-danger btn-sm"
@@ -233,5 +240,5 @@ renderAction task pending action =
                 "relaunch"
                 OnRelaunch
 
-        Pending act ->
-            renderAction task True act
+        _ ->
+            H.text ""

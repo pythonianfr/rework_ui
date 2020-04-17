@@ -2,6 +2,7 @@ port module Main exposing (..)
 
 import AssocList as AL
 import Browser
+import Cmd.Extra exposing (withNoCmd)
 import Http
 import Json.Decode as D
 import ReworkUI.Decoder exposing (taskDecoder)
@@ -25,32 +26,37 @@ port refreshTasks : (Bool -> msg) -> Sub msg
 
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
+    let
+        setActionModel : Int -> Action -> Model
+        setActionModel taskId action =
+            modifyTask taskId (updateTaskActions action) model
+    in
     case msg of
         OnDelete taskId ->
-            ( modifyTask taskId (updateTaskActions Delete) model
+            ( setActionModel taskId (Pending Delete)
             , cmdGet
                 ("http://rework_ui_orig.test.pythonian.fr/delete-task/"
                     ++ String.fromInt taskId
                 )
-                (Http.expectJson GotBool D.bool)
+                (Http.expectJson (GotBool taskId Delete) D.bool)
             )
 
         OnAbort taskId ->
-            ( modifyTask taskId (updateTaskActions Abort) model
+            ( setActionModel taskId (Pending Abort)
             , cmdGet
                 ("http://rework_ui_orig.test.pythonian.fr/abort-task/"
                     ++ String.fromInt taskId
                 )
-                (Http.expectJson GotBool D.bool)
+                (Http.expectJson (GotBool taskId Abort) D.bool)
             )
 
         OnRelaunch taskId ->
-            ( modifyTask taskId (updateTaskActions Relaunch) model
+            ( setActionModel taskId (Pending Relaunch)
             , cmdPut
                 ("http://rework_ui_orig.test.pythonian.fr/relaunch-task/"
                     ++ String.fromInt taskId
                 )
-                (Http.expectJson RelaunchMsg D.int)
+                (Http.expectJson (RelaunchMsg taskId) D.int)
             )
 
         NoOperation ->
@@ -68,8 +74,23 @@ update msg model =
         OnRefresh ->
             ( model, refreshTasksCmd )
 
-        _ ->
-            ( model, Cmd.none )
+        GotBool taskId action (Ok True) ->
+            setActionModel taskId (Completed action) |> withNoCmd
+
+        GotBool taskId action (Ok False) ->
+            setActionModel taskId (Uncompleted action) |> withNoCmd
+
+        GotBool taskId action (Err _) ->
+            setActionModel taskId (Uncompleted action) |> withNoCmd
+
+        RelaunchMsg taskId (Ok 0) ->
+            setActionModel taskId (Uncompleted Relaunch) |> withNoCmd
+
+        RelaunchMsg taskId (Ok _) ->
+            setActionModel taskId (Completed Relaunch) |> withNoCmd
+
+        RelaunchMsg taskId (Err _) ->
+            setActionModel taskId (Uncompleted Relaunch) |> withNoCmd
 
 
 listTuple : List Task -> List ( Int, Task )
@@ -84,7 +105,7 @@ listTuple listtask =
 
 updateTaskActions : Action -> Task -> Task
 updateTaskActions action task =
-    { task | actions = [ Pending action ] }
+    { task | actions = [ action ] }
 
 
 cmdGet : String -> Http.Expect msg -> Cmd msg

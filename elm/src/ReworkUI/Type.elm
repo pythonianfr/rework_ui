@@ -70,6 +70,8 @@ type Action
     | Delete
     | Relaunch
     | Pending Action
+    | Completed Action
+    | Uncompleted Action
 
 
 type Msg
@@ -78,7 +80,7 @@ type Msg
     | OnAbort Int
     | OnRelaunch Int
     | GotTasks (Result Http.Error (List Task))
-    | GotBool (Result Http.Error Bool)
-    | RelaunchMsg (Result Http.Error Int)
+    | GotBool Int Action (Result Http.Error Bool)
+    | RelaunchMsg Int (Result Http.Error Int)
     | DoRefresh Bool
     | OnRefresh
