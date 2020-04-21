@@ -345,6 +345,64 @@ def reworkui(engine,
 
         return str(h)
 
+    @bp.route('/workers-table-json')
+    def list_workers_json():
+        if not has_permission('read'):
+            abort(403, 'Nothing to see there.')
+
+        # workers
+        q = select(
+            'id', 'host', 'domain', 'pid', 'mem', 'cpu',
+            'shutdown', 'kill', 'debugport', 'started'
+        ).table('rework.worker'
+        ).where('running = true'
+        ).order('id')
+
+        domain = uiargsdict(request.args).domain
+        if domain != 'all':
+            q.where(domain=domain)
+
+        workers = q.do(engine).fetchall()
+
+        # monitors
+        q = select(
+            'id', 'domain', 'lastseen', 'options'
+        ).table('rework.monitor')
+        if domain != 'all':
+            q.where(domain=domain)
+
+        monitors = {
+            row.domain: row
+            for row in q.do(engine).fetchall()
+        }
+        now = utcnow().astimezone(TZ)
+        domains_list = []
+        for domain, row in sorted(monitors.items()):
+            domains_list.append({
+                "id": row.id,
+                "domain": row.domain,
+                "delta": (now - row.lastseen).total_seconds(),
+                "lastSeen": row.lastseen.astimezone(TZ).strftime('%Y-%m-%d %H:%M:%S%z'),
+                "options": sorted(row.options.items())
+            })
+
+        workers_list =[]
+        for wid, host, domain, pid, mem, cpu, shutdown, kill, debugport, started in workers:
+            if started:
+                started = started.astimezone(TZ).strftime('%Y-%m-%d %H:%M:%S%z')
+            workers_list.append({
+              "wId": wid,
+              "host":host,
+              "pid": pid,
+              "domain": domain,
+              "mem": mem,
+              "cpu": cpu,
+              "debugPort": debugport,
+              "started": started,
+              "button": {"kill":kill,"shutDown":shutdown}
+            })
+        return json.dumps({"domains":domains_list,"workers":workers_list})
+
     @bp.route('/delete-task/<tid>')
     def delete_task(tid):
         if not has_permission('delete'):
@@ -478,6 +536,31 @@ def reworkui(engine,
                         action(t, host, name, domain)
 
         return str(h)
+
+    @bp.route('/services-table-json')
+    def list_services_json():
+        if not has_permission('read'):
+            abort(403, 'Nothing to see there.')
+
+        args = uiargsdict(request.args)
+        q = select(
+            'id', 'host', 'name', 'path', 'domain'
+        ).table('rework.operation'
+        ).order('domain, name')
+        if args.domain != 'all':
+            q.where(domain=args.domain)
+
+        ops = q.do(engine)
+        list_json =[]
+        for opid, host, name, path, domain in ops.fetchall():
+            list_json.append({
+                "opid": opid,
+                "host": host,
+                "name": name,
+                "path": path,
+                "domain": domain
+                })
+        return json.dumps(list_json)
 
     @bp.route('/')
     def home():
