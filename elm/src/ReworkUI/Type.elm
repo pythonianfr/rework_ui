@@ -20,6 +20,34 @@ type alias Task =
     }
 
 
+type alias Service =
+    { id : Int
+    , host : String
+    , name : String
+    , path : String
+    , domain : String
+    }
+
+
+type alias Domain =
+    { id : Int
+    , domain : String
+    , seenLast : String
+    , option : String
+    }
+
+
+type alias Worker =
+    { id : Int
+    , pidHost : String
+    , domain : String
+    , memory : String
+    , cpu : Int
+    , started : String
+    , action : String
+    }
+
+
 type alias JsonStatus =
     { status : String
     , abort : Bool
@@ -33,15 +61,31 @@ type alias JsonUser =
     }
 
 
+type alias WorkerDict =
+    AL.Dict Int Worker
+
+
+type alias DomainDict =
+    AL.Dict Int Domain
+
+
 type alias TaskDict =
     AL.Dict Int Task
+
+
+type alias ServiceDict =
+    AL.Dict Int Service
 
 
 type alias Model =
     { errorMessage : Maybe String
     , task : TaskDict
+    , worker : WorkerDict
+    , domain : DomainDict
+    , service : ServiceDict
     , doRefresh : Bool
     , urlPrefix : String
+    , tableLayout : Table
     }
 
 
@@ -85,3 +129,10 @@ type Msg
     | RelaunchMsg Int (Result Http.Error Int)
     | DoRefresh Bool
     | OnRefresh
+    | Table
+
+
+type Table
+    = TableTasks
+    | TableMonitors
+    | TableServices

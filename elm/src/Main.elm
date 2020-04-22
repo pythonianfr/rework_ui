@@ -12,6 +12,7 @@ import ReworkUI.Type
         , Model
         , Msg(..)
         , Status(..)
+        , Table(..)
         , Task
         , TaskDict
         , TaskResult(..)
@@ -96,6 +97,9 @@ update msg model =
         RelaunchMsg taskId (Err _) ->
             setActionModel taskId (Uncompleted Relaunch) |> withNoCmd
 
+        Table ->
+            ( model, Cmd.none )
+
 
 listTuple : List Task -> List ( Int, Task )
 listTuple listtask =
@@ -161,8 +165,12 @@ initialModel urlPrefix =
     Model
         Nothing
         AL.empty
+        AL.empty
+        AL.empty
+        AL.empty
         True
         urlPrefix
+        TableTasks
 
 
 main : Program String Model Msg

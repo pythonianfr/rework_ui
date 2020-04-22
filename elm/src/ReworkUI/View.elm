@@ -1,6 +1,7 @@
 module ReworkUI.View exposing (view)
 
 import AssocList as AL
+import Bool.Extra as BE
 import Html as H
 import Html.Attributes as HA
 import Html.Events as HE
@@ -10,6 +11,7 @@ import ReworkUI.Type
         , Model
         , Msg(..)
         , Status(..)
+        , Table(..)
         , Task
         , TaskResult(..)
         , User(..)
@@ -39,19 +41,6 @@ data_toggle =
 aria_expanded : String -> H.Attribute msg
 aria_expanded =
     HA.attribute "aria-expanded"
-
-
-li : String -> String -> H.Html msg
-li controle title =
-    H.li [ role "presentation" ]
-        [ H.a
-            [ aria_controls controle
-            , data_toggle "tab"
-            , role "tab"
-            , aria_expanded "false"
-            ]
-            [ H.text title ]
-        ]
 
 
 user2String : User -> String
@@ -84,18 +73,103 @@ view model =
             ]
     in
     H.div []
-        [ H.br [] []
-        , H.table [ HA.class """table
-                                table-sm
-                                table-bordered
-                                table-striped
-                                table-hover""" ]
-            [ H.thead [ HA.class "thead-inverse" ]
-                [ H.tr []
-                    (List.map th headers)
-                ]
-            , H.tbody [] (List.map renderRow (AL.values model.task))
+        [ H.h1 []
+            [ H.text "Tasks Monitoring UI" ]
+        , H.ul [ HA.id "tabs", HA.class "nav nav-tabs", role "tablist" ]
+            [ li "tasks" "Tasks"
+            , li "services" "Services"
+            , li "workers" "Monitors"
             ]
+        , H.div [ HA.class "tab-content" ]
+            [ H.div [ HA.id "tasks", HA.class "tab-pane active", role "tabpanel" ]
+                [ H.br [] []
+                , H.table
+                    [ HA.class """table
+                               table-sm
+                               table-bordered
+                               table-striped
+                               table-hover"""
+                    ]
+                    [ H.thead [ HA.class "thead-inverse" ]
+                        [ H.tr []
+                            (List.map th headers)
+                        ]
+                    , H.tbody [] (List.map renderRow (AL.values model.task))
+                    ]
+                ]
+            ]
+        ]
+
+
+header : List ( Bool, String ) -> List (H.Html Msg)
+header listTuple =
+    [ H.h1 []
+        [ H.text "Tasks Monitoring UI" ]
+    , H.ul [ HA.id "tabs", HA.class "nav nav-tabs", role "tablist" ]
+        (List.map buildLi listTuple)
+    ]
+
+
+buildLi : ( Bool, String ) -> H.Html Msg
+buildLi tuple =
+    let
+        bool =
+            Tuple.first tuple
+
+        newTableName =
+            if Tuple.second tuple == "Monitors" then
+                "workers"
+
+            else
+                Tuple.second tuple
+
+        class =
+            if bool then
+                "active"
+
+            else
+                ""
+    in
+    H.li [ HA.class class, role "presentation" ]
+        [ H.a
+            [ HE.onClick Table
+            , aria_controls (String.toLower newTableName)
+            , data_toggle "tab"
+            , role "tabe"
+            , aria_expanded (String.toLower (BE.toString bool))
+            ]
+            [ H.text newTableName ]
+        ]
+
+
+futurView : Model -> H.Html Msg
+futurView model =
+    case model.tableLayout of
+        TableTasks ->
+            let
+                head =
+                    header
+                        [ ( True, "Tasks" )
+                        , ( False, "Monitors" )
+                        , ( False, "Services" )
+                        ]
+            in
+            H.text "hjk"
+
+        _ ->
+            H.text "hjk"
+
+
+li : String -> String -> H.Html Msg
+li controle title =
+    H.li [ role "presentation" ]
+        [ H.a
+            [ aria_controls controle
+            , data_toggle "tab"
+            , role "tab"
+            , aria_expanded "false"
+            ]
+            [ H.text title ]
         ]
 
 
