@@ -21,7 +21,7 @@ type alias Task =
 
 
 type alias Service =
-    { id : Int
+    { opid : Int
     , host : String
     , name : String
     , path : String
@@ -32,19 +32,28 @@ type alias Service =
 type alias Domain =
     { id : Int
     , domain : String
-    , seenLast : String
-    , option : String
+    , delta : Int
+    , lastSeen : String
+    , options : String
     }
 
 
 type alias Worker =
-    { id : Int
-    , pidHost : String
+    { wId : Int
+    , host : String
+    , pid : Int
     , domain : String
-    , memory : String
+    , mem : Int
     , cpu : Int
+    , debugPort : Maybe Int
     , started : String
-    , action : String
+    , button : Button
+    }
+
+
+type alias Button =
+    { kill : Bool
+    , shutDown : Bool
     }
 
 
@@ -58,6 +67,12 @@ type alias JsonStatus =
 type alias JsonUser =
     { user : Maybe String
     , runName : Maybe String
+    }
+
+
+type alias JsonMonitors =
+    { domains : List Domain
+    , workers : List Worker
     }
 
 
