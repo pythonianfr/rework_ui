@@ -34,7 +34,7 @@ type alias Domain =
     , domain : String
     , delta : Int
     , lastSeen : String
-    , options : String
+    , options : List ( String, Int )
     }
 
 

@@ -384,9 +384,31 @@ domainRenderRow domain =
         [ H.th [ HA.scope "row" ]
             [ H.text (String.fromInt domain.id) ]
         , td domain.domain
-        , td domain.lastSeen
-        , td domain.options
+        , formatdateColor domain.lastSeen domain.delta
+        , H.th []
+            [ H.text (String.join ", " (List.map equalTuple domain.options)) ]
         ]
+
+
+formatdateColor : String -> Int -> H.Html Msg
+formatdateColor stringDate delta =
+    let
+        color =
+            if delta > 60 then
+                "DarkRed"
+
+            else if delta > 10 then
+                "DarkMagenta"
+
+            else
+                "DarkGreen"
+    in
+    H.td [ HA.style "color" color ] [ H.text stringDate ]
+
+
+equalTuple : ( String, Int ) -> String
+equalTuple tuple =
+    Tuple.first tuple ++ "=" ++ String.fromInt (Tuple.second tuple)
 
 
 workerRenderRow : Worker -> H.Html Msg

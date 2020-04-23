@@ -184,7 +184,14 @@ decodeDomain =
         (D.field "domain" D.string)
         (D.field "delta" D.int)
         (D.field "lastSeen" D.string)
-        (D.field "options" D.string)
+        (D.field "options" (D.list decodeOption))
+
+
+decodeOption : D.Decoder ( String, Int )
+decodeOption =
+    D.map2 Tuple.pair
+        (D.index 0 D.string)
+        (D.index 1 D.int)
 
 
 map9 :
