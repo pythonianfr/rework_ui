@@ -8,13 +8,16 @@ import Html.Events as HE
 import ReworkUI.Type
     exposing
         ( Action(..)
+        , Domain
         , Model
         , Msg(..)
+        , Service
         , Status(..)
         , Table(..)
         , Task
         , TaskResult(..)
         , User(..)
+        , Worker
         )
 
 
@@ -94,20 +97,39 @@ view model =
                         [ H.tr []
                             (List.map th headers)
                         ]
-                    , H.tbody [] (List.map renderRow (AL.values model.task))
+                    , H.tbody [] (List.map taskRenderRow (AL.values model.task))
                     ]
                 ]
             ]
         ]
 
 
-header : List ( Bool, String ) -> List (H.Html Msg)
+body : List String -> List (H.Html Msg) -> H.Html Msg
+body namesColumns htmlTable =
+    H.div [ HA.class "tab-content" ]
+        [ H.div [ HA.id "tasks", HA.class "tab-pane active", role "tabpanel" ]
+            [ H.br [] []
+            , H.table
+                [ HA.class """table
+                               table-sm
+                               table-bordered
+                               table-striped
+                               table-hover"""
+                ]
+                [ H.thead [ HA.class "thead-inverse" ]
+                    [ H.tr []
+                        (List.map th namesColumns)
+                    ]
+                , H.tbody [] htmlTable
+                ]
+            ]
+        ]
+
+
+header : List ( Bool, String ) -> H.Html Msg
 header listTuple =
-    [ H.h1 []
-        [ H.text "Tasks Monitoring UI" ]
-    , H.ul [ HA.id "tabs", HA.class "nav nav-tabs", role "tablist" ]
+    H.ul [ HA.id "tabs", HA.class "nav nav-tabs", role "tablist" ]
         (List.map buildLi listTuple)
-    ]
 
 
 buildLi : ( Bool, String ) -> H.Html Msg
@@ -144,6 +166,10 @@ buildLi tuple =
 
 futurView : Model -> H.Html Msg
 futurView model =
+    let
+        title =
+            H.h1 [] [ H.text "Tasks Monitoring UI" ]
+    in
     case model.tableLayout of
         TableTasks ->
             let
@@ -153,11 +179,88 @@ futurView model =
                         , ( False, "Monitors" )
                         , ( False, "Services" )
                         ]
-            in
-            H.text "hjk"
 
-        _ ->
-            H.text "hjk"
+                columnsName =
+                    [ "#"
+                    , "service"
+                    , "domain"
+                    , "queued"
+                    , "started"
+                    , "finished"
+                    , "user"
+                    , "worker"
+                    , "status"
+                    , "action"
+                    ]
+
+                table =
+                    body columnsName
+                        (List.map taskRenderRow (AL.values model.task))
+            in
+            H.div [] [ title, head, table ]
+
+        TableServices ->
+            let
+                head =
+                    header
+                        [ ( False, "Tasks" )
+                        , ( False, "Monitors" )
+                        , ( True, "Services" )
+                        ]
+
+                columnsName =
+                    [ "#"
+                    , "host"
+                    , "name"
+                    , "path"
+                    , "domain"
+                    ]
+
+                table =
+                    body columnsName
+                        (List.map serviceRenderRow (AL.values model.service))
+            in
+            H.div [] [ title, head, table ]
+
+        TableMonitors ->
+            let
+                head =
+                    header
+                        [ ( False, "Tasks" )
+                        , ( True, "Monitors" )
+                        , ( False, "Services" )
+                        ]
+
+                columnsNameDomain =
+                    [ "#"
+                    , "domain"
+                    , "seen last"
+                    , "options"
+                    ]
+
+                columnsNameWorker =
+                    [ "#"
+                    , "pid@host"
+                    , "domain"
+                    , "memory (Mb)"
+                    , "cpu"
+                    , "debug port"
+                    , "started"
+                    , "action"
+                    ]
+
+                tableDomain =
+                    body columnsNameDomain
+                        (List.map
+                            domainRenderRow
+                            (AL.values model.domain)
+                        )
+
+                tableWorker =
+                    body columnsNameWorker
+                        (List.map workerRenderRow (AL.values model.worker))
+            in
+            H.div [] [ title, head, tableDomain, tableWorker ]
 
 
 li : String -> String -> H.Html Msg
@@ -178,8 +281,8 @@ th title =
     H.th [] [ H.text title ]
 
 
-renderRow : Task -> H.Html Msg
-renderRow task =
+taskRenderRow : Task -> H.Html Msg
+taskRenderRow task =
     let
         span : H.Html msg
         span =
@@ -212,10 +315,6 @@ renderRow task =
                                 [ H.text "[traceback]" ]
                             ]
                         ]
-
-        td : String -> H.Html msg
-        td x =
-            H.td [] [ H.text x ]
 
         tdStatus : String -> String -> H.Html msg
         tdStatus class title =
@@ -260,6 +359,65 @@ renderRow task =
         , renderStatus task.status
         , H.td [] (List.map (renderAction task) task.actions)
         ]
+
+
+td : String -> H.Html msg
+td x =
+    H.td [] [ H.text x ]
+
+
+serviceRenderRow : Service -> H.Html Msg
+serviceRenderRow service =
+    H.tr []
+        [ H.th [ HA.scope "row" ]
+            [ H.text (String.fromInt service.opid) ]
+        , td service.host
+        , td service.name
+        , td service.path
+        , td service.domain
+        ]
+
+
+domainRenderRow : Domain -> H.Html Msg
+domainRenderRow domain =
+    H.tr []
+        [ H.th [ HA.scope "row" ]
+            [ H.text (String.fromInt domain.id) ]
+        , td domain.domain
+        , td domain.lastSeen
+        , td domain.options
+        ]
+
+
+workerRenderRow : Worker -> H.Html Msg
+workerRenderRow worker =
+    H.tr []
+        [ H.th [ HA.scope "row" ]
+            [ H.text (String.fromInt worker.wId) ]
+        , td (String.fromInt worker.pid ++ "@" ++ worker.host)
+        , td worker.domain
+        , td (String.fromInt worker.mem)
+        , td (String.fromInt worker.cpu)
+        , td (Maybe.map String.fromInt worker.debugPort |> Maybe.withDefault "")
+        , td worker.started
+        , H.td []
+            (List.map
+                button
+                [ ( worker.button.kill, "kill" )
+                , ( worker.button.shutDown, "shutDown" )
+                ]
+            )
+        ]
+
+
+button : ( Bool, String ) -> H.Html Msg
+button tuple =
+    H.button
+        [ HA.class "btn btn-danger"
+        , HA.type_ "button"
+        , HA.disabled (Tuple.first tuple)
+        ]
+        [ H.text (Tuple.second tuple) ]
 
 
 renderAction : Task -> Action -> H.Html Msg
