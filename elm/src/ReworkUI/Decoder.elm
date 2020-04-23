@@ -9,13 +9,18 @@ import Json.Decode as D
 import ReworkUI.Type
     exposing
         ( Action(..)
+        , Button
+        , Domain
+        , JsonMonitors
         , JsonStatus
         , JsonUser
         , Msg(..)
+        , Service
         , Status(..)
         , Task
         , TaskResult(..)
         , User(..)
+        , Worker
         )
 
 
@@ -160,3 +165,72 @@ decodeTask status =
 taskDecoder : D.Decoder Task
 taskDecoder =
     statusDecoder |> D.andThen decodeTask
+
+
+decodeService : D.Decoder Service
+decodeService =
+    D.map5 Service
+        (D.field "opid" D.int)
+        (D.field "host" D.string)
+        (D.field "name" D.string)
+        (D.field "path" D.string)
+        (D.field "domain" D.string)
+
+
+decodeDomain : D.Decoder Domain
+decodeDomain =
+    D.map5 Domain
+        (D.field "id" D.int)
+        (D.field "domain" D.string)
+        (D.field "delta" D.int)
+        (D.field "lastSeen" D.string)
+        (D.field "options" D.string)
+
+
+map9 :
+    (a -> b -> c -> d -> e -> f -> g -> h -> i -> value)
+    -> D.Decoder a
+    -> D.Decoder b
+    -> D.Decoder c
+    -> D.Decoder d
+    -> D.Decoder e
+    -> D.Decoder f
+    -> D.Decoder g
+    -> D.Decoder h
+    -> D.Decoder i
+    -> D.Decoder value
+map9 func da db dc dd de df dg dh di =
+    let
+        map : (i -> value) -> D.Decoder value
+        map funcI =
+            D.map funcI di
+    in
+    D.map8 func da db dc dd de df dg dh |> D.andThen map
+
+
+decodeWorker : D.Decoder Worker
+decodeWorker =
+    map9 Worker
+        (D.field "wId" D.int)
+        (D.field "host" D.string)
+        (D.field "pid" D.int)
+        (D.field "domain" D.string)
+        (D.field "mem" D.int)
+        (D.field "cpu" D.int)
+        (D.field "debugPort" (D.nullable D.int))
+        (D.field "started" D.string)
+        (D.field "button" decodeButton)
+
+
+decodeButton : D.Decoder Button
+decodeButton =
+    D.map2 Button
+        (D.field "kill" D.bool)
+        (D.field "shutDown" D.bool)
+
+
+decodeMonitor : D.Decoder JsonMonitors
+decodeMonitor =
+    D.map2 JsonMonitors
+        (D.field "domains" (D.list decodeDomain))
+        (D.field "workers" (D.list decodeWorker))
