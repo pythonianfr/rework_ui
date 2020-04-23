@@ -28,10 +28,6 @@ from rework_ui.helper import argsdict
 from rework_ui import taskstable
 
 
-bp = Blueprint('reworkui', __name__,
-               template_folder='rui_templates',
-               static_folder='rui_static',
-)
 TZ = tzlocal.get_localzone()
 
 
@@ -90,6 +86,13 @@ def reworkui(engine,
              serviceactions=None,
              alttemplate=None,
              has_permission=lambda perm: True):
+
+    bp = Blueprint(
+        'reworkui',
+        __name__,
+        template_folder='rui_templates',
+        static_folder='rui_static',
+    )
 
     @bp.route('/schedule-task/<service>', methods=['PUT'])
     @bp.route('/new_job/<service>', methods=['PUT'])  # bw compat
