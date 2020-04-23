@@ -37,8 +37,9 @@ update msg model =
         OnDelete taskId ->
             ( setActionModel taskId (Pending Delete)
             , cmdGet
-                (UB.absolute
-                    [ model.urlPrefix, "delete-task", String.fromInt taskId ]
+                (UB.crossOrigin
+                    model.urlPrefix
+                    [ "delete-task", String.fromInt taskId ]
                     []
                 )
                 (Http.expectJson (GotBool taskId Delete) D.bool)
@@ -47,8 +48,9 @@ update msg model =
         OnAbort taskId ->
             ( setActionModel taskId (Pending Abort)
             , cmdGet
-                (UB.absolute
-                    [ model.urlPrefix, "abort-task", String.fromInt taskId ]
+                (UB.crossOrigin
+                    model.urlPrefix
+                    [ "abort-task", String.fromInt taskId ]
                     []
                 )
                 (Http.expectJson (GotBool taskId Abort) D.bool)
@@ -57,8 +59,9 @@ update msg model =
         OnRelaunch taskId ->
             ( setActionModel taskId (Pending Relaunch)
             , cmdPut
-                (UB.absolute
-                    [ model.urlPrefix, "relaunch-task", String.fromInt taskId ]
+                (UB.crossOrigin
+                    model.urlPrefix
+                    [ "relaunch-task", String.fromInt taskId ]
                     []
                 )
                 (Http.expectJson (RelaunchMsg taskId) D.int)
@@ -155,7 +158,7 @@ modifyTask taskId modify model =
 refreshTasksCmd : String -> Cmd Msg
 refreshTasksCmd urlPrefix =
     Http.get
-        { url = UB.absolute [ urlPrefix, "tasks-table" ] []
+        { url = UB.crossOrigin urlPrefix [ "tasks-table" ] []
         , expect = Http.expectJson GotTasks (D.list taskDecoder)
         }
 
