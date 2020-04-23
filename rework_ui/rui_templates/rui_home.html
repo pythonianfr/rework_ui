@@ -43,7 +43,8 @@
  document.onreadystatechange = function () {
      if (document.readyState == 'complete') {
          app = Elm.Main.init({
-            node: document.getElementById("elm_tasks")
+            node: document.getElementById("elm_tasks"),
+            flags: "{{homeurl}}"
          });
          refresh_section('tasks')
      }

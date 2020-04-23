@@ -29,6 +29,12 @@ from rework_ui.helper import argsdict
 
 TZ = tzlocal.get_localzone()
 
+def homeurl():
+    homeurl = url_for('reworkui.home')
+    baseurl = homeurl[:homeurl.rindex('/')]
+    if len(baseurl):
+        return baseurl + '/'
+    return baseurl
 
 def getjob(engine, jobid):
     try:
@@ -590,6 +596,7 @@ def reworkui(engine,
 
         return render_template('rui_home.html',
                                domain_filter=str(h),
+                               homeurl=homeurl(),
                                initialdomain=firstdomain)
 
     return bp
