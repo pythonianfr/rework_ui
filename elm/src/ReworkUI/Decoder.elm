@@ -1,5 +1,7 @@
 module ReworkUI.Decoder exposing
-    ( matchTaskResult
+    ( decodeMonitor
+    , decodeService
+    , matchTaskResult
     , statusDecoder
     , taskDecoder
     , userDecoder

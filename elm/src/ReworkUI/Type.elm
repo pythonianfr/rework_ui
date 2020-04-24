@@ -144,7 +144,9 @@ type Msg
     | RelaunchMsg Int (Result Http.Error Int)
     | DoRefresh Bool
     | OnRefresh
-    | Table
+    | Table String
+    | GotServices (Result Http.Error (List Service))
+    | GotMonitors (Result Http.Error JsonMonitors)
 
 
 type Table

@@ -59,51 +59,6 @@ user2String user =
             name ++ " [" ++ runName ++ "]"
 
 
-view : Model -> H.Html Msg
-view model =
-    let
-        headers =
-            [ "#"
-            , "service"
-            , "domain"
-            , "queued"
-            , "started"
-            , "finished"
-            , "user"
-            , "worker"
-            , "status"
-            , "action"
-            ]
-    in
-    H.div []
-        [ H.h1 []
-            [ H.text "Tasks Monitoring UI" ]
-        , H.ul [ HA.id "tabs", HA.class "nav nav-tabs", role "tablist" ]
-            [ li "tasks" "Tasks"
-            , li "services" "Services"
-            , li "workers" "Monitors"
-            ]
-        , H.div [ HA.class "tab-content" ]
-            [ H.div [ HA.id "tasks", HA.class "tab-pane active", role "tabpanel" ]
-                [ H.br [] []
-                , H.table
-                    [ HA.class """table
-                               table-sm
-                               table-bordered
-                               table-striped
-                               table-hover"""
-                    ]
-                    [ H.thead [ HA.class "thead-inverse" ]
-                        [ H.tr []
-                            (List.map th headers)
-                        ]
-                    , H.tbody [] (List.map taskRenderRow (AL.values model.task))
-                    ]
-                ]
-            ]
-        ]
-
-
 body : List String -> List (H.Html Msg) -> H.Html Msg
 body namesColumns htmlTable =
     H.div [ HA.class "tab-content" ]
@@ -154,7 +109,7 @@ buildLi tuple =
     in
     H.li [ HA.class class, role "presentation" ]
         [ H.a
-            [ HE.onClick Table
+            [ HE.onClick (Table newTableName)
             , aria_controls (String.toLower newTableName)
             , data_toggle "tab"
             , role "tabe"
@@ -164,8 +119,8 @@ buildLi tuple =
         ]
 
 
-futurView : Model -> H.Html Msg
-futurView model =
+view : Model -> H.Html Msg
+view model =
     let
         title =
             H.h1 [] [ H.text "Tasks Monitoring UI" ]
@@ -176,8 +131,8 @@ futurView model =
                 head =
                     header
                         [ ( True, "Tasks" )
-                        , ( False, "Monitors" )
                         , ( False, "Services" )
+                        , ( False, "Monitors" )
                         ]
 
                 columnsName =
@@ -204,8 +159,8 @@ futurView model =
                 head =
                     header
                         [ ( False, "Tasks" )
-                        , ( False, "Monitors" )
                         , ( True, "Services" )
+                        , ( False, "Monitors" )
                         ]
 
                 columnsName =
@@ -227,8 +182,8 @@ futurView model =
                 head =
                     header
                         [ ( False, "Tasks" )
-                        , ( True, "Monitors" )
                         , ( False, "Services" )
+                        , ( True, "Monitors" )
                         ]
 
                 columnsNameDomain =
@@ -261,19 +216,6 @@ futurView model =
                         (List.map workerRenderRow (AL.values model.worker))
             in
             H.div [] [ title, head, tableDomain, tableWorker ]
-
-
-li : String -> String -> H.Html Msg
-li controle title =
-    H.li [ role "presentation" ]
-        [ H.a
-            [ aria_controls controle
-            , data_toggle "tab"
-            , role "tab"
-            , aria_expanded "false"
-            ]
-            [ H.text title ]
-        ]
 
 
 th : String -> H.Html msg

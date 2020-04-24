@@ -5,18 +5,30 @@ import Browser
 import Cmd.Extra exposing (withNoCmd)
 import Http
 import Json.Decode as D
-import ReworkUI.Decoder exposing (taskDecoder)
+import ReworkUI.Decoder
+    exposing
+        ( decodeMonitor
+        , decodeService
+        , taskDecoder
+        )
 import ReworkUI.Type
     exposing
         ( Action(..)
+        , Domain
+        , DomainDict
+        , JsonMonitors
         , Model
         , Msg(..)
+        , Service
+        , ServiceDict
         , Status(..)
         , Table(..)
         , Task
         , TaskDict
         , TaskResult(..)
         , User(..)
+        , Worker
+        , WorkerDict
         )
 import ReworkUI.View exposing (view)
 import Time
@@ -71,7 +83,7 @@ update msg model =
             ( model, Cmd.none )
 
         GotTasks (Ok tasks) ->
-            ( setTask (AL.fromList (listTuple tasks)) model, Cmd.none )
+            ( setTask (AL.fromList (listTupleTask tasks)) model, Cmd.none )
 
         GotTasks (Err _) ->
             ( { model | errorMessage = Just "Could not load tasks" }, Cmd.none )
@@ -100,18 +112,88 @@ update msg model =
         RelaunchMsg taskId (Err _) ->
             setActionModel taskId (Uncompleted Relaunch) |> withNoCmd
 
-        Table ->
-            ( model, Cmd.none )
+        Table tableName ->
+            if tableName == "Tasks" then
+                let
+                    url =
+                        UB.crossOrigin model.urlPrefix [ "tasks-table" ] []
+                in
+                ( { model | tableLayout = TableTasks }, cmdGet url (Http.expectJson GotTasks (D.list taskDecoder)) )
+
+            else if tableName == "Services" then
+                let
+                    url =
+                        UB.crossOrigin model.urlPrefix [ "services-table-json" ] []
+                in
+                ( { model | tableLayout = TableServices }
+                , cmdGet url (Http.expectJson GotServices (D.list decodeService))
+                )
+
+            else
+                let
+                    url =
+                        UB.crossOrigin model.urlPrefix [ "workers-table-json" ] []
+                in
+                ( { model | tableLayout = TableMonitors }
+                , cmdGet url (Http.expectJson GotMonitors decodeMonitor)
+                )
+
+        GotServices (Ok services) ->
+            ( setService (AL.fromList (listTupleService services)) model, Cmd.none )
+
+        GotServices (Err _) ->
+            ( { model | errorMessage = Just "Could not load services" }, Cmd.none )
+
+        GotMonitors (Ok monitor) ->
+            ( setMonitor
+                (AL.fromList (listTupleDomain monitor.domains))
+                (AL.fromList (listTupleWorker monitor.workers))
+                model
+            , Cmd.none
+            )
+
+        GotMonitors (Err _) ->
+            ( { model | errorMessage = Just "Could not load monitors" }, Cmd.none )
 
 
-listTuple : List Task -> List ( Int, Task )
-listTuple listtask =
+listTupleTask : List Task -> List ( Int, Task )
+listTupleTask listtask =
     let
         creatTuple : Task -> ( Int, Task )
         creatTuple task =
             ( task.id, task )
     in
     List.map creatTuple listtask
+
+
+listTupleService : List Service -> List ( Int, Service )
+listTupleService listservice =
+    let
+        creatTuple : Service -> ( Int, Service )
+        creatTuple service =
+            ( service.opid, service )
+    in
+    List.map creatTuple listservice
+
+
+listTupleDomain : List Domain -> List ( Int, Domain )
+listTupleDomain listdomain =
+    let
+        creatTuple : Domain -> ( Int, Domain )
+        creatTuple domain =
+            ( domain.id, domain )
+    in
+    List.map creatTuple listdomain
+
+
+listTupleWorker : List Worker -> List ( Int, Worker )
+listTupleWorker listworker =
+    let
+        creatTuple : Worker -> ( Int, Worker )
+        creatTuple worker =
+            ( worker.wId, worker )
+    in
+    List.map creatTuple listworker
 
 
 updateTaskActions : Action -> Task -> Task
@@ -143,6 +225,19 @@ cmdPut url expect =
 setTask : TaskDict -> Model -> Model
 setTask task model =
     { model | task = task }
+
+
+setService : ServiceDict -> Model -> Model
+setService service model =
+    { model | service = service }
+
+
+setMonitor : DomainDict -> WorkerDict -> Model -> Model
+setMonitor domain worker model =
+    { model
+        | domain = domain
+        , worker = worker
+    }
 
 
 modifyTask : Int -> (Task -> Task) -> Model -> Model
