@@ -184,7 +184,7 @@ decodeDomain =
     D.map5 Domain
         (D.field "id" D.int)
         (D.field "domain" D.string)
-        (D.field "delta" D.int)
+        (D.field "delta" D.float)
         (D.field "lastSeen" D.string)
         (D.field "options" (D.list decodeOption))
 
@@ -225,7 +225,7 @@ decodeWorker =
         (D.field "pid" D.int)
         (D.field "domain" D.string)
         (D.field "mem" D.int)
-        (D.field "cpu" D.int)
+        (D.field "cpu" D.float)
         (D.field "debugPort" (D.nullable D.int))
         (D.field "started" D.string)
         (D.field "button" decodeButton)

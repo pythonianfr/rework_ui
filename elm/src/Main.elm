@@ -16,7 +16,6 @@ import ReworkUI.Type
         ( Action(..)
         , Domain
         , DomainDict
-        , JsonMonitors
         , Model
         , Msg(..)
         , Service

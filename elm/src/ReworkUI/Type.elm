@@ -32,7 +32,7 @@ type alias Service =
 type alias Domain =
     { id : Int
     , domain : String
-    , delta : Int
+    , delta : Float
     , lastSeen : String
     , options : List ( String, Int )
     }
@@ -44,7 +44,7 @@ type alias Worker =
     , pid : Int
     , domain : String
     , mem : Int
-    , cpu : Int
+    , cpu : Float
     , debugPort : Maybe Int
     , started : String
     , button : Button

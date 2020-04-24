@@ -332,7 +332,7 @@ domainRenderRow domain =
         ]
 
 
-formatdateColor : String -> Int -> H.Html Msg
+formatdateColor : String -> Float -> H.Html Msg
 formatdateColor stringDate delta =
     let
         color =
@@ -361,7 +361,7 @@ workerRenderRow worker =
         , td (String.fromInt worker.pid ++ "@" ++ worker.host)
         , td worker.domain
         , td (String.fromInt worker.mem)
-        , td (String.fromInt worker.cpu)
+        , td (String.fromFloat (worker.cpu / 100))
         , td (Maybe.map String.fromInt worker.debugPort |> Maybe.withDefault "")
         , td worker.started
         , H.td []
