@@ -357,15 +357,6 @@ equalTuple tuple =
 
 workerRenderRow : Worker -> H.Html Msg
 workerRenderRow worker =
-    let
-        checkPending : ( Bool, Action ) -> Action
-        checkPending ( asked, action ) =
-            if asked then
-                Pending action
-
-            else
-                action
-    in
     H.tr []
         [ H.th [ HA.scope "row" ]
             [ H.text (String.fromInt worker.wId) ]
@@ -375,13 +366,7 @@ workerRenderRow worker =
         , td (String.fromFloat (worker.cpu / 100))
         , td (Maybe.map String.fromInt worker.debugPort |> Maybe.withDefault "")
         , td worker.started
-        , H.td []
-            (List.map
-                (checkPending >> renderAction worker.wId)
-                [ ( worker.button.kill, Kill )
-                , ( worker.button.shutDown, Shutdown )
-                ]
-            )
+        , H.td [] (List.map (renderAction worker.wId) worker.actions)
         ]
 
 
