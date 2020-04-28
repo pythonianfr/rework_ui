@@ -299,7 +299,7 @@ taskRenderRow task =
         , td <| user2String task.user
         , td <| "#" ++ String.fromInt task.worker
         , renderStatus task.status
-        , H.td [] (List.map (renderAction task) task.actions)
+        , H.td [] (List.map (renderAction task.id) task.actions)
         ]
 
 
@@ -350,11 +350,22 @@ formatdateColor stringDate delta =
 
 equalTuple : ( String, Int ) -> String
 equalTuple tuple =
-    Tuple.first tuple ++ "=" ++ String.fromInt (Tuple.second tuple)
+    Tuple.first tuple
+        ++ "="
+        ++ String.fromInt (Tuple.second tuple)
 
 
 workerRenderRow : Worker -> H.Html Msg
 workerRenderRow worker =
+    let
+        checkPending : ( Bool, Action ) -> Action
+        checkPending ( asked, action ) =
+            if asked then
+                Pending action
+
+            else
+                action
+    in
     H.tr []
         [ H.th [ HA.scope "row" ]
             [ H.text (String.fromInt worker.wId) ]
@@ -366,26 +377,16 @@ workerRenderRow worker =
         , td worker.started
         , H.td []
             (List.map
-                button
-                [ ( worker.button.kill, "kill" )
-                , ( worker.button.shutDown, "shutDown" )
+                (checkPending >> renderAction worker.wId)
+                [ ( worker.button.kill, Kill )
+                , ( worker.button.shutDown, Shutdown )
                 ]
             )
         ]
 
 
-button : ( Bool, String ) -> H.Html Msg
-button tuple =
-    H.button
-        [ HA.class "btn btn-danger"
-        , HA.type_ "button"
-        , HA.disabled (Tuple.first tuple)
-        ]
-        [ H.text (Tuple.second tuple) ]
-
-
-renderAction : Task -> Action -> H.Html Msg
-renderAction task action =
+renderAction : Int -> Action -> H.Html Msg
+renderAction id action =
     let
         ( disabled, prefix, newAction ) =
             case action of
@@ -406,7 +407,7 @@ renderAction task action =
             H.button
                 [ HA.class class
                 , HA.type_ "button"
-                , HE.onClick (msg task.id)
+                , HE.onClick (msg id)
                 , HA.disabled disabled
                 ]
                 [ H.text (prefix ++ title) ]
@@ -435,6 +436,18 @@ renderAction task action =
                 "btn btn-primary btn-sm"
                 "relaunch"
                 OnRelaunch
+
+        Kill ->
+            buttonAction
+                "btn btn-warning btn-sm"
+                "kill"
+                OnKill
+
+        Shutdown ->
+            buttonAction
+                "btn btn-danger btn-sm"
+                "shutdown"
+                OnShutdown
 
         _ ->
             H.text ""

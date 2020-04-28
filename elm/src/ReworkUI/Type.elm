@@ -132,6 +132,8 @@ type Action
     | Pending Action
     | Completed Action
     | Uncompleted Action
+    | Kill
+    | Shutdown
 
 
 type Msg
@@ -147,6 +149,8 @@ type Msg
     | Table String
     | GotServices (Result Http.Error (List Service))
     | GotMonitors (Result Http.Error JsonMonitors)
+    | OnKill Int
+    | OnShutdown Int
 
 
 type Table

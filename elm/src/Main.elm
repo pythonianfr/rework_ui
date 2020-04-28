@@ -154,6 +154,28 @@ update msg model =
         GotMonitors (Err _) ->
             ( { model | errorMessage = Just "Could not load monitors" }, Cmd.none )
 
+        OnKill wId ->
+            ( setActionModel wId (Pending Kill)
+            , cmdGet
+                (UB.crossOrigin
+                    model.urlPrefix
+                    [ "kill-worker", String.fromInt wId ]
+                    []
+                )
+                (Http.expectJson (GotBool wId Kill) D.bool)
+            )
+
+        OnShutdown wId ->
+            ( setActionModel wId (Pending Shutdown)
+            , cmdGet
+                (UB.crossOrigin
+                    model.urlPrefix
+                    [ "Shutdown-worker", String.fromInt wId ]
+                    []
+                )
+                (Http.expectJson (GotBool wId Shutdown) D.bool)
+            )
+
 
 listTupleTask : List Task -> List ( Int, Task )
 listTupleTask listtask =
