@@ -70,20 +70,24 @@ type alias JsonMonitors =
     }
 
 
+type alias IntDict a =
+    AL.Dict Int a
+
+
 type alias WorkerDict =
-    AL.Dict Int Worker
+    IntDict Worker
 
 
 type alias DomainDict =
-    AL.Dict Int Domain
+    IntDict Domain
 
 
 type alias TaskDict =
-    AL.Dict Int Task
+    IntDict Task
 
 
 type alias ServiceDict =
-    AL.Dict Int Service
+    IntDict Service
 
 
 type alias Model =
@@ -136,7 +140,7 @@ type Msg
     | OnAbort Int
     | OnRelaunch Int
     | GotTasks (Result Http.Error (List Task))
-    | GotBool Int Action (Result Http.Error Bool)
+    | GotBool Table Int Action (Result Http.Error Bool)
     | RelaunchMsg Int (Result Http.Error Int)
     | DoRefresh Bool
     | OnRefresh

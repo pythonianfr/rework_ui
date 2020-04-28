@@ -16,6 +16,7 @@ import ReworkUI.Type
         ( Action(..)
         , Domain
         , DomainDict
+        , IntDict
         , Model
         , Msg(..)
         , Service
@@ -37,38 +38,51 @@ import Url.Builder as UB
 port refreshTasks : (Bool -> msg) -> Sub msg
 
 
+selectModelModifier : Table -> Int -> Action -> (Model -> Model)
+selectModelModifier table id action =
+    case table of
+        TableTasks ->
+            updateTaskActions action |> modifyIntDict id |> updateTask
+
+        TableMonitors ->
+            updateWorkerActions action |> modifyIntDict id |> updateWorker
+
+        TableServices ->
+            identity
+
+
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     let
-        setActionModel : Int -> Action -> Model
-        setActionModel taskId action =
-            modifyTask taskId (updateTaskActions action) model
+        setActionModel : Table -> Int -> Action -> Model
+        setActionModel table id action =
+            selectModelModifier table id action model
     in
     case msg of
         OnDelete taskId ->
-            ( setActionModel taskId (Pending Delete)
+            ( setActionModel TableTasks taskId (Pending Delete)
             , cmdGet
                 (UB.crossOrigin
                     model.urlPrefix
                     [ "delete-task", String.fromInt taskId ]
                     []
                 )
-                (Http.expectJson (GotBool taskId Delete) D.bool)
+                (Http.expectJson (GotBool TableTasks taskId Delete) D.bool)
             )
 
         OnAbort taskId ->
-            ( setActionModel taskId (Pending Abort)
+            ( setActionModel TableTasks taskId (Pending Abort)
             , cmdGet
                 (UB.crossOrigin
                     model.urlPrefix
                     [ "abort-task", String.fromInt taskId ]
                     []
                 )
-                (Http.expectJson (GotBool taskId Abort) D.bool)
+                (Http.expectJson (GotBool TableTasks taskId Abort) D.bool)
             )
 
         OnRelaunch taskId ->
-            ( setActionModel taskId (Pending Relaunch)
+            ( setActionModel TableTasks taskId (Pending Relaunch)
             , cmdPut
                 (UB.crossOrigin
                     model.urlPrefix
@@ -93,23 +107,23 @@ update msg model =
         OnRefresh ->
             ( model, refreshTasksCmd model.urlPrefix )
 
-        GotBool taskId action (Ok True) ->
-            setActionModel taskId (Completed action) |> withNoCmd
+        GotBool table taskId action (Ok True) ->
+            setActionModel table taskId (Completed action) |> withNoCmd
 
-        GotBool taskId action (Ok False) ->
-            setActionModel taskId (Uncompleted action) |> withNoCmd
+        GotBool table taskId action (Ok False) ->
+            setActionModel table taskId (Uncompleted action) |> withNoCmd
 
-        GotBool taskId action (Err _) ->
-            setActionModel taskId (Uncompleted action) |> withNoCmd
+        GotBool table taskId action (Err _) ->
+            setActionModel table taskId (Uncompleted action) |> withNoCmd
 
         RelaunchMsg taskId (Ok 0) ->
-            setActionModel taskId (Uncompleted Relaunch) |> withNoCmd
+            setActionModel TableTasks taskId (Uncompleted Relaunch) |> withNoCmd
 
         RelaunchMsg taskId (Ok _) ->
-            setActionModel taskId (Completed Relaunch) |> withNoCmd
+            setActionModel TableTasks taskId (Completed Relaunch) |> withNoCmd
 
         RelaunchMsg taskId (Err _) ->
-            setActionModel taskId (Uncompleted Relaunch) |> withNoCmd
+            setActionModel TableTasks taskId (Uncompleted Relaunch) |> withNoCmd
 
         Table tableName ->
             if tableName == "Tasks" then
@@ -155,25 +169,25 @@ update msg model =
             ( { model | errorMessage = Just "Could not load monitors" }, Cmd.none )
 
         OnKill wId ->
-            ( setActionModel wId (Pending Kill)
+            ( setActionModel TableMonitors wId (Pending Kill)
             , cmdGet
                 (UB.crossOrigin
                     model.urlPrefix
                     [ "kill-worker", String.fromInt wId ]
                     []
                 )
-                (Http.expectJson (GotBool wId Kill) D.bool)
+                (Http.expectJson (GotBool TableMonitors wId Kill) D.bool)
             )
 
         OnShutdown wId ->
-            ( setActionModel wId (Pending Shutdown)
+            ( setActionModel TableMonitors wId (Pending Shutdown)
             , cmdGet
                 (UB.crossOrigin
                     model.urlPrefix
                     [ "Shutdown-worker", String.fromInt wId ]
                     []
                 )
-                (Http.expectJson (GotBool wId Shutdown) D.bool)
+                (Http.expectJson (GotBool TableMonitors wId Shutdown) D.bool)
             )
 
 
@@ -222,6 +236,11 @@ updateTaskActions action task =
     { task | actions = [ action ] }
 
 
+updateWorkerActions : Action -> Worker -> Worker
+updateWorkerActions action worker =
+    { worker | actions = [ action ] }
+
+
 cmdGet : String -> Http.Expect msg -> Cmd msg
 cmdGet url expect =
     Http.get
@@ -259,6 +278,26 @@ setMonitor domain worker model =
         | domain = domain
         , worker = worker
     }
+
+
+modifyIntDict : Int -> (a -> a) -> (IntDict a -> IntDict a)
+modifyIntDict id modify intDict =
+    let
+        justUpate : Maybe a -> Maybe a
+        justUpate a =
+            Maybe.map modify a
+    in
+    AL.update id justUpate intDict
+
+
+updateTask : (IntDict Task -> IntDict Task) -> (Model -> Model)
+updateTask modify model =
+    { model | task = modify model.task }
+
+
+updateWorker : (IntDict Worker -> IntDict Worker) -> (Model -> Model)
+updateWorker modify model =
+    { model | worker = modify model.worker }
 
 
 modifyTask : Int -> (Task -> Task) -> Model -> Model
