@@ -263,8 +263,8 @@ decodeJsonButton =
 workerActionsDecoder : D.Decoder (List Action)
 workerActionsDecoder =
     let
-        toAction : ( Bool, Action ) -> Action
-        toAction ( asked, action ) =
+        checkPending : ( Bool, Action ) -> Action
+        checkPending ( asked, action ) =
             if asked then
                 Pending action
 
@@ -273,6 +273,6 @@ workerActionsDecoder =
 
         toWorkerActions : JsonButton -> List Action
         toWorkerActions { kill, shutdown } =
-            List.map toAction [ ( kill, Kill ), ( shutdown, Shutdown ) ]
+            List.map checkPending [ ( kill, Kill ), ( shutdown, Shutdown ) ]
     in
     decodeJsonButton |> D.andThen (toWorkerActions >> D.succeed)
