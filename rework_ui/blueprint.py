@@ -405,7 +405,7 @@ def reworkui(engine,
               "cpu": cpu,
               "debugPort": debugport,
               "started": started,
-              "button": {"kill":kill,"shutDown":shutdown}
+              "button": {"kill":kill,"shutdown":shutdown}
             })
         return json.dumps({"domains":domains_list,"workers":workers_list})
 
