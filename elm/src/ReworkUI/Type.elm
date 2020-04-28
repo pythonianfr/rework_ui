@@ -51,12 +51,6 @@ type alias Worker =
     }
 
 
-type alias Button =
-    { kill : Bool
-    , shutDown : Bool
-    }
-
-
 type alias JsonStatus =
     { status : String
     , abort : Bool

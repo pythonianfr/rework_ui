@@ -13,7 +13,6 @@ import Json.Decode as D
 import ReworkUI.Type
     exposing
         ( Action(..)
-        , Button
         , Domain
         , JsonMonitors
         , JsonStatus
@@ -231,13 +230,6 @@ decodeWorker =
         (D.field "debugPort" (D.nullable D.int))
         (D.field "started" D.string)
         (D.field "button" workerActionsDecoder)
-
-
-decodeButton : D.Decoder Button
-decodeButton =
-    D.map2 Button
-        (D.field "kill" D.bool)
-        (D.field "shutDown" D.bool)
 
 
 decodeMonitor : D.Decoder JsonMonitors
