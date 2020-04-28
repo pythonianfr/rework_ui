@@ -1,10 +1,12 @@
 module ReworkUI.Decoder exposing
     ( decodeMonitor
     , decodeService
+    , decodeWorker
     , matchTaskResult
     , statusDecoder
     , taskDecoder
     , userDecoder
+    , workerActionsDecoder
     )
 
 import Json.Decode as D
@@ -228,7 +230,7 @@ decodeWorker =
         (D.field "cpu" D.float)
         (D.field "debugPort" (D.nullable D.int))
         (D.field "started" D.string)
-        (D.field "button" decodeButton)
+        (D.field "button" workerActionsDecoder)
 
 
 decodeButton : D.Decoder Button
@@ -243,3 +245,34 @@ decodeMonitor =
     D.map2 JsonMonitors
         (D.field "domains" (D.list decodeDomain))
         (D.field "workers" (D.list decodeWorker))
+
+
+type alias JsonButton =
+    { kill : Bool
+    , shutdown : Bool
+    }
+
+
+decodeJsonButton : D.Decoder JsonButton
+decodeJsonButton =
+    D.map2 JsonButton
+        (D.field "kill" D.bool)
+        (D.field "shutdown" D.bool)
+
+
+workerActionsDecoder : D.Decoder (List Action)
+workerActionsDecoder =
+    let
+        toAction : ( Bool, Action ) -> Action
+        toAction ( asked, action ) =
+            if asked then
+                Pending action
+
+            else
+                action
+
+        toWorkerActions : JsonButton -> List Action
+        toWorkerActions { kill, shutdown } =
+            List.map toAction [ ( kill, Kill ), ( shutdown, Shutdown ) ]
+    in
+    decodeJsonButton |> D.andThen (toWorkerActions >> D.succeed)

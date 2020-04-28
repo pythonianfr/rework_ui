@@ -4,10 +4,12 @@ import Expect
 import Json.Decode as D
 import ReworkUI.Decoder
     exposing
-        ( matchTaskResult
+        ( decodeWorker
+        , matchTaskResult
         , statusDecoder
         , taskDecoder
         , userDecoder
+        , workerActionsDecoder
         )
 import ReworkUI.Type
     exposing
@@ -16,6 +18,7 @@ import ReworkUI.Type
         , Task
         , TaskResult(..)
         , User(..)
+        , Worker
         )
 import Test as T
 
@@ -144,6 +147,38 @@ statusFailure =
     """
 
 
+buttonsInput : String
+buttonsInput =
+    """
+[
+    {"kill" : false, "shutdown" : false},
+    {"kill" : true , "shutdown" : true},
+    {"kill" : true , "shutdown" : false},
+    {"kill" : false, "shutdown" : true}
+]
+"""
+
+
+inputWorker : String
+inputWorker =
+    """
+{
+  "button": {
+      "kill": false,
+      "shutdown": true
+  },
+  "cpu": 0,
+  "debugPort": null,
+  "domain": "default",
+  "host": "51.15.183.93",
+  "mem": 45,
+  "pid": 966593,
+  "started": "2020-04-27 17:49:57+0200",
+  "wId": 142
+}
+"""
+
+
 testParser : T.Test
 testParser =
     T.describe "testParser"
@@ -203,6 +238,35 @@ testParser =
                         , RunUser "titi" "tutu"
                         , UnknownUser
                         ]
+                    )
+            )
+        , T.test "workerActionsDecoder"
+            (\_ ->
+                Expect.equal
+                    (D.decodeString (D.list workerActionsDecoder) buttonsInput)
+                    (Ok
+                        [ [ Kill, Shutdown ]
+                        , [ Pending Kill, Pending Shutdown ]
+                        , [ Pending Kill, Shutdown ]
+                        , [ Kill, Pending Shutdown ]
+                        ]
+                    )
+            )
+        , T.test "decodeWorker"
+            (\_ ->
+                Expect.equal
+                    (D.decodeString decodeWorker inputWorker)
+                    (Ok <|
+                        Worker
+                            142
+                            "51.15.183.93"
+                            966593
+                            "default"
+                            45
+                            0
+                            Nothing
+                            "2020-04-27 17:49:57+0200"
+                            [ Kill, Pending Shutdown ]
                     )
             )
         ]

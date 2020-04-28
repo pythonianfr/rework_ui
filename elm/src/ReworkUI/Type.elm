@@ -47,7 +47,7 @@ type alias Worker =
     , cpu : Float
     , debugPort : Maybe Int
     , started : String
-    , button : Button
+    , actions : List Action
     }
 
 
