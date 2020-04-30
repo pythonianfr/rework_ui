@@ -124,6 +124,22 @@ view model =
     let
         title =
             H.h1 [] [ H.text "Tasks Monitoring UI" ]
+
+        select =
+            H.div [ HA.id "filter", HA.style "float" "right" ]
+                [ H.select
+                    [ HA.id "domain-filter"
+                    , HA.name "domain-filter"
+                    , HA.title "domain"
+                    , onchange "setdomain(this)"
+                    ]
+                    [ H.option
+                        [ HA.value "default"
+                        , HA.selected True
+                        ]
+                        [ H.text "default" ]
+                    ]
+                ]
     in
     case model.tableLayout of
         TableTasks ->
@@ -152,7 +168,7 @@ view model =
                     body columnsName
                         (List.map taskRenderRow (AL.values model.task))
             in
-            H.div [] [ title, head, table ]
+            H.div [] [ select, title, head, table ]
 
         TableServices ->
             let
@@ -175,7 +191,7 @@ view model =
                     body columnsName
                         (List.map serviceRenderRow (AL.values model.service))
             in
-            H.div [] [ title, head, table ]
+            H.div [] [ select, title, head, table ]
 
         TableMonitors ->
             let
@@ -215,7 +231,7 @@ view model =
                     body columnsNameWorker
                         (List.map workerRenderRow (AL.values model.worker))
             in
-            H.div [] [ title, head, tableDomain, tableWorker ]
+            H.div [] [ select, title, head, tableDomain, tableWorker ]
 
 
 th : String -> H.Html msg
