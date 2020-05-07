@@ -44,7 +44,7 @@
      if (document.readyState == 'complete') {
          app = Elm.Main.init({
             node: document.getElementById("elm_tasks"),
-            flags: "{{homeurl}}"
+            flags: {urlPrefix : "{{homeurl}}", domains : {{domains | safe }} }
          });
          refresh_section('tasks')
      }

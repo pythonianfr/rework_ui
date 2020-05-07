@@ -4,10 +4,12 @@ import AssocList as AL
 import Browser
 import Cmd.Extra exposing (withNoCmd)
 import Http
-import Json.Decode as D
+import Json.Decode as JD
+import List.Selection as LS
 import ReworkUI.Decoder
     exposing
-        ( decodeMonitor
+        ( decodeFlags
+        , decodeMonitor
         , decodeService
         , taskDecoder
         )
@@ -16,6 +18,7 @@ import ReworkUI.Type
         ( Action(..)
         , Domain
         , DomainDict
+        , Flags
         , IntDict
         , Model
         , Msg(..)
@@ -67,7 +70,7 @@ update msg model =
                     [ "delete-task", String.fromInt taskId ]
                     []
                 )
-                (Http.expectJson (GotBool TableTasks taskId Delete) D.bool)
+                (Http.expectJson (GotBool TableTasks taskId Delete) JD.bool)
             )
 
         OnAbort taskId ->
@@ -78,7 +81,7 @@ update msg model =
                     [ "abort-task", String.fromInt taskId ]
                     []
                 )
-                (Http.expectJson (GotBool TableTasks taskId Abort) D.bool)
+                (Http.expectJson (GotBool TableTasks taskId Abort) JD.bool)
             )
 
         OnRelaunch taskId ->
@@ -89,7 +92,7 @@ update msg model =
                     [ "relaunch-task", String.fromInt taskId ]
                     []
                 )
-                (Http.expectJson (RelaunchMsg taskId) D.int)
+                (Http.expectJson (RelaunchMsg taskId) JD.int)
             )
 
         NoOperation ->
@@ -131,7 +134,9 @@ update msg model =
                     url =
                         UB.crossOrigin model.urlPrefix [ "tasks-table" ] []
                 in
-                ( { model | tableLayout = TableTasks }, cmdGet url (Http.expectJson GotTasks (D.list taskDecoder)) )
+                ( { model | tableLayout = TableTasks }
+                , cmdGet url (Http.expectJson GotTasks (JD.list taskDecoder))
+                )
 
             else if tableName == "Services" then
                 let
@@ -139,7 +144,7 @@ update msg model =
                         UB.crossOrigin model.urlPrefix [ "services-table-json" ] []
                 in
                 ( { model | tableLayout = TableServices }
-                , cmdGet url (Http.expectJson GotServices (D.list decodeService))
+                , cmdGet url (Http.expectJson GotServices (JD.list decodeService))
                 )
 
             else
@@ -176,7 +181,7 @@ update msg model =
                     [ "kill-worker", String.fromInt wId ]
                     []
                 )
-                (Http.expectJson (GotBool TableMonitors wId Kill) D.bool)
+                (Http.expectJson (GotBool TableMonitors wId Kill) JD.bool)
             )
 
         OnShutdown wId ->
@@ -187,8 +192,11 @@ update msg model =
                     [ "Shutdown-worker", String.fromInt wId ]
                     []
                 )
-                (Http.expectJson (GotBool TableMonitors wId Shutdown) D.bool)
+                (Http.expectJson (GotBool TableMonitors wId Shutdown) JD.bool)
             )
+
+        SetDomain domain ->
+            ( model, Cmd.none )
 
 
 listTupleTask : List Task -> List ( Int, Task )
@@ -314,12 +322,12 @@ refreshTasksCmd : String -> Cmd Msg
 refreshTasksCmd urlPrefix =
     Http.get
         { url = UB.crossOrigin urlPrefix [ "tasks-table" ] []
-        , expect = Http.expectJson GotTasks (D.list taskDecoder)
+        , expect = Http.expectJson GotTasks (JD.list taskDecoder)
         }
 
 
-initialModel : String -> Model
-initialModel urlPrefix =
+initialModel : Flags -> Model
+initialModel flags =
     Model
         Nothing
         AL.empty
@@ -327,18 +335,30 @@ initialModel urlPrefix =
         AL.empty
         AL.empty
         True
-        urlPrefix
+        flags.urlPrefix
         TableTasks
+        (LS.fromList flags.domains)
 
 
-main : Program String Model Msg
+init : JD.Value -> ( Model, Cmd Msg )
+init jsonFlags =
+    let
+        flags : Flags
+        flags =
+            case JD.decodeValue decodeFlags jsonFlags of
+                Ok a ->
+                    a
+
+                Err _ ->
+                    Flags "" []
+    in
+    ( initialModel flags, refreshTasksCmd flags.urlPrefix )
+
+
+main : Program JD.Value Model Msg
 main =
     Browser.element
-        { init =
-            \urlPrefix ->
-                ( initialModel urlPrefix
-                , refreshTasksCmd urlPrefix
-                )
+        { init = init
         , view = view
         , update = update
         , subscriptions =

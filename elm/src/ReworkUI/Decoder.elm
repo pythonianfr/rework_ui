@@ -1,5 +1,6 @@
 module ReworkUI.Decoder exposing
-    ( decodeMonitor
+    ( decodeFlags
+    , decodeMonitor
     , decodeService
     , decodeWorker
     , matchTaskResult
@@ -14,6 +15,7 @@ import ReworkUI.Type
     exposing
         ( Action(..)
         , Domain
+        , Flags
         , JsonMonitors
         , JsonStatus
         , JsonUser
@@ -268,3 +270,10 @@ workerActionsDecoder =
             List.map checkPending [ ( kill, Kill ), ( shutdown, Shutdown ) ]
     in
     decodeJsonButton |> D.andThen (toWorkerActions >> D.succeed)
+
+
+decodeFlags : D.Decoder Flags
+decodeFlags =
+    D.map2 Flags
+        (D.field "urlPrefix" D.string)
+        (D.field "domains" (D.list D.string))

@@ -592,11 +592,14 @@ def reworkui(engine,
         if alttemplate:
             return render_template_string(alttemplate,
                                           domain_filter=str(h),
-                                          initialdomain=firstdomain)
+                                          initialdomain=firstdomain,
+                                          domains=json.dumps(domains),
+                                          homeurl=homeurl())
 
         return render_template('rui_home.html',
                                domain_filter=str(h),
                                homeurl=homeurl(),
+                               domains=json.dumps(domains),
                                initialdomain=firstdomain)
 
     return bp

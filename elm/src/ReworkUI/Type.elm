@@ -2,6 +2,7 @@ module ReworkUI.Type exposing (..)
 
 import AssocList as AL
 import Http
+import List.Selection as LS
 
 
 type alias Task =
@@ -99,6 +100,13 @@ type alias Model =
     , doRefresh : Bool
     , urlPrefix : String
     , tableLayout : Table
+    , userDomain : LS.Selection String
+    }
+
+
+type alias Flags =
+    { urlPrefix : String
+    , domains : List String
     }
 
 
@@ -149,6 +157,7 @@ type Msg
     | GotMonitors (Result Http.Error JsonMonitors)
     | OnKill Int
     | OnShutdown Int
+    | SetDomain String
 
 
 type Table

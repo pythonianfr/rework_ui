@@ -5,6 +5,7 @@ import Bool.Extra as BE
 import Html as H
 import Html.Attributes as HA
 import Html.Events as HE
+import Json.Decode as JD
 import ReworkUI.Type
     exposing
         ( Action(..)
@@ -131,7 +132,7 @@ view model =
                     [ HA.id "domain-filter"
                     , HA.name "domain-filter"
                     , HA.title "domain"
-                    , onchange "setdomain(this)"
+                    , HE.on "change" (JD.map SetDomain HE.targetValue)
                     ]
                     [ H.option
                         [ HA.value "default"
