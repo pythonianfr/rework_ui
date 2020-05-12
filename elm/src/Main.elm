@@ -109,7 +109,7 @@ update msg model =
             ( { model | doRefresh = doRefresh }, Cmd.none )
 
         OnRefresh ->
-            ( model, refreshTasksCmd model.urlPrefix model.userDomain )
+            ( model, refreshCmd model.urlPrefix model.tableLayout model.userDomain )
 
         GotBool table taskId action (Ok True) ->
             setActionModel table taskId (Completed action) |> withNoCmd
@@ -130,32 +130,21 @@ update msg model =
             setActionModel TableTasks taskId (Uncompleted Relaunch) |> withNoCmd
 
         Table tableName ->
-            if tableName == "Tasks" then
-                let
-                    url =
-                        UB.crossOrigin model.urlPrefix [ "tasks-table" ] []
-                in
-                ( { model | tableLayout = TableTasks }
-                , cmdGet url (Http.expectJson GotTasks (JD.list taskDecoder))
-                )
+            let
+                tableLayout =
+                    case tableName of
+                        "Tasks" ->
+                            TableTasks
 
-            else if tableName == "Services" then
-                let
-                    url =
-                        UB.crossOrigin model.urlPrefix [ "services-table-json" ] []
-                in
-                ( { model | tableLayout = TableServices }
-                , cmdGet url (Http.expectJson GotServices (JD.list decodeService))
-                )
+                        "Services" ->
+                            TableServices
 
-            else
-                let
-                    url =
-                        UB.crossOrigin model.urlPrefix [ "workers-table-json" ] []
-                in
-                ( { model | tableLayout = TableMonitors }
-                , cmdGet url (Http.expectJson GotMonitors decodeMonitor)
-                )
+                        _ ->
+                            TableMonitors
+            in
+            ( { model | tableLayout = tableLayout }
+            , refreshCmd model.urlPrefix tableLayout model.userDomain
+            )
 
         GotServices (Ok services) ->
             ( setService (AL.fromList (listTupleService services)) model, Cmd.none )
@@ -320,18 +309,32 @@ modifyTask taskId modify model =
     setTask (AL.update taskId justUpate model.task) model
 
 
-refreshTasksCmd : String -> LS.Selection String -> Cmd Msg
-refreshTasksCmd urlPrefix userDomain =
+refreshCmd : String -> Table -> LS.Selection String -> Cmd Msg
+refreshCmd urlPrefix tableLayout userDomain =
     let
+        ( urlPart, expect ) =
+            case tableLayout of
+                TableTasks ->
+                    ( "tasks-table"
+                    , Http.expectJson GotTasks (JD.list taskDecoder)
+                    )
+
+                TableServices ->
+                    ( "services-table-json"
+                    , Http.expectJson GotServices (JD.list decodeService)
+                    )
+
+                TableMonitors ->
+                    ( "workers-table-json"
+                    , Http.expectJson GotMonitors decodeMonitor
+                    )
+
         query =
             LS.selected userDomain
                 |> Maybe.map (UB.string "domain")
                 |> Maybe.toList
     in
-    Http.get
-        { url = UB.crossOrigin urlPrefix [ "tasks-table" ] query
-        , expect = Http.expectJson GotTasks (JD.list taskDecoder)
-        }
+    cmdGet (UB.crossOrigin urlPrefix [ urlPart ] query) expect
 
 
 init : JD.Value -> ( Model, Cmd Msg )
@@ -361,8 +364,32 @@ init jsonFlags =
         urlPrefix
         TableTasks
         userDomain
-    , refreshTasksCmd urlPrefix userDomain
+    , refreshCmd urlPrefix TableTasks userDomain
     )
+
+
+sub : Model -> Sub Msg
+sub model =
+    let
+        refreshTime =
+            case model.tableLayout of
+                TableTasks ->
+                    1000
+
+                TableServices ->
+                    10000
+
+                TableMonitors ->
+                    2000
+    in
+    Sub.batch
+        [ if model.doRefresh then
+            Time.every refreshTime (always OnRefresh)
+
+          else
+            Sub.none
+        , refreshTasks DoRefresh
+        ]
 
 
 main : Program JD.Value Model Msg
@@ -371,14 +398,5 @@ main =
         { init = init
         , view = view
         , update = update
-        , subscriptions =
-            \model ->
-                Sub.batch
-                    [ if model.doRefresh then
-                        Time.every 2000 (always OnRefresh)
-
-                      else
-                        Sub.none
-                    , refreshTasks DoRefresh
-                    ]
+        , subscriptions = sub
         }
