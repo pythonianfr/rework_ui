@@ -98,7 +98,7 @@ type alias Model =
     , domain : DomainDict
     , service : ServiceDict
     , urlPrefix : String
-    , tableLayout : Table
+    , tableLayout : TableLayout
     , userDomain : LS.Selection String
     }
 
@@ -147,10 +147,10 @@ type Msg
     | OnAbort Int
     | OnRelaunch Int
     | GotTasks (Result Http.Error (List Task))
-    | GotBool Table Int Action (Result Http.Error Bool)
+    | GotBool TableLayout Int Action (Result Http.Error Bool)
     | RelaunchMsg Int (Result Http.Error Int)
     | OnRefresh
-    | Table String
+    | Table TableLayout
     | GotServices (Result Http.Error (List Service))
     | GotMonitors (Result Http.Error JsonMonitors)
     | OnKill Int
@@ -158,7 +158,7 @@ type Msg
     | SetDomain String
 
 
-type Table
+type TableLayout
     = TableTasks
     | TableMonitors
     | TableServices

@@ -15,7 +15,7 @@ import ReworkUI.Type
         , Msg(..)
         , Service
         , Status(..)
-        , Table(..)
+        , TableLayout(..)
         , Task
         , TaskResult(..)
         , User(..)
@@ -83,24 +83,30 @@ body namesColumns htmlTable =
         ]
 
 
-header : List ( Bool, String ) -> H.Html Msg
+header : List ( Bool, TableLayout ) -> H.Html Msg
 header listTuple =
     H.ul [ HA.id "tabs", HA.class "nav nav-tabs", role "tablist" ]
         (List.map buildLi listTuple)
 
 
-buildLi : ( Bool, String ) -> H.Html Msg
-buildLi tuple =
+strTableLayout : TableLayout -> String
+strTableLayout tableLayout =
+    case tableLayout of
+        TableTasks ->
+            "Tasks"
+
+        TableMonitors ->
+            "Workers"
+
+        TableServices ->
+            "Services"
+
+
+buildLi : ( Bool, TableLayout ) -> H.Html Msg
+buildLi ( bool, tableLayout ) =
     let
-        bool =
-            Tuple.first tuple
-
         newTableName =
-            if Tuple.second tuple == "Monitors" then
-                "workers"
-
-            else
-                Tuple.second tuple
+            strTableLayout tableLayout
 
         class =
             if bool then
@@ -111,7 +117,7 @@ buildLi tuple =
     in
     H.li [ HA.class class, role "presentation" ]
         [ H.a
-            [ HE.onClick (Table newTableName)
+            [ HE.onClick (Table tableLayout)
             , aria_controls (String.toLower newTableName)
             , data_toggle "tab"
             , role "tabe"
@@ -152,9 +158,9 @@ view model =
             let
                 head =
                     header
-                        [ ( True, "Tasks" )
-                        , ( False, "Services" )
-                        , ( False, "Monitors" )
+                        [ ( True, TableTasks )
+                        , ( False, TableServices )
+                        , ( False, TableMonitors )
                         ]
 
                 columnsName =
@@ -180,9 +186,9 @@ view model =
             let
                 head =
                     header
-                        [ ( False, "Tasks" )
-                        , ( True, "Services" )
-                        , ( False, "Monitors" )
+                        [ ( False, TableTasks )
+                        , ( True, TableServices )
+                        , ( False, TableMonitors )
                         ]
 
                 columnsName =
@@ -203,9 +209,9 @@ view model =
             let
                 head =
                     header
-                        [ ( False, "Tasks" )
-                        , ( False, "Services" )
-                        , ( True, "Monitors" )
+                        [ ( False, TableTasks )
+                        , ( False, TableServices )
+                        , ( True, TableMonitors )
                         ]
 
                 columnsNameDomain =

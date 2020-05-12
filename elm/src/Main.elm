@@ -26,7 +26,7 @@ import ReworkUI.Type
         , Service
         , ServiceDict
         , Status(..)
-        , Table(..)
+        , TableLayout(..)
         , Task
         , TaskDict
         , TaskResult(..)
@@ -39,7 +39,7 @@ import Time
 import Url.Builder as UB
 
 
-selectModelModifier : Table -> Int -> Action -> (Model -> Model)
+selectModelModifier : TableLayout -> Int -> Action -> (Model -> Model)
 selectModelModifier table id action =
     case table of
         TableTasks ->
@@ -55,7 +55,7 @@ selectModelModifier table id action =
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     let
-        setActionModel : Table -> Int -> Action -> Model
+        setActionModel : TableLayout -> Int -> Action -> Model
         setActionModel table id action =
             selectModelModifier table id action model
     in
@@ -123,19 +123,7 @@ update msg model =
         RelaunchMsg taskId (Err _) ->
             setActionModel TableTasks taskId (Uncompleted Relaunch) |> withNoCmd
 
-        Table tableName ->
-            let
-                tableLayout =
-                    case tableName of
-                        "Tasks" ->
-                            TableTasks
-
-                        "Services" ->
-                            TableServices
-
-                        _ ->
-                            TableMonitors
-            in
+        Table tableLayout ->
             ( { model | tableLayout = tableLayout }
             , refreshCmd model.urlPrefix tableLayout model.userDomain
             )
@@ -303,7 +291,7 @@ modifyTask taskId modify model =
     setTask (AL.update taskId justUpate model.task) model
 
 
-refreshCmd : String -> Table -> LS.Selection String -> Cmd Msg
+refreshCmd : String -> TableLayout -> LS.Selection String -> Cmd Msg
 refreshCmd urlPrefix tableLayout userDomain =
     let
         ( urlPart, expect ) =
