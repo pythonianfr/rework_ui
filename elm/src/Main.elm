@@ -6,6 +6,7 @@ import Cmd.Extra exposing (withNoCmd)
 import Http
 import Json.Decode as JD
 import List.Selection as LS
+import Maybe.Extra as Maybe
 import ReworkUI.Decoder
     exposing
         ( decodeFlags
@@ -108,7 +109,7 @@ update msg model =
             ( { model | doRefresh = doRefresh }, Cmd.none )
 
         OnRefresh ->
-            ( model, refreshTasksCmd model.urlPrefix )
+            ( model, refreshTasksCmd model.urlPrefix model.userDomain )
 
         GotBool table taskId action (Ok True) ->
             setActionModel table taskId (Completed action) |> withNoCmd
@@ -196,7 +197,8 @@ update msg model =
             )
 
         SetDomain domain ->
-            ( model, Cmd.none )
+            { model | userDomain = LS.select domain model.userDomain }
+                |> withNoCmd
 
 
 listTupleTask : List Task -> List ( Int, Task )
@@ -318,41 +320,49 @@ modifyTask taskId modify model =
     setTask (AL.update taskId justUpate model.task) model
 
 
-refreshTasksCmd : String -> Cmd Msg
-refreshTasksCmd urlPrefix =
+refreshTasksCmd : String -> LS.Selection String -> Cmd Msg
+refreshTasksCmd urlPrefix userDomain =
+    let
+        query =
+            LS.selected userDomain
+                |> Maybe.map (UB.string "domain")
+                |> Maybe.toList
+    in
     Http.get
-        { url = UB.crossOrigin urlPrefix [ "tasks-table" ] []
+        { url = UB.crossOrigin urlPrefix [ "tasks-table" ] query
         , expect = Http.expectJson GotTasks (JD.list taskDecoder)
         }
-
-
-initialModel : Flags -> Model
-initialModel flags =
-    Model
-        Nothing
-        AL.empty
-        AL.empty
-        AL.empty
-        AL.empty
-        True
-        flags.urlPrefix
-        TableTasks
-        (LS.fromList flags.domains)
 
 
 init : JD.Value -> ( Model, Cmd Msg )
 init jsonFlags =
     let
-        flags : Flags
-        flags =
+        { urlPrefix, domains } =
             case JD.decodeValue decodeFlags jsonFlags of
                 Ok a ->
                     a
 
                 Err _ ->
                     Flags "" []
+
+        userDomain =
+            Maybe.unwrap
+                (LS.fromList domains)
+                (\x -> LS.select x (LS.fromList domains))
+                (List.head domains)
     in
-    ( initialModel flags, refreshTasksCmd flags.urlPrefix )
+    ( Model
+        Nothing
+        AL.empty
+        AL.empty
+        AL.empty
+        AL.empty
+        True
+        urlPrefix
+        TableTasks
+        userDomain
+    , refreshTasksCmd urlPrefix userDomain
+    )
 
 
 main : Program JD.Value Model Msg

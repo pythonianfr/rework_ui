@@ -6,6 +6,7 @@ import Html as H
 import Html.Attributes as HA
 import Html.Events as HE
 import Json.Decode as JD
+import List.Selection as LS
 import ReworkUI.Type
     exposing
         ( Action(..)
@@ -126,6 +127,9 @@ view model =
         title =
             H.h1 [] [ H.text "Tasks Monitoring UI" ]
 
+        option selected x =
+            H.option (selected ++ [ HA.value x ]) [ H.text x ]
+
         select =
             H.div [ HA.id "filter", HA.style "float" "right" ]
                 [ H.select
@@ -134,12 +138,13 @@ view model =
                     , HA.title "domain"
                     , HE.on "change" (JD.map SetDomain HE.targetValue)
                     ]
-                    [ H.option
-                        [ HA.value "default"
-                        , HA.selected True
-                        ]
-                        [ H.text "default" ]
-                    ]
+                    (LS.mapSelected
+                        { selected = option [ HA.selected True ]
+                        , rest = option []
+                        }
+                        model.userDomain
+                        |> LS.toList
+                    )
                 ]
     in
     case model.tableLayout of
