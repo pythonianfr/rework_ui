@@ -18,7 +18,7 @@ def view(db_uri):
     ipaddr = helper.host()
     port = 5679
     server = Thread(name='reworkui.webapp', target=startapp,
-                    kwargs={'host': ipaddr, 'port': port, 'dburi': db_uri})
+                    kwargs={'host': ipaddr, 'port': port, 'dburi': find_dburi(db_uri)})
     server.daemon = True
     server.start()
 
