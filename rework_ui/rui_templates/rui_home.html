@@ -1,63 +1,14 @@
 {% extends "rui_base.html" %}
 
 {% block body %}
-<script src="https://code.jquery.com/jquery-2.2.4.min.js"></script>
 <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
 
-<div id="filter" style="float: right">
-  {{ domain_filter | safe }}
-</div>
-
-<h1>Tasks Monitoring UI</h1>
-
-<ul class="nav nav-tabs" role="tablist" id="tabs">
-  <li class="active" role="presentation">
-    <a href="#tasks" aria-controls="tasks" role="tab" data-toggle="tab">Tasks</a>
-  </li>
-  <li role="presentation">
-    <a href="#services" aria-controls="services" role="tab" data-toggle="tab">Services</a>
-  </li>
-  <li role="presentation">
-    <a href="#workers" aria-controls="workers" role="tab" data-toggle="tab">Monitors</a>
-  </li>
-</ul>
-
-<div class="tab-content">
-  <div role="tabpanel" class="tab-pane active" id="tasks">
-    <div id="elm_tasks"></div>
-  </div>
-  <div role="tabpanel" class="tab-pane" id="services"></div>
-  <div role="tabpanel" class="tab-pane" id="workers"></div>
-</div>
-
+<div id="app"></div>
 <script>
- const service_latency = {
-     'tasks': 1000,
-     'workers': 2000,
-     'services': 10000,
- }
- let hash = ''
- let domain = '{{initialdomain}}'
- let refresher = null
- let app = null
- document.onreadystatechange = function () {
-     if (document.readyState == 'complete') {
-         app = Elm.Main.init({
-            node: document.getElementById("elm_tasks"),
-            flags: {urlPrefix : "{{homeurl}}", domains : {{domains | safe }} }
-         });
-         refresh_section('tasks')
-     }
- }
-
- $('#tabs a').click(function (e) {
-     e.preventDefault()
-     $(this).tab('show')
-     clearInterval(refresher)
-     const section = e.target.attributes['aria-controls'].value
-     refresh_section(section)
-     refresher = setInterval(() => refresh_section(section), service_latency[section])
- })
+     app = Elm.Main.init({
+        node: document.getElementById("app"),
+        flags: {urlPrefix : "{{homeurl}}", domains : {{domains | safe }} }
+     });
 </script>
 
 {% endblock %}

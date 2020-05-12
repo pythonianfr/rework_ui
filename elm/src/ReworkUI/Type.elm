@@ -97,7 +97,6 @@ type alias Model =
     , worker : WorkerDict
     , domain : DomainDict
     , service : ServiceDict
-    , doRefresh : Bool
     , urlPrefix : String
     , tableLayout : Table
     , userDomain : LS.Selection String
@@ -150,7 +149,6 @@ type Msg
     | GotTasks (Result Http.Error (List Task))
     | GotBool Table Int Action (Result Http.Error Bool)
     | RelaunchMsg Int (Result Http.Error Int)
-    | DoRefresh Bool
     | OnRefresh
     | Table String
     | GotServices (Result Http.Error (List Service))

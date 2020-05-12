@@ -1,4 +1,4 @@
-port module Main exposing (..)
+module Main exposing (..)
 
 import AssocList as AL
 import Browser
@@ -37,9 +37,6 @@ import ReworkUI.Type
 import ReworkUI.View exposing (view)
 import Time
 import Url.Builder as UB
-
-
-port refreshTasks : (Bool -> msg) -> Sub msg
 
 
 selectModelModifier : Table -> Int -> Action -> (Model -> Model)
@@ -104,9 +101,6 @@ update msg model =
 
         GotTasks (Err _) ->
             ( { model | errorMessage = Just "Could not load tasks" }, Cmd.none )
-
-        DoRefresh doRefresh ->
-            ( { model | doRefresh = doRefresh }, Cmd.none )
 
         OnRefresh ->
             ( model, refreshCmd model.urlPrefix model.tableLayout model.userDomain )
@@ -360,7 +354,6 @@ init jsonFlags =
         AL.empty
         AL.empty
         AL.empty
-        True
         urlPrefix
         TableTasks
         userDomain
@@ -382,14 +375,7 @@ sub model =
                 TableMonitors ->
                     2000
     in
-    Sub.batch
-        [ if model.doRefresh then
-            Time.every refreshTime (always OnRefresh)
-
-          else
-            Sub.none
-        , refreshTasks DoRefresh
-        ]
+    Time.every refreshTime (always OnRefresh)
 
 
 main : Program JD.Value Model Msg
