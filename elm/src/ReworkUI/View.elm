@@ -28,11 +28,6 @@ role =
     HA.attribute "role"
 
 
-onchange : String -> H.Attribute msg
-onchange =
-    HA.attribute "onchange"
-
-
 aria_controls : String -> H.Attribute msg
 aria_controls =
     HA.attribute "aria-controls"
@@ -83,10 +78,17 @@ body namesColumns htmlTable =
         ]
 
 
-header : List ( Bool, TableLayout ) -> H.Html Msg
-header listTuple =
+header : LS.Selection TableLayout -> H.Html Msg
+header listTableLayout =
     H.ul [ HA.id "tabs", HA.class "nav nav-tabs", role "tablist" ]
-        (List.map buildLi listTuple)
+        (LS.toList
+            (LS.mapSelected
+                { selected = buildLi True [ HA.class "active" ]
+                , rest = buildLi False []
+                }
+                listTableLayout
+            )
+        )
 
 
 strTableLayout : TableLayout -> String
@@ -102,20 +104,13 @@ strTableLayout tableLayout =
             "Services"
 
 
-buildLi : ( Bool, TableLayout ) -> H.Html Msg
-buildLi ( bool, tableLayout ) =
+buildLi : Bool -> List (H.Attribute Msg) -> TableLayout -> H.Html Msg
+buildLi bool listAttributes tableLayout =
     let
         newTableName =
             strTableLayout tableLayout
-
-        class =
-            if bool then
-                "active"
-
-            else
-                ""
     in
-    H.li [ HA.class class, role "presentation" ]
+    H.li (listAttributes ++ [ role "presentation" ])
         [ H.a
             [ HE.onClick (Table tableLayout)
             , aria_controls (String.toLower newTableName)
@@ -152,16 +147,17 @@ view model =
                         |> LS.toList
                     )
                 ]
+
+        listTables =
+            [ TableTasks, TableServices, TableMonitors ]
+                |> LS.fromList
+                |> LS.select model.tableLayout
     in
     case model.tableLayout of
         TableTasks ->
             let
                 head =
-                    header
-                        [ ( True, TableTasks )
-                        , ( False, TableServices )
-                        , ( False, TableMonitors )
-                        ]
+                    header listTables
 
                 columnsName =
                     [ "#"
@@ -185,11 +181,7 @@ view model =
         TableServices ->
             let
                 head =
-                    header
-                        [ ( False, TableTasks )
-                        , ( True, TableServices )
-                        , ( False, TableMonitors )
-                        ]
+                    header listTables
 
                 columnsName =
                     [ "#"
@@ -208,11 +200,7 @@ view model =
         TableMonitors ->
             let
                 head =
-                    header
-                        [ ( False, TableTasks )
-                        , ( False, TableServices )
-                        , ( True, TableMonitors )
-                        ]
+                    header listTables
 
                 columnsNameDomain =
                     [ "#"
