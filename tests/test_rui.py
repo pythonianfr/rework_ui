@@ -7,7 +7,6 @@ from lxml import etree
 from rework import api
 from rework.task import Task
 from rework.testutils import workers, scrub
-from rework_ui import taskstable
 
 
 DATADIR = Path(__file__).parent / 'data'
@@ -187,79 +186,3 @@ def test_monitors_table(engine, client, refresh):
         if refresh:
             refpath.write_bytes(html)
         assert html == refpath.read_bytes()
-
-
-def test_tasks_table(engine, client, refresh):
-    with engine.begin() as cn:
-        cn.execute('delete from rework.task')
-
-    with workers(engine):
-        res = client.get('/tasks-table')
-        assert res.text == '<p>Table under construction ...</p>'
-
-        res = client.get('/tasks-table-hash')
-        assert res.text == 'no-hash-yet'
-
-        taskstable.refresh_tasks_file(engine)
-        res = client.get('/tasks-table')
-        assert res.text == (
-            '<br>\n'
-            '<table class="table table-sm table-bordered table-striped table-hover">\n'
-            '<thead class="thead-inverse"><tr><th>#</th><th>service</th><th>domain</th>'
-            '<th>queued</th><th>started</th><th>finished</th>'
-            '<th>user</th><th>worker</th><th>status</th><th>action</th></tr></thead>\n</table>'
-        )
-
-        res = client.get('/tasks-table-hash')
-        assert res.text == 'd751713988987e9331980363e24189ce'
-        res = client.get('/tasks-table-hash?domain=all')
-        assert res.text == 'no-hash-yet'
-        res = client.get('/tasks-table-hash?domain=default')
-        assert res.text == 'd751713988987e9331980363e24189ce'
-
-        t = api.schedule(engine, 'good_job', metadata={'user': 'Babar'})
-        t.join()
-        taskstable.refresh_tasks_file(engine)
-
-        res = client.get('/tasks-table')
-        refpath = DATADIR / 'tasks-table.html'
-        if refresh:
-            refpath.write_bytes(scrub(res.text).encode('utf-8'))
-        assert scrub(res.text) == refpath.read_bytes().decode('utf-8')
-
-        count = engine.execute('select count(*) from rework.taskstable').scalar()
-        assert count == 1 # only default domains, 'all' appears with many domains
-
-        t = api.schedule(engine, 'bad_job', metadata={'user': 'Babar'})
-        t.join()
-        taskstable.refresh_tasks_file(engine)
-        res = client.get('/tasks-table')
-
-        srcpath = re.compile('File "(.*)"')
-        def edit(elt):
-            if 'title' in elt.attrib:
-                elt.attrib['title'] = srcpath.sub('/path/to/src/file', elt.attrib['title'])
-            return elt
-
-        html = edittag('td', edit, res.text).decode('utf-8')
-        refpath = DATADIR / 'tasks-table-error.html'
-        if refresh:
-            refpath.write_bytes(scrub(html).encode('utf-8'))
-
-        assert scrub(html) == refpath.read_bytes().decode('utf-8')
-
-    # declare an new domain
-    from . import tasks
-    api.freeze_operations(engine)
-    with workers(engine, domain='uranus'):
-        t = api.schedule(engine, 'justdoit', domain='uranus', metadata={'user': 'Celeste'})
-        t.join()
-        taskstable.refresh_tasks_file(engine)
-        res = client.get('/tasks-table-hash?domain=uranus')
-        assert res.text == '05265be5adad9bb8b0ee50f837535cfa'
-        res = client.get('/tasks-table?domain=uranus')
-        refpath = DATADIR / 'tasks-table-uranus.html'
-        if refresh:
-            refpath.write_bytes(scrub(res.text).encode('utf-8'))
-        assert scrub(res.text) == refpath.read_bytes().decode('utf-8')
-
