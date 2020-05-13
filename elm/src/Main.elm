@@ -65,24 +65,24 @@ update msg model =
     case msg of
         OnDelete taskId ->
             ( setActionModel TableTasks taskId (Pending Delete)
-            , cmdGet
-                (UB.crossOrigin
-                    model.urlPrefix
-                    [ "delete-task", String.fromInt taskId ]
-                    []
-                )
-                (Http.expectJson (GotBool TableTasks taskId Delete) JD.bool)
+            , Http.get
+                { url = UB.crossOrigin
+                        model.urlPrefix
+                        [ "delete-task", String.fromInt taskId ]
+                        []
+                , expect = Http.expectJson (GotBool TableTasks taskId Delete) JD.bool
+                }
             )
 
         OnAbort taskId ->
             ( setActionModel TableTasks taskId (Pending Abort)
-            , cmdGet
-                (UB.crossOrigin
-                    model.urlPrefix
-                    [ "abort-task", String.fromInt taskId ]
-                    []
-                )
-                (Http.expectJson (GotBool TableTasks taskId Abort) JD.bool)
+            , Http.get
+                { url = UB.crossOrigin
+                        model.urlPrefix
+                        [ "abort-task", String.fromInt taskId ]
+                        []
+                , expect = Http.expectJson (GotBool TableTasks taskId Abort) JD.bool
+                }
             )
 
         OnRelaunch taskId ->
@@ -148,24 +148,24 @@ update msg model =
 
         OnKill wId ->
             ( setActionModel TableMonitors wId (Pending Kill)
-            , cmdGet
-                (UB.crossOrigin
-                    model.urlPrefix
-                    [ "kill-worker", String.fromInt wId ]
-                    []
-                )
-                (Http.expectJson (GotBool TableMonitors wId Kill) JD.bool)
+            , Http.get
+                { url = UB.crossOrigin
+                        model.urlPrefix
+                        [ "kill-worker", String.fromInt wId ]
+                        []
+                , expect = Http.expectJson (GotBool TableMonitors wId Kill) JD.bool
+                }
             )
 
         OnShutdown wId ->
             ( setActionModel TableMonitors wId (Pending Shutdown)
-            , cmdGet
-                (UB.crossOrigin
-                    model.urlPrefix
-                    [ "Shutdown-worker", String.fromInt wId ]
-                    []
-                )
-                (Http.expectJson (GotBool TableMonitors wId Shutdown) JD.bool)
+            , Http.get
+                { url = UB.crossOrigin
+                        model.urlPrefix
+                        [ "Shutdown-worker", String.fromInt wId ]
+                        []
+                , expect = Http.expectJson (GotBool TableMonitors wId Shutdown) JD.bool
+                }
             )
 
         SetDomain domain ->
@@ -220,14 +220,6 @@ updateTaskActions action task =
 updateWorkerActions : Action -> Worker -> Worker
 updateWorkerActions action worker =
     { worker | actions = [ action ] }
-
-
-cmdGet : String -> Http.Expect msg -> Cmd msg
-cmdGet url expect =
-    Http.get
-        { url = url
-        , expect = expect
-        }
 
 
 cmdPut : String -> Http.Expect msg -> Cmd msg
@@ -316,7 +308,10 @@ refreshCmd urlPrefix tableLayout userDomain =
                 |> Maybe.map (UB.string "domain")
                 |> Maybe.toList
     in
-    cmdGet (UB.crossOrigin urlPrefix [ urlPart ] query) expect
+    Http.get
+        { url = UB.crossOrigin urlPrefix [ urlPart ] query
+        , expect = expect
+        }
 
 
 init : JD.Value -> ( Model, Cmd Msg )
