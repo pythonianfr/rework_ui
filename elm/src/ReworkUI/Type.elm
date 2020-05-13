@@ -146,7 +146,7 @@ type Msg
     | NoOperation
     | OnAbort Int
     | OnRelaunch Int
-    | GotTasks (Result Http.Error (List Task))
+    | GotTasks (Result Http.Error String)
     | GotBool TableLayout Int Action (Result Http.Error Bool)
     | RelaunchMsg Int (Result Http.Error Int)
     | OnRefresh

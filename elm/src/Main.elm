@@ -111,8 +111,10 @@ update msg model =
         NoOperation ->
             nocmd model
 
-        GotTasks (Ok tasks) ->
-            nocmd <| { model | tasks = AL.fromList (groupbyid tasks) }
+        GotTasks (Ok rawtasks) ->
+            case  JD.decodeString (JD.list taskDecoder) rawtasks of
+                Ok tasks -> nocmd <| { model | tasks = AL.fromList (groupbyid tasks) }
+                Err err -> nocmd <| adderror model <| JD.errorToString err
 
         GotTasks (Err err) ->
             nocmd <| adderror model <| unwraperror err
@@ -208,7 +210,7 @@ refreshCmd urlPrefix tableLayout userDomain =
             case tableLayout of
                 TableTasks ->
                     ( "tasks-table"
-                    , Http.expectJson GotTasks (JD.list taskDecoder)
+                    , Http.expectString GotTasks
                     )
 
                 TableServices ->
