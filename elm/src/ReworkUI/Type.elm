@@ -3,6 +3,7 @@ module ReworkUI.Type exposing (..)
 import AssocList as AL
 import Http
 import List.Selection as LS
+import ReworkUI.Metadata as M
 
 
 type alias Task =
@@ -13,7 +14,7 @@ type alias Task =
     , queued : String
     , started : String
     , finished : String
-    , user : User
+    , metadata : Maybe M.Metadata
     , worker : Int
     , status : Status
     , deathInfo : Maybe String
@@ -59,12 +60,6 @@ type alias JsonStatus =
     }
 
 
-type alias JsonUser =
-    { user : Maybe String
-    , runName : Maybe String
-    }
-
-
 type alias JsonMonitors =
     { monitors : List Monitor
     , workers : List Worker
@@ -107,12 +102,6 @@ type alias Flags =
     { urlPrefix : String
     , domains : List String
     }
-
-
-type User
-    = UnknownUser
-    | NamedUser String
-    | RunUser String String
 
 
 type TaskResult

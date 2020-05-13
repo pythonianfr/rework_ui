@@ -30,7 +30,6 @@ import ReworkUI.Type
         , Task
         , TaskDict
         , TaskResult(..)
-        , User(..)
         , Worker
         , WorkerDict
         )

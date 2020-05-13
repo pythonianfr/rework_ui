@@ -2,11 +2,13 @@ module ReworkUI.View exposing (view)
 
 import AssocList as AL
 import Bool.Extra as BE
+import Dict exposing (Dict)
 import Html as H
 import Html.Attributes as HA
 import Html.Events as HE
 import Json.Decode as JD
 import List.Selection as LS
+import ReworkUI.Metadata as M
 import ReworkUI.Type
     exposing
         ( Action(..)
@@ -18,7 +20,6 @@ import ReworkUI.Type
         , TabsLayout(..)
         , Task
         , TaskResult(..)
-        , User(..)
         , Worker
         )
 
@@ -43,17 +44,19 @@ aria_expanded =
     HA.attribute "aria-expanded"
 
 
-user2String : User -> String
-user2String user =
-    case user of
-        UnknownUser ->
-            "Unknown"
+unknownuser = "<unknown>"
 
-        NamedUser name ->
-            name
 
-        RunUser name runName ->
-            name ++ " [" ++ runName ++ "]"
+user2String : Maybe M.Metadata -> String
+user2String metadata =
+    case metadata of
+        Nothing -> unknownuser
+        Just meta ->
+            case Dict.get "user" meta of
+                Nothing ->
+                    unknownuser
+                Just item ->
+                    M.metavaltostring item
 
 
 body : List String -> List (H.Html Msg) -> H.Html Msg
@@ -312,7 +315,7 @@ taskRenderRow task =
         , td task.queued
         , td task.started
         , td task.finished
-        , td <| user2String task.user
+        , td <| user2String task.metadata
         , td <| "#" ++ String.fromInt task.worker
         , renderStatus task.status
         , H.td [] (List.map (renderAction task.id) task.actions)

@@ -6,11 +6,11 @@ module ReworkUI.Decoder exposing
     , matchTaskResult
     , statusDecoder
     , taskDecoder
-    , userDecoder
     , workerActionsDecoder
     )
 
 import Json.Decode as D
+import ReworkUI.Metadata as M
 import ReworkUI.Type
     exposing
         ( Action(..)
@@ -18,13 +18,11 @@ import ReworkUI.Type
         , Flags
         , JsonMonitors
         , JsonStatus
-        , JsonUser
         , Msg(..)
         , Service
         , Status(..)
         , Task
         , TaskResult(..)
-        , User(..)
         , Worker
         )
 
@@ -124,31 +122,6 @@ optionalAt path da =
     D.oneOf [ D.at path (D.nullable da), D.succeed Nothing ]
 
 
-matchUser : JsonUser -> User
-matchUser x =
-    case ( x.user, x.runName ) of
-        ( Just u, Just r ) ->
-            RunUser u r
-
-        ( Just u, Nothing ) ->
-            NamedUser u
-
-        _ ->
-            UnknownUser
-
-
-userDecoder : D.Decoder User
-userDecoder =
-    let
-        jsonUserDecoder : D.Decoder JsonUser
-        jsonUserDecoder =
-            D.map2 JsonUser
-                (optionalAt [ "user" ] D.string)
-                (optionalAt [ "options", "run_name" ] D.string)
-    in
-    jsonUserDecoder |> D.andThen (matchUser >> D.succeed)
-
-
 decodeTask : Status -> D.Decoder Task
 decodeTask status =
     map12
@@ -160,7 +133,7 @@ decodeTask status =
         (D.field "queued" D.string)
         (D.field "started" D.string)
         (D.field "finished" D.string)
-        userDecoder
+        (D.field "metadata" (D.maybe (D.dict M.metavaldecoder)))
         (D.field "worker" D.int)
         (D.succeed status)
         (D.field "deathinfo" (D.nullable D.string))
