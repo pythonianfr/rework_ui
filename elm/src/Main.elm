@@ -120,7 +120,7 @@ update msg model =
             nocmd <| adderror model <| unwraperror err
 
         OnRefresh ->
-            ( model, refreshCmd model.urlPrefix model.activetab model.domain )
+            ( model, refreshCmd model model.activetab )
 
         GotBool table taskid action (Ok True) ->
             nocmd <| setActionModel table taskid (Completed action)
@@ -142,7 +142,7 @@ update msg model =
 
         Tab tab ->
             ( { model | activetab = tab }
-            , refreshCmd model.urlPrefix tab model.domain
+            , refreshCmd model tab
             )
 
         GotServices (Ok services) ->
@@ -203,11 +203,11 @@ cmdPut url expect =
         }
 
 
-refreshCmd : String -> TabsLayout -> LS.Selection String -> Cmd Msg
-refreshCmd urlPrefix tableLayout domain =
+refreshCmd : Model -> TabsLayout -> Cmd Msg
+refreshCmd model tab =
     let
         ( urlPart, expect ) =
-            case tableLayout of
+            case tab of
                 TasksTab ->
                     ( "tasks-table"
                     , Http.expectString GotTasks
@@ -224,12 +224,12 @@ refreshCmd urlPrefix tableLayout domain =
                     )
 
         query =
-            LS.selected domain
+            LS.selected model.domain
                 |> Maybe.map (UB.string "domain")
                 |> Maybe.toList
     in
     Http.get
-        { url = UB.crossOrigin urlPrefix [ urlPart ] query
+        { url = UB.crossOrigin model.urlPrefix [ urlPart ] query
         , expect = expect
         }
 
@@ -250,17 +250,19 @@ init jsonFlags =
                 (LS.fromList domains)
                 (\x -> LS.select x (LS.fromList domains))
                 (List.head domains)
+
+        model = Model
+                []
+                AL.empty
+                AL.empty
+                AL.empty
+                AL.empty
+                urlPrefix
+                TasksTab
+                domain
     in
-    ( Model
-        []
-        AL.empty
-        AL.empty
-        AL.empty
-        AL.empty
-        urlPrefix
-        TasksTab
-        domain
-    , refreshCmd urlPrefix TasksTab domain
+    ( model
+    , refreshCmd model TasksTab
     )
 
 
