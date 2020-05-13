@@ -30,7 +30,7 @@ type alias Service =
     }
 
 
-type alias Domain =
+type alias Monitor =
     { id : Int
     , domain : String
     , delta : Float
@@ -66,7 +66,7 @@ type alias JsonUser =
 
 
 type alias JsonMonitors =
-    { domains : List Domain
+    { monitors : List Monitor
     , workers : List Worker
     }
 
@@ -79,8 +79,8 @@ type alias WorkerDict =
     IntDict Worker
 
 
-type alias DomainDict =
-    IntDict Domain
+type alias MonitorDict =
+    IntDict Monitor
 
 
 type alias TaskDict =
@@ -95,7 +95,7 @@ type alias Model =
     { errorMessage : Maybe String
     , task : TaskDict
     , worker : WorkerDict
-    , domain : DomainDict
+    , monitor : MonitorDict
     , service : ServiceDict
     , urlPrefix : String
     , tableLayout : TableLayout
@@ -152,7 +152,7 @@ type Msg
     | OnRefresh
     | Table TableLayout
     | GotServices (Result Http.Error (List Service))
-    | GotMonitors (Result Http.Error JsonMonitors)
+    | GotWorkers (Result Http.Error JsonMonitors)
     | OnKill Int
     | OnShutdown Int
     | SetDomain String

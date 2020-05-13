@@ -10,15 +10,15 @@ import Maybe.Extra as Maybe
 import ReworkUI.Decoder
     exposing
         ( decodeFlags
-        , decodeMonitor
+        , decodeWorkers
         , decodeService
         , taskDecoder
         )
 import ReworkUI.Type
     exposing
         ( Action(..)
-        , Domain
-        , DomainDict
+        , Monitor
+        , MonitorDict
         , Flags
         , IntDict
         , Model
@@ -137,13 +137,13 @@ update msg model =
         GotServices (Err _) ->
             nocmd { model | errorMessage = Just "Could not load services" }
 
-        GotMonitors (Ok monitor) ->
+        GotWorkers (Ok monitor) ->
             nocmd <| setMonitor
-                (AL.fromList (listTupleDomain monitor.domains))
+                (AL.fromList (listTupleMonitor monitor.monitors))
                 (AL.fromList (listTupleWorker monitor.workers))
                 model
 
-        GotMonitors (Err _) ->
+        GotWorkers (Err _) ->
             nocmd { model | errorMessage = Just "Could not load monitors" }
 
         OnKill wId ->
@@ -192,10 +192,10 @@ listTupleService listservice =
     List.map creatTuple listservice
 
 
-listTupleDomain : List Domain -> List ( Int, Domain )
-listTupleDomain listdomain =
+listTupleMonitor : List Monitor -> List ( Int, Monitor )
+listTupleMonitor listdomain =
     let
-        creatTuple : Domain -> ( Int, Domain )
+        creatTuple : Monitor -> ( Int, Monitor )
         creatTuple domain =
             ( domain.id, domain )
     in
@@ -245,10 +245,10 @@ setService service model =
     { model | service = service }
 
 
-setMonitor : DomainDict -> WorkerDict -> Model -> Model
-setMonitor domain worker model =
+setMonitor : MonitorDict -> WorkerDict -> Model -> Model
+setMonitor monitor worker model =
     { model
-        | domain = domain
+        | monitor = monitor
         , worker = worker
     }
 
@@ -300,7 +300,7 @@ refreshCmd urlPrefix tableLayout userDomain =
 
                 TableMonitors ->
                     ( "workers-table-json"
-                    , Http.expectJson GotMonitors decodeMonitor
+                    , Http.expectJson GotWorkers decodeWorkers
                     )
 
         query =

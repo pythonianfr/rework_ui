@@ -10,7 +10,7 @@ import List.Selection as LS
 import ReworkUI.Type
     exposing
         ( Action(..)
-        , Domain
+        , Monitor
         , Model
         , Msg(..)
         , Service
@@ -223,8 +223,8 @@ view model =
                 tableDomain =
                     body columnsNameDomain
                         (List.map
-                            domainRenderRow
-                            (AL.values model.domain)
+                            monitorRenderRow
+                            (AL.values model.monitor)
                         )
 
                 tableWorker =
@@ -336,15 +336,15 @@ serviceRenderRow service =
         ]
 
 
-domainRenderRow : Domain -> H.Html Msg
-domainRenderRow domain =
+monitorRenderRow : Monitor -> H.Html Msg
+monitorRenderRow monitor =
     H.tr []
         [ H.th [ HA.scope "row" ]
-            [ H.text (String.fromInt domain.id) ]
-        , td domain.domain
-        , formatdateColor domain.lastSeen domain.delta
+            [ H.text (String.fromInt monitor.id) ]
+        , td monitor.domain
+        , formatdateColor monitor.lastSeen monitor.delta
         , H.th []
-            [ H.text (String.join ", " (List.map equalTuple domain.options)) ]
+            [ H.text (String.join ", " (List.map equalTuple monitor.options)) ]
         ]
 
 

@@ -1,6 +1,6 @@
 module ReworkUI.Decoder exposing
     ( decodeFlags
-    , decodeMonitor
+    , decodeWorkers
     , decodeService
     , decodeWorker
     , matchTaskResult
@@ -14,7 +14,7 @@ import Json.Decode as D
 import ReworkUI.Type
     exposing
         ( Action(..)
-        , Domain
+        , Monitor
         , Flags
         , JsonMonitors
         , JsonStatus
@@ -182,9 +182,9 @@ decodeService =
         (D.field "domain" D.string)
 
 
-decodeDomain : D.Decoder Domain
-decodeDomain =
-    D.map5 Domain
+decodeMonitor : D.Decoder Monitor
+decodeMonitor =
+    D.map5 Monitor
         (D.field "id" D.int)
         (D.field "domain" D.string)
         (D.field "delta" D.float)
@@ -234,10 +234,10 @@ decodeWorker =
         (D.field "button" workerActionsDecoder)
 
 
-decodeMonitor : D.Decoder JsonMonitors
-decodeMonitor =
+decodeWorkers : D.Decoder JsonMonitors
+decodeWorkers =
     D.map2 JsonMonitors
-        (D.field "domains" (D.list decodeDomain))
+        (D.field "domains" (D.list decodeMonitor))
         (D.field "workers" (D.list decodeWorker))
 
 
