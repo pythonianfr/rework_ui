@@ -40,7 +40,7 @@ type alias Monitor =
 
 
 type alias Worker =
-    { wId : Int
+    { id : Int
     , host : String
     , pid : Int
     , domain : String

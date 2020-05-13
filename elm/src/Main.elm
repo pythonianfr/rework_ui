@@ -207,7 +207,7 @@ listTupleWorker listworker =
     let
         creatTuple : Worker -> ( Int, Worker )
         creatTuple worker =
-            ( worker.wId, worker )
+            ( worker.id, worker )
     in
     List.map creatTuple listworker
 

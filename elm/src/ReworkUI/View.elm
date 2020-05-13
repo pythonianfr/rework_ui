@@ -375,14 +375,14 @@ workerRenderRow : Worker -> H.Html Msg
 workerRenderRow worker =
     H.tr []
         [ H.th [ HA.scope "row" ]
-            [ H.text (String.fromInt worker.wId) ]
+            [ H.text (String.fromInt worker.id) ]
         , td (String.fromInt worker.pid ++ "@" ++ worker.host)
         , td worker.domain
         , td (String.fromInt worker.mem)
         , td (String.fromFloat (worker.cpu / 100))
         , td (Maybe.map String.fromInt worker.debugPort |> Maybe.withDefault "")
         , td worker.started
-        , H.td [] (List.map (renderAction worker.wId) worker.actions)
+        , H.td [] (List.map (renderAction worker.id) worker.actions)
         ]
 
 
