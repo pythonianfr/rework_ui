@@ -219,12 +219,7 @@ setMonitor monitors workers model =
 
 modifyIntDict : Int -> (a -> a) -> (IntDict a -> IntDict a)
 modifyIntDict id modify intDict =
-    let
-        justUpate : Maybe a -> Maybe a
-        justUpate a =
-            Maybe.map modify a
-    in
-    AL.update id justUpate intDict
+    AL.update id (Maybe.map modify) intDict
 
 
 updateTask : (IntDict Task -> IntDict Task) -> (Model -> Model)
