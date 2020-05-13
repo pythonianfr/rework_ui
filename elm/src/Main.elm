@@ -132,7 +132,7 @@ update msg model =
             )
 
         GotServices (Ok services) ->
-            nocmd <| setService (AL.fromList (groupbyid services)) model
+            nocmd <| { model | services = AL.fromList (groupbyid services) }
 
         GotServices (Err _) ->
             nocmd { model | errorMessage = Just "Could not load services" }
@@ -197,11 +197,6 @@ cmdPut url expect =
         , timeout = Nothing
         , tracker = Nothing
         }
-
-
-setService : ServiceDict -> Model -> Model
-setService services model =
-    { model | services = services }
 
 
 setMonitor : MonitorDict -> WorkerDict -> Model -> Model
