@@ -214,16 +214,6 @@ updateWorker modify model =
     { model | workers = modify model.workers }
 
 
-modifyTask : Int -> (Task -> Task) -> Model -> Model
-modifyTask taskId modify model =
-    let
-        justUpate : Maybe Task -> Maybe Task
-        justUpate task =
-            Maybe.map modify task
-    in
-    { model | tasks = AL.update taskId justUpate model.tasks }
-
-
 refreshCmd : String -> TableLayout -> LS.Selection String -> Cmd Msg
 refreshCmd urlPrefix tableLayout userDomain =
     let
