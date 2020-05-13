@@ -99,7 +99,7 @@ type alias Model =
     , services : ServiceDict
     , urlPrefix : String
     , activetab : TabsLayout
-    , userDomain : LS.Selection String
+    , domain : LS.Selection String
     }
 
 

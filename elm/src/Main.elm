@@ -120,7 +120,7 @@ update msg model =
             nocmd <| adderror model <| unwraperror err
 
         OnRefresh ->
-            ( model, refreshCmd model.urlPrefix model.activetab model.userDomain )
+            ( model, refreshCmd model.urlPrefix model.activetab model.domain )
 
         GotBool table taskid action (Ok True) ->
             nocmd <| setActionModel table taskid (Completed action)
@@ -142,7 +142,7 @@ update msg model =
 
         Tab tab ->
             ( { model | activetab = tab }
-            , refreshCmd model.urlPrefix tab model.userDomain
+            , refreshCmd model.urlPrefix tab model.domain
             )
 
         GotServices (Ok services) ->
@@ -183,7 +183,7 @@ update msg model =
             )
 
         SetDomain domain ->
-            nocmd <| { model | userDomain = LS.select domain model.userDomain }
+            nocmd <| { model | domain = LS.select domain model.domain }
 
 
 groupbyid items =
@@ -204,7 +204,7 @@ cmdPut url expect =
 
 
 refreshCmd : String -> TabsLayout -> LS.Selection String -> Cmd Msg
-refreshCmd urlPrefix tableLayout userDomain =
+refreshCmd urlPrefix tableLayout domain =
     let
         ( urlPart, expect ) =
             case tableLayout of
@@ -224,7 +224,7 @@ refreshCmd urlPrefix tableLayout userDomain =
                     )
 
         query =
-            LS.selected userDomain
+            LS.selected domain
                 |> Maybe.map (UB.string "domain")
                 |> Maybe.toList
     in
@@ -245,7 +245,7 @@ init jsonFlags =
                 Err _ ->
                     Flags "" []
 
-        userDomain =
+        domain =
             Maybe.unwrap
                 (LS.fromList domains)
                 (\x -> LS.select x (LS.fromList domains))
@@ -259,8 +259,8 @@ init jsonFlags =
         AL.empty
         urlPrefix
         TasksTab
-        userDomain
-    , refreshCmd urlPrefix TasksTab userDomain
+        domain
+    , refreshCmd urlPrefix TasksTab domain
     )
 
 

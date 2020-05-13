@@ -143,7 +143,7 @@ view model =
                         { selected = option [ HA.selected True ]
                         , rest = option []
                         }
-                        model.userDomain
+                        model.domain
                         |> LS.toList
                     )
                 ]
