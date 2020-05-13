@@ -22,7 +22,7 @@ type alias Task =
 
 
 type alias Service =
-    { opid : Int
+    { id : Int
     , host : String
     , name : String
     , path : String

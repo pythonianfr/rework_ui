@@ -328,7 +328,7 @@ serviceRenderRow : Service -> H.Html Msg
 serviceRenderRow service =
     H.tr []
         [ H.th [ HA.scope "row" ]
-            [ H.text (String.fromInt service.opid) ]
+            [ H.text (String.fromInt service.id) ]
         , td service.host
         , td service.name
         , td service.path

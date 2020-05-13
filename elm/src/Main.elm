@@ -187,7 +187,7 @@ listTupleService listservice =
     let
         creatTuple : Service -> ( Int, Service )
         creatTuple service =
-            ( service.opid, service )
+            ( service.id, service )
     in
     List.map creatTuple listservice
 
