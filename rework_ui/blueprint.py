@@ -568,6 +568,21 @@ def reworkui(engine,
                 })
         return json.dumps(list_json)
 
+    @bp.route('/events/<int:fromid>')
+    def events(fromid):
+        events = select(
+            'id', 'action', 'taskid'
+        ).table('rework.events'
+        ).where('id >= %(eid)s', eid=fromid
+        ).order('id'
+        ).do(engine).fetchall()
+        return json.dumps(
+            [
+                (eid, action, taskid)
+                for eid, action, taskid in events
+            ]
+        )
+
     @bp.route('/')
     def home():
         if not has_permission('read'):

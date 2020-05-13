@@ -1,5 +1,6 @@
 import re
 from pathlib import Path
+import json
 import time
 
 from lxml import etree
@@ -162,6 +163,13 @@ def test_task_life_cycle(engine, client, refresh):
         if refresh:
             refpath.write_bytes(html)
         assert html == refpath.read_bytes()
+
+        q = engine.execute(
+            'select id, action, taskid from rework.events'
+        ).fetchall()
+        assert len(q) == 24
+        res = client.get('/events/0')
+        assert json.loads(res.text) == [[x, y, z] for x, y, z in q]
 
 
 def test_monitors_table(engine, client, refresh):
