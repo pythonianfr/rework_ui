@@ -100,7 +100,7 @@ update msg model =
             nocmd model
 
         GotTasks (Ok tasks) ->
-            nocmd <| setTask (AL.fromList (listTupleTask tasks)) model
+            nocmd <| setTask (AL.fromList (groupbyid tasks)) model
 
         GotTasks (Err _) ->
             nocmd { model | errorMessage = Just "Could not load tasks" }
@@ -132,15 +132,15 @@ update msg model =
             )
 
         GotServices (Ok services) ->
-            nocmd <| setService (AL.fromList (listTupleService services)) model
+            nocmd <| setService (AL.fromList (groupbyid services)) model
 
         GotServices (Err _) ->
             nocmd { model | errorMessage = Just "Could not load services" }
 
         GotWorkers (Ok monitor) ->
             nocmd <| setMonitor
-                (AL.fromList (listTupleMonitor monitor.monitors))
-                (AL.fromList (listTupleWorker monitor.workers))
+                (AL.fromList (groupbyid monitor.monitors))
+                (AL.fromList (groupbyid monitor.workers))
                 model
 
         GotWorkers (Err _) ->
@@ -172,44 +172,8 @@ update msg model =
             nocmd <| { model | userDomain = LS.select domain model.userDomain }
 
 
-listTupleTask : List Task -> List ( Int, Task )
-listTupleTask listtask =
-    let
-        creatTuple : Task -> ( Int, Task )
-        creatTuple task =
-            ( task.id, task )
-    in
-    List.map creatTuple listtask
-
-
-listTupleService : List Service -> List ( Int, Service )
-listTupleService listservice =
-    let
-        creatTuple : Service -> ( Int, Service )
-        creatTuple service =
-            ( service.id, service )
-    in
-    List.map creatTuple listservice
-
-
-listTupleMonitor : List Monitor -> List ( Int, Monitor )
-listTupleMonitor listdomain =
-    let
-        creatTuple : Monitor -> ( Int, Monitor )
-        creatTuple domain =
-            ( domain.id, domain )
-    in
-    List.map creatTuple listdomain
-
-
-listTupleWorker : List Worker -> List ( Int, Worker )
-listTupleWorker listworker =
-    let
-        creatTuple : Worker -> ( Int, Worker )
-        creatTuple worker =
-            ( worker.id, worker )
-    in
-    List.map creatTuple listworker
+groupbyid items =
+    List.map (\item -> (item.id, item)) items
 
 
 updateTaskActions : Action -> Task -> Task
