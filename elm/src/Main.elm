@@ -41,6 +41,19 @@ import Url.Builder as UB
 
 nocmd = withNoCmd
 
+adderror model error =
+    { model | errors = List.append model.errors [error] }
+
+
+unwraperror : Http.Error -> String
+unwraperror resp =
+    case resp of
+        Http.BadUrl x -> "bad url: " ++ x
+        Http.Timeout -> "the query timed out"
+        Http.NetworkError -> "there was a network error"
+        Http.BadStatus val -> "we got a bad status answer: " ++ String.fromInt val
+        Http.BadBody body -> "we got a bad body: " ++ body
+
 
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
@@ -101,8 +114,8 @@ update msg model =
         GotTasks (Ok tasks) ->
             nocmd <| { model | tasks = AL.fromList (groupbyid tasks) }
 
-        GotTasks (Err _) ->
-            nocmd { model | errorMessage = Just "Could not load tasks" }
+        GotTasks (Err err) ->
+            nocmd <| adderror model <| unwraperror err
 
         OnRefresh ->
             ( model, refreshCmd model.urlPrefix model.tableLayout model.userDomain )
@@ -133,8 +146,8 @@ update msg model =
         GotServices (Ok services) ->
             nocmd <| { model | services = AL.fromList (groupbyid services) }
 
-        GotServices (Err _) ->
-            nocmd { model | errorMessage = Just "Could not load services" }
+        GotServices (Err err) ->
+            nocmd <| adderror model <| unwraperror err
 
         GotWorkers (Ok monitor) ->
             nocmd { model
@@ -142,8 +155,8 @@ update msg model =
                       , workers = AL.fromList (groupbyid monitor.workers)
                   }
 
-        GotWorkers (Err _) ->
-            nocmd { model | errorMessage = Just "Could not load monitors" }
+        GotWorkers (Err err) ->
+            nocmd <| adderror model <| unwraperror err
 
         OnKill wid ->
             ( setActionModel TableMonitors wid (Pending Kill)
@@ -237,7 +250,7 @@ init jsonFlags =
                 (List.head domains)
     in
     ( Model
-        Nothing
+        []
         AL.empty
         AL.empty
         AL.empty

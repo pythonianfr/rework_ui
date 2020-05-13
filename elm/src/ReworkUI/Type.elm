@@ -92,7 +92,7 @@ type alias ServiceDict =
 
 
 type alias Model =
-    { errorMessage : Maybe String
+    { errors : List String
     , tasks : TaskDict
     , workers : WorkerDict
     , monitors : MonitorDict
