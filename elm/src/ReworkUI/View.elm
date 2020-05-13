@@ -15,7 +15,7 @@ import ReworkUI.Type
         , Msg(..)
         , Service
         , Status(..)
-        , TableLayout(..)
+        , TabsLayout(..)
         , Task
         , TaskResult(..)
         , User(..)
@@ -78,7 +78,7 @@ body namesColumns htmlTable =
         ]
 
 
-header : LS.Selection TableLayout -> H.Html Msg
+header : LS.Selection TabsLayout -> H.Html Msg
 header listTableLayout =
     H.ul [ HA.id "tabs", HA.class "nav nav-tabs", role "tablist" ]
         (LS.toList
@@ -91,20 +91,20 @@ header listTableLayout =
         )
 
 
-strTableLayout : TableLayout -> String
+strTableLayout : TabsLayout -> String
 strTableLayout tableLayout =
     case tableLayout of
-        TableTasks ->
+        TasksTab ->
             "Tasks"
 
-        TableMonitors ->
+        MonitorsTab ->
             "Workers"
 
-        TableServices ->
+        ServicesTab ->
             "Services"
 
 
-buildLi : Bool -> List (H.Attribute Msg) -> TableLayout -> H.Html Msg
+buildLi : Bool -> List (H.Attribute Msg) -> TabsLayout -> H.Html Msg
 buildLi bool listAttributes tableLayout =
     let
         newTableName =
@@ -112,7 +112,7 @@ buildLi bool listAttributes tableLayout =
     in
     H.li (listAttributes ++ [ role "presentation" ])
         [ H.a
-            [ HE.onClick (Table tableLayout)
+            [ HE.onClick (Tab tableLayout)
             , aria_controls (String.toLower newTableName)
             , data_toggle "tab"
             , role "tabe"
@@ -149,12 +149,12 @@ view model =
                 ]
 
         listTables =
-            [ TableTasks, TableServices, TableMonitors ]
+            [ TasksTab, ServicesTab, MonitorsTab ]
                 |> LS.fromList
-                |> LS.select model.tableLayout
+                |> LS.select model.activetab
     in
-    case model.tableLayout of
-        TableTasks ->
+    case model.activetab of
+        TasksTab ->
             let
                 head =
                     header listTables
@@ -178,7 +178,7 @@ view model =
             in
             H.div [] [ select, title, head, table ]
 
-        TableServices ->
+        ServicesTab ->
             let
                 head =
                     header listTables
@@ -197,7 +197,7 @@ view model =
             in
             H.div [] [ select, title, head, table ]
 
-        TableMonitors ->
+        MonitorsTab ->
             let
                 head =
                     header listTables

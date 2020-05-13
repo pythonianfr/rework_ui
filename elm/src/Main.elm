@@ -26,7 +26,7 @@ import ReworkUI.Type
         , Service
         , ServiceDict
         , Status(..)
-        , TableLayout(..)
+        , TabsLayout(..)
         , Task
         , TaskDict
         , TaskResult(..)
@@ -58,47 +58,47 @@ unwraperror resp =
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     let
-        setActionModel : TableLayout -> Int -> Action -> Model
+        setActionModel : TabsLayout -> Int -> Action -> Model
         setActionModel table id action =
             let
                 updateactions actionable =
                     { actionable | actions = [ action ] }
             in
             case table of
-                TableTasks ->
+                TasksTab ->
                     { model | tasks = AL.update id (Maybe.map updateactions) model.tasks }
 
-                TableMonitors ->
+                MonitorsTab ->
                     { model | workers = AL.update id (Maybe.map updateactions) model.workers }
 
-                TableServices ->
+                ServicesTab ->
                     model
     in
     case msg of
         OnDelete taskid ->
-            ( setActionModel TableTasks taskid (Pending Delete)
+            ( setActionModel TasksTab taskid (Pending Delete)
             , Http.get
                 { url = UB.crossOrigin
                         model.urlPrefix
                         [ "delete-task", String.fromInt taskid ]
                         []
-                , expect = Http.expectJson (GotBool TableTasks taskid Delete) JD.bool
+                , expect = Http.expectJson (GotBool TasksTab taskid Delete) JD.bool
                 }
             )
 
         OnAbort taskid ->
-            ( setActionModel TableTasks taskid (Pending Abort)
+            ( setActionModel TasksTab taskid (Pending Abort)
             , Http.get
                 { url = UB.crossOrigin
                         model.urlPrefix
                         [ "abort-task", String.fromInt taskid ]
                         []
-                , expect = Http.expectJson (GotBool TableTasks taskid Abort) JD.bool
+                , expect = Http.expectJson (GotBool TasksTab taskid Abort) JD.bool
                 }
             )
 
         OnRelaunch taskid ->
-            ( setActionModel TableTasks taskid (Pending Relaunch)
+            ( setActionModel TasksTab taskid (Pending Relaunch)
             , cmdPut
                 (UB.crossOrigin
                     model.urlPrefix
@@ -120,7 +120,7 @@ update msg model =
             nocmd <| adderror model <| unwraperror err
 
         OnRefresh ->
-            ( model, refreshCmd model.urlPrefix model.tableLayout model.userDomain )
+            ( model, refreshCmd model.urlPrefix model.activetab model.userDomain )
 
         GotBool table taskid action (Ok True) ->
             nocmd <| setActionModel table taskid (Completed action)
@@ -132,17 +132,17 @@ update msg model =
             nocmd <| setActionModel table taskid (Uncompleted action)
 
         RelaunchMsg taskid (Ok 0) ->
-            nocmd <| setActionModel TableTasks taskid (Uncompleted Relaunch)
+            nocmd <| setActionModel TasksTab taskid (Uncompleted Relaunch)
 
         RelaunchMsg taskid (Ok _) ->
-            nocmd <| setActionModel TableTasks taskid (Completed Relaunch)
+            nocmd <| setActionModel TasksTab taskid (Completed Relaunch)
 
         RelaunchMsg taskid (Err _) ->
-            nocmd <| setActionModel TableTasks taskid (Uncompleted Relaunch)
+            nocmd <| setActionModel TasksTab taskid (Uncompleted Relaunch)
 
-        Table tableLayout ->
-            ( { model | tableLayout = tableLayout }
-            , refreshCmd model.urlPrefix tableLayout model.userDomain
+        Tab tab ->
+            ( { model | activetab = tab }
+            , refreshCmd model.urlPrefix tab model.userDomain
             )
 
         GotServices (Ok services) ->
@@ -161,24 +161,24 @@ update msg model =
             nocmd <| adderror model <| unwraperror err
 
         OnKill wid ->
-            ( setActionModel TableMonitors wid (Pending Kill)
+            ( setActionModel MonitorsTab wid (Pending Kill)
             , Http.get
                 { url = UB.crossOrigin
                         model.urlPrefix
                         [ "kill-worker", String.fromInt wid ]
                         []
-                , expect = Http.expectJson (GotBool TableMonitors wid Kill) JD.bool
+                , expect = Http.expectJson (GotBool MonitorsTab wid Kill) JD.bool
                 }
             )
 
         OnShutdown wid ->
-            ( setActionModel TableMonitors wid (Pending Shutdown)
+            ( setActionModel MonitorsTab wid (Pending Shutdown)
             , Http.get
                 { url = UB.crossOrigin
                         model.urlPrefix
                         [ "shutdown-worker", String.fromInt wid ]
                         []
-                , expect = Http.expectJson (GotBool TableMonitors wid Shutdown) JD.bool
+                , expect = Http.expectJson (GotBool MonitorsTab wid Shutdown) JD.bool
                 }
             )
 
@@ -203,22 +203,22 @@ cmdPut url expect =
         }
 
 
-refreshCmd : String -> TableLayout -> LS.Selection String -> Cmd Msg
+refreshCmd : String -> TabsLayout -> LS.Selection String -> Cmd Msg
 refreshCmd urlPrefix tableLayout userDomain =
     let
         ( urlPart, expect ) =
             case tableLayout of
-                TableTasks ->
+                TasksTab ->
                     ( "tasks-table"
                     , Http.expectString GotTasks
                     )
 
-                TableServices ->
+                ServicesTab ->
                     ( "services-table-json"
                     , Http.expectJson GotServices (JD.list decodeService)
                     )
 
-                TableMonitors ->
+                MonitorsTab ->
                     ( "workers-table-json"
                     , Http.expectJson GotWorkers decodeWorkers
                     )
@@ -258,9 +258,9 @@ init jsonFlags =
         AL.empty
         AL.empty
         urlPrefix
-        TableTasks
+        TasksTab
         userDomain
-    , refreshCmd urlPrefix TableTasks userDomain
+    , refreshCmd urlPrefix TasksTab userDomain
     )
 
 
@@ -268,14 +268,14 @@ sub : Model -> Sub Msg
 sub model =
     let
         refreshTime =
-            case model.tableLayout of
-                TableTasks ->
+            case model.activetab of
+                TasksTab ->
                     1000
 
-                TableServices ->
+                ServicesTab ->
                     10000
 
-                TableMonitors ->
+                MonitorsTab ->
                     2000
     in
     Time.every refreshTime (always OnRefresh)
