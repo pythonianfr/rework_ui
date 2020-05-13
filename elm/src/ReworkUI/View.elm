@@ -174,7 +174,7 @@ view model =
 
                 table =
                     body columnsName
-                        (List.map taskRenderRow (AL.values model.task))
+                        (List.map taskRenderRow (AL.values model.tasks))
             in
             H.div [] [ select, title, head, table ]
 
@@ -193,7 +193,7 @@ view model =
 
                 table =
                     body columnsName
-                        (List.map serviceRenderRow (AL.values model.service))
+                        (List.map serviceRenderRow (AL.values model.services))
             in
             H.div [] [ select, title, head, table ]
 
@@ -224,12 +224,12 @@ view model =
                     body columnsNameDomain
                         (List.map
                             monitorRenderRow
-                            (AL.values model.monitor)
+                            (AL.values model.monitors)
                         )
 
                 tableWorker =
                     body columnsNameWorker
-                        (List.map workerRenderRow (AL.values model.worker))
+                        (List.map workerRenderRow (AL.values model.workers))
             in
             H.div [] [ select, title, head, tableDomain, tableWorker ]
 

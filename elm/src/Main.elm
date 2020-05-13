@@ -200,20 +200,20 @@ cmdPut url expect =
 
 
 setTask : TaskDict -> Model -> Model
-setTask task model =
-    { model | task = task }
+setTask tasks model =
+    { model | tasks = tasks }
 
 
 setService : ServiceDict -> Model -> Model
-setService service model =
-    { model | service = service }
+setService services model =
+    { model | services = services }
 
 
 setMonitor : MonitorDict -> WorkerDict -> Model -> Model
-setMonitor monitor worker model =
+setMonitor monitors workers model =
     { model
-        | monitor = monitor
-        , worker = worker
+        | monitors = monitors
+        , workers = workers
     }
 
 
@@ -229,12 +229,12 @@ modifyIntDict id modify intDict =
 
 updateTask : (IntDict Task -> IntDict Task) -> (Model -> Model)
 updateTask modify model =
-    { model | task = modify model.task }
+    { model | tasks = modify model.tasks }
 
 
 updateWorker : (IntDict Worker -> IntDict Worker) -> (Model -> Model)
 updateWorker modify model =
-    { model | worker = modify model.worker }
+    { model | workers = modify model.workers }
 
 
 modifyTask : Int -> (Task -> Task) -> Model -> Model
@@ -244,7 +244,7 @@ modifyTask taskId modify model =
         justUpate task =
             Maybe.map modify task
     in
-    setTask (AL.update taskId justUpate model.task) model
+    setTask (AL.update taskId justUpate model.tasks) model
 
 
 refreshCmd : String -> TableLayout -> LS.Selection String -> Cmd Msg

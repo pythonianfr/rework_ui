@@ -93,10 +93,10 @@ type alias ServiceDict =
 
 type alias Model =
     { errorMessage : Maybe String
-    , task : TaskDict
-    , worker : WorkerDict
-    , monitor : MonitorDict
-    , service : ServiceDict
+    , tasks : TaskDict
+    , workers : WorkerDict
+    , monitors : MonitorDict
+    , services : ServiceDict
     , urlPrefix : String
     , tableLayout : TableLayout
     , userDomain : LS.Selection String
