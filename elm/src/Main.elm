@@ -62,37 +62,37 @@ update msg model =
                     model
     in
     case msg of
-        OnDelete taskId ->
-            ( setActionModel TableTasks taskId (Pending Delete)
+        OnDelete taskid ->
+            ( setActionModel TableTasks taskid (Pending Delete)
             , Http.get
                 { url = UB.crossOrigin
                         model.urlPrefix
-                        [ "delete-task", String.fromInt taskId ]
+                        [ "delete-task", String.fromInt taskid ]
                         []
-                , expect = Http.expectJson (GotBool TableTasks taskId Delete) JD.bool
+                , expect = Http.expectJson (GotBool TableTasks taskid Delete) JD.bool
                 }
             )
 
-        OnAbort taskId ->
-            ( setActionModel TableTasks taskId (Pending Abort)
+        OnAbort taskid ->
+            ( setActionModel TableTasks taskid (Pending Abort)
             , Http.get
                 { url = UB.crossOrigin
                         model.urlPrefix
-                        [ "abort-task", String.fromInt taskId ]
+                        [ "abort-task", String.fromInt taskid ]
                         []
-                , expect = Http.expectJson (GotBool TableTasks taskId Abort) JD.bool
+                , expect = Http.expectJson (GotBool TableTasks taskid Abort) JD.bool
                 }
             )
 
-        OnRelaunch taskId ->
-            ( setActionModel TableTasks taskId (Pending Relaunch)
+        OnRelaunch taskid ->
+            ( setActionModel TableTasks taskid (Pending Relaunch)
             , cmdPut
                 (UB.crossOrigin
                     model.urlPrefix
-                    [ "relaunch-task", String.fromInt taskId ]
+                    [ "relaunch-task", String.fromInt taskid ]
                     []
                 )
-                (Http.expectJson (RelaunchMsg taskId) JD.int)
+                (Http.expectJson (RelaunchMsg taskid) JD.int)
             )
 
         NoOperation ->
@@ -107,23 +107,23 @@ update msg model =
         OnRefresh ->
             ( model, refreshCmd model.urlPrefix model.tableLayout model.userDomain )
 
-        GotBool table taskId action (Ok True) ->
-            nocmd <| setActionModel table taskId (Completed action)
+        GotBool table taskid action (Ok True) ->
+            nocmd <| setActionModel table taskid (Completed action)
 
-        GotBool table taskId action (Ok False) ->
-            nocmd <| setActionModel table taskId (Uncompleted action)
+        GotBool table taskid action (Ok False) ->
+            nocmd <| setActionModel table taskid (Uncompleted action)
 
-        GotBool table taskId action (Err _) ->
-            nocmd <| setActionModel table taskId (Uncompleted action)
+        GotBool table taskid action (Err _) ->
+            nocmd <| setActionModel table taskid (Uncompleted action)
 
-        RelaunchMsg taskId (Ok 0) ->
-            nocmd <| setActionModel TableTasks taskId (Uncompleted Relaunch)
+        RelaunchMsg taskid (Ok 0) ->
+            nocmd <| setActionModel TableTasks taskid (Uncompleted Relaunch)
 
-        RelaunchMsg taskId (Ok _) ->
-            nocmd <| setActionModel TableTasks taskId (Completed Relaunch)
+        RelaunchMsg taskid (Ok _) ->
+            nocmd <| setActionModel TableTasks taskid (Completed Relaunch)
 
-        RelaunchMsg taskId (Err _) ->
-            nocmd <| setActionModel TableTasks taskId (Uncompleted Relaunch)
+        RelaunchMsg taskid (Err _) ->
+            nocmd <| setActionModel TableTasks taskid (Uncompleted Relaunch)
 
         Table tableLayout ->
             ( { model | tableLayout = tableLayout }
