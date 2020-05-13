@@ -138,10 +138,10 @@ update msg model =
             nocmd { model | errorMessage = Just "Could not load services" }
 
         GotWorkers (Ok monitor) ->
-            nocmd <| setMonitor
-                (AL.fromList (groupbyid monitor.monitors))
-                (AL.fromList (groupbyid monitor.workers))
-                model
+            nocmd { model
+                      | monitors = AL.fromList (groupbyid monitor.monitors)
+                      , workers = AL.fromList (groupbyid monitor.workers)
+                  }
 
         GotWorkers (Err _) ->
             nocmd { model | errorMessage = Just "Could not load monitors" }
@@ -197,14 +197,6 @@ cmdPut url expect =
         , timeout = Nothing
         , tracker = Nothing
         }
-
-
-setMonitor : MonitorDict -> WorkerDict -> Model -> Model
-setMonitor monitors workers model =
-    { model
-        | monitors = monitors
-        , workers = workers
-    }
 
 
 modifyIntDict : Int -> (a -> a) -> (IntDict a -> IntDict a)
