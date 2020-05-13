@@ -100,7 +100,7 @@ update msg model =
             nocmd model
 
         GotTasks (Ok tasks) ->
-            nocmd <| setTask (AL.fromList (groupbyid tasks)) model
+            nocmd <| { model | tasks = AL.fromList (groupbyid tasks) }
 
         GotTasks (Err _) ->
             nocmd { model | errorMessage = Just "Could not load tasks" }
@@ -199,11 +199,6 @@ cmdPut url expect =
         }
 
 
-setTask : TaskDict -> Model -> Model
-setTask tasks model =
-    { model | tasks = tasks }
-
-
 setService : ServiceDict -> Model -> Model
 setService services model =
     { model | services = services }
@@ -239,7 +234,7 @@ modifyTask taskId modify model =
         justUpate task =
             Maybe.map modify task
     in
-    setTask (AL.update taskId justUpate model.tasks) model
+    { model | tasks = AL.update taskId justUpate model.tasks }
 
 
 refreshCmd : String -> TableLayout -> LS.Selection String -> Cmd Msg
