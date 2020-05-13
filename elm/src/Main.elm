@@ -145,25 +145,25 @@ update msg model =
         GotWorkers (Err _) ->
             nocmd { model | errorMessage = Just "Could not load monitors" }
 
-        OnKill wId ->
-            ( setActionModel TableMonitors wId (Pending Kill)
+        OnKill wid ->
+            ( setActionModel TableMonitors wid (Pending Kill)
             , Http.get
                 { url = UB.crossOrigin
                         model.urlPrefix
-                        [ "kill-worker", String.fromInt wId ]
+                        [ "kill-worker", String.fromInt wid ]
                         []
-                , expect = Http.expectJson (GotBool TableMonitors wId Kill) JD.bool
+                , expect = Http.expectJson (GotBool TableMonitors wid Kill) JD.bool
                 }
             )
 
-        OnShutdown wId ->
-            ( setActionModel TableMonitors wId (Pending Shutdown)
+        OnShutdown wid ->
+            ( setActionModel TableMonitors wid (Pending Shutdown)
             , Http.get
                 { url = UB.crossOrigin
                         model.urlPrefix
-                        [ "shutdown-worker", String.fromInt wId ]
+                        [ "shutdown-worker", String.fromInt wid ]
                         []
-                , expect = Http.expectJson (GotBool TableMonitors wId Shutdown) JD.bool
+                , expect = Http.expectJson (GotBool TableMonitors wid Shutdown) JD.bool
                 }
             )
 
