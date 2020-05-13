@@ -162,7 +162,7 @@ update msg model =
             , Http.get
                 { url = UB.crossOrigin
                         model.urlPrefix
-                        [ "Shutdown-worker", String.fromInt wId ]
+                        [ "shutdown-worker", String.fromInt wId ]
                         []
                 , expect = Http.expectJson (GotBool TableMonitors wId Shutdown) JD.bool
                 }
