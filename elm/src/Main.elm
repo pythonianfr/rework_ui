@@ -42,25 +42,24 @@ import Url.Builder as UB
 nocmd = withNoCmd
 
 
-selectModelModifier : TableLayout -> Int -> Action -> (Model -> Model)
-selectModelModifier table id action =
-    case table of
-        TableTasks ->
-            updateTaskActions action |> modifyIntDict id |> updateTask
-
-        TableMonitors ->
-            updateWorkerActions action |> modifyIntDict id |> updateWorker
-
-        TableServices ->
-            identity
-
-
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     let
         setActionModel : TableLayout -> Int -> Action -> Model
         setActionModel table id action =
-            selectModelModifier table id action model
+            let
+                updateactions actionable =
+                    { actionable | actions = [ action ] }
+            in
+            case table of
+                TableTasks ->
+                    { model | tasks = AL.update id (Maybe.map updateactions) model.tasks }
+
+                TableMonitors ->
+                    { model | workers = AL.update id (Maybe.map updateactions) model.workers }
+
+                TableServices ->
+                    model
     in
     case msg of
         OnDelete taskId ->
@@ -176,16 +175,6 @@ groupbyid items =
     List.map (\item -> (item.id, item)) items
 
 
-updateTaskActions : Action -> Task -> Task
-updateTaskActions action task =
-    { task | actions = [ action ] }
-
-
-updateWorkerActions : Action -> Worker -> Worker
-updateWorkerActions action worker =
-    { worker | actions = [ action ] }
-
-
 cmdPut : String -> Http.Expect msg -> Cmd msg
 cmdPut url expect =
     Http.request
@@ -197,21 +186,6 @@ cmdPut url expect =
         , timeout = Nothing
         , tracker = Nothing
         }
-
-
-modifyIntDict : Int -> (a -> a) -> (IntDict a -> IntDict a)
-modifyIntDict id modify intDict =
-    AL.update id (Maybe.map modify) intDict
-
-
-updateTask : (IntDict Task -> IntDict Task) -> (Model -> Model)
-updateTask modify model =
-    { model | tasks = modify model.tasks }
-
-
-updateWorker : (IntDict Worker -> IntDict Worker) -> (Model -> Model)
-updateWorker modify model =
-    { model | workers = modify model.workers }
 
 
 refreshCmd : String -> TableLayout -> LS.Selection String -> Cmd Msg
