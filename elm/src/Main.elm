@@ -39,6 +39,9 @@ import Time
 import Url.Builder as UB
 
 
+nocmd = withNoCmd
+
+
 selectModelModifier : TableLayout -> Int -> Action -> (Model -> Model)
 selectModelModifier table id action =
     case table of
@@ -94,34 +97,34 @@ update msg model =
             )
 
         NoOperation ->
-            ( model, Cmd.none )
+            nocmd model
 
         GotTasks (Ok tasks) ->
-            ( setTask (AL.fromList (listTupleTask tasks)) model, Cmd.none )
+            nocmd <| setTask (AL.fromList (listTupleTask tasks)) model
 
         GotTasks (Err _) ->
-            ( { model | errorMessage = Just "Could not load tasks" }, Cmd.none )
+            nocmd { model | errorMessage = Just "Could not load tasks" }
 
         OnRefresh ->
             ( model, refreshCmd model.urlPrefix model.tableLayout model.userDomain )
 
         GotBool table taskId action (Ok True) ->
-            setActionModel table taskId (Completed action) |> withNoCmd
+            nocmd <| setActionModel table taskId (Completed action)
 
         GotBool table taskId action (Ok False) ->
-            setActionModel table taskId (Uncompleted action) |> withNoCmd
+            nocmd <| setActionModel table taskId (Uncompleted action)
 
         GotBool table taskId action (Err _) ->
-            setActionModel table taskId (Uncompleted action) |> withNoCmd
+            nocmd <| setActionModel table taskId (Uncompleted action)
 
         RelaunchMsg taskId (Ok 0) ->
-            setActionModel TableTasks taskId (Uncompleted Relaunch) |> withNoCmd
+            nocmd <| setActionModel TableTasks taskId (Uncompleted Relaunch)
 
         RelaunchMsg taskId (Ok _) ->
-            setActionModel TableTasks taskId (Completed Relaunch) |> withNoCmd
+            nocmd <| setActionModel TableTasks taskId (Completed Relaunch)
 
         RelaunchMsg taskId (Err _) ->
-            setActionModel TableTasks taskId (Uncompleted Relaunch) |> withNoCmd
+            nocmd <| setActionModel TableTasks taskId (Uncompleted Relaunch)
 
         Table tableLayout ->
             ( { model | tableLayout = tableLayout }
@@ -129,21 +132,19 @@ update msg model =
             )
 
         GotServices (Ok services) ->
-            ( setService (AL.fromList (listTupleService services)) model, Cmd.none )
+            nocmd <| setService (AL.fromList (listTupleService services)) model
 
         GotServices (Err _) ->
-            ( { model | errorMessage = Just "Could not load services" }, Cmd.none )
+            nocmd { model | errorMessage = Just "Could not load services" }
 
         GotMonitors (Ok monitor) ->
-            ( setMonitor
+            nocmd <| setMonitor
                 (AL.fromList (listTupleDomain monitor.domains))
                 (AL.fromList (listTupleWorker monitor.workers))
                 model
-            , Cmd.none
-            )
 
         GotMonitors (Err _) ->
-            ( { model | errorMessage = Just "Could not load monitors" }, Cmd.none )
+            nocmd { model | errorMessage = Just "Could not load monitors" }
 
         OnKill wId ->
             ( setActionModel TableMonitors wId (Pending Kill)
@@ -168,8 +169,7 @@ update msg model =
             )
 
         SetDomain domain ->
-            { model | userDomain = LS.select domain model.userDomain }
-                |> withNoCmd
+            nocmd <| { model | userDomain = LS.select domain model.userDomain }
 
 
 listTupleTask : List Task -> List ( Int, Task )
