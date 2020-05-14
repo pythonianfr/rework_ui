@@ -122,7 +122,7 @@ update msg model =
             ( model, refreshCmd model model.activetab )
 
         GotBool table taskid action (Ok True) ->
-            nocmd <| setActionModel table taskid (Completed action)
+            nocmd <| model
 
         GotBool table taskid action (Ok False) ->
             nocmd <| setActionModel table taskid (Uncompleted action)
