@@ -239,7 +239,13 @@ init jsonFlags =
         { urlPrefix, domains } =
             case JD.decodeValue decodeFlags jsonFlags of
                 Ok val ->
-                    Flags val.urlPrefix <| "all" :: val.domains
+                    let
+                        dom =
+                            if List.length val.domains > 1 then
+                                "all" :: val.domains
+                            else val.domains
+                    in
+                    Flags val.urlPrefix dom
 
                 Err _ ->
                     Flags "" [ "default" ]
