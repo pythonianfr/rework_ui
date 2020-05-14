@@ -121,14 +121,14 @@ update msg model =
         OnRefresh ->
             ( model, refreshCmd model model.activetab )
 
-        GotBool table taskid action (Ok True) ->
+        GotBool _ _ _ (Ok True) ->
             nocmd <| model
 
-        GotBool table taskid action (Ok False) ->
-            nocmd <| setActionModel table taskid (Uncompleted action)
+        GotBool table id action (Ok False) ->
+            nocmd <| setActionModel table id (Uncompleted action)
 
-        GotBool table taskid action (Err _) ->
-            nocmd <| setActionModel table taskid (Uncompleted action)
+        GotBool table id action (Err _) ->
+            nocmd <| setActionModel table id (Uncompleted action)
 
         RelaunchMsg taskid (Ok 0) ->
             nocmd <| setActionModel TasksTab taskid (Uncompleted Relaunch)
