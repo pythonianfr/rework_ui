@@ -1,15 +1,18 @@
 module Main exposing (..)
 
 import AssocList as AL
+import AssocList.Extra as ALE
 import Browser
 import Cmd.Extra exposing (withNoCmd)
 import Http
 import Json.Decode as JD
+import List.Extra as LE
 import List.Selection as LS
 import Maybe.Extra as Maybe
 import ReworkUI.Decoder
     exposing
-        ( decodeFlags
+        ( eventsdecoder
+        , decodeFlags
         , decodeWorkers
         , decodeService
         , taskDecoder
@@ -34,6 +37,7 @@ import ReworkUI.Type
         , WorkerDict
         )
 import ReworkUI.View exposing (view)
+import AssocSet as AS
 import Time
 import Url.Builder as UB
 
@@ -52,6 +56,28 @@ unwraperror resp =
         Http.NetworkError -> "there was a network error"
         Http.BadStatus val -> "we got a bad status answer: " ++ String.fromInt val
         Http.BadBody body -> "we got a bad body: " ++ body
+
+
+handleevents model events =
+    -- remove deleted events in place
+    -- and query the tasks using min/max concerned ids
+    let
+        (alldeleted, allothers) = List.partition (\e -> e.action == "D") events
+        deletedids = List.map .taskid alldeleted
+        others = List.map .taskid allothers
+        newmodel = { model
+                       | tasks = ALE.removeMany (AS.fromList deletedids) model.tasks
+                       , lasteventid = Maybe.withDefault
+                                       model.lasteventid
+                                       <| LE.foldl1 max <| List.map .id events
+                   }
+    in
+    ( newmodel
+    , if List.length others > 0
+      then Http.get
+          <| tasksquery model UpdatedTasks (LE.foldl1 min others) (LE.foldl1 max others)
+      else Cmd.none
+    )
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -112,10 +138,44 @@ update msg model =
 
         GotTasks (Ok rawtasks) ->
             case  JD.decodeString (JD.list taskDecoder) rawtasks of
-                Ok tasks -> nocmd <| { model | tasks = AL.fromList (groupbyid tasks) }
+                Ok tasks -> nocmd { model | tasks = AL.fromList (groupbyid tasks) }
                 Err err -> nocmd <| adderror model <| JD.errorToString err
 
         GotTasks (Err err) ->
+            nocmd <| adderror model <| unwraperror err
+
+        UpdatedTasks (Ok rawtasks) ->
+            case  JD.decodeString (JD.list taskDecoder) rawtasks of
+                Ok tasks -> nocmd { model
+                                      | tasks = AL.union
+                                        (AL.fromList (groupbyid tasks))
+                                        model.tasks
+                                  }
+                Err err -> nocmd <| adderror model <| JD.errorToString err
+
+        UpdatedTasks (Err err) ->
+            nocmd <| adderror model <| unwraperror err
+
+        GotEvents (Ok rawevents) ->
+            case JD.decodeString eventsdecoder rawevents of
+                Err err -> nocmd <| adderror model <| JD.errorToString err
+                Ok maybeevents ->
+                    case maybeevents of
+                        Nothing ->
+                            nocmd model
+                        Just events ->
+                            -- try to update the model with minimal effort
+                            handleevents model events
+
+        GotEvents (Err err) ->
+            nocmd <| adderror model <| unwraperror err
+
+        GotLastEvent (Ok rawid) ->
+            case JD.decodeString JD.int rawid of
+                Ok evid -> nocmd { model | lasteventid = evid }
+                Err err -> nocmd <| adderror model <| JD.errorToString err
+
+        GotLastEvent (Err err) ->
             nocmd <| adderror model <| unwraperror err
 
         OnRefresh ->
@@ -202,35 +262,66 @@ cmdPut url expect =
         }
 
 
+eventsquery model =
+    { url = UB.crossOrigin model.urlPrefix
+          [ "events", String.fromInt model.lasteventid ]
+          []
+    , expect = Http.expectString GotEvents
+    }
+
+
+lasteventquery model =
+    { url = UB.crossOrigin model.urlPrefix
+          [ "lasteventid" ]
+          []
+    , expect = Http.expectString GotLastEvent
+    }
+
+
+tasksquery model msg min max =
+    let
+        args = [] ++
+               (case min of
+                   Nothing -> []
+                   Just num -> [ UB.int "min" num ])
+               ++
+               (case max of
+                   Nothing -> []
+                   Just num -> [ UB.int "max" num ])
+    in
+    { url = UB.crossOrigin model.urlPrefix
+          [ "tasks-table-json" ]
+          args
+    , expect = Http.expectString msg
+    }
+
+
 refreshCmd : Model -> TabsLayout -> Cmd Msg
 refreshCmd model tab =
     let
-        ( urlPart, expect ) =
-            case tab of
-                TasksTab ->
-                    ( "tasks-table-json"
-                    , Http.expectString GotTasks
-                    )
-
-                ServicesTab ->
-                    ( "services-table-json"
-                    , Http.expectJson GotServices (JD.list decodeService)
-                    )
-
-                MonitorsTab ->
-                    ( "workers-table-json"
-                    , Http.expectJson GotWorkers decodeWorkers
-                    )
-
-        query =
+        domain =
             LS.selected model.domain
                 |> Maybe.map (UB.string "domain")
                 |> Maybe.toList
+
+        query =
+            case tab of
+                TasksTab ->
+                    eventsquery model
+                ServicesTab ->
+                    { url = UB.crossOrigin model.urlPrefix
+                            [ "services-table-json" ] [ ]
+                    , expect = Http.expectJson GotServices (JD.list decodeService)
+                    }
+
+                MonitorsTab ->
+                    { url = UB.crossOrigin model.urlPrefix
+                            [ "workers-table-json" ] [ ]
+                    , expect = Http.expectJson GotWorkers decodeWorkers
+                    }
+
     in
-    Http.get
-        { url = UB.crossOrigin model.urlPrefix [ urlPart ] query
-        , expect = expect
-        }
+    Http.get query
 
 
 init : JD.Value -> ( Model, Cmd Msg )
@@ -265,9 +356,12 @@ init jsonFlags =
                 urlPrefix
                 TasksTab
                 domain
+                0
     in
     ( model
-    , refreshCmd model TasksTab
+    , Cmd.batch [ Http.get <| tasksquery model GotTasks Nothing Nothing
+                , Http.get <| lasteventquery model
+                ]
     )
 
 

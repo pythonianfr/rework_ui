@@ -22,8 +22,10 @@
             "elm-community/list-extra": "8.2.3",
             "elm-community/maybe-extra": "5.2.0",
             "elm-explorations/test": "1.2.2",
+            "erlandsona/assoc-set": "1.1.0",
             "pzp1997/assoc-list": "1.0.0",
             "rtfeldman/elm-sorter-experiment": "2.1.1",
+            "skyqrose/assoc-list-extra": "1.0.0",
             "toastal/either": "3.5.1"
         },
         "indirect": {

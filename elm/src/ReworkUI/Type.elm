@@ -23,6 +23,13 @@ type alias Task =
     }
 
 
+type alias Event =
+    { id : Int
+    , action : String
+    , taskid : Int
+    }
+
+
 type alias Service =
     { id : Int
     , host : String
@@ -96,6 +103,7 @@ type alias Model =
     , urlPrefix : String
     , activetab : TabsLayout
     , domain : LS.Selection String
+    , lasteventid : Int
     }
 
 
@@ -137,6 +145,9 @@ type Msg
     | OnAbort Int
     | OnRelaunch Int
     | GotTasks (Result Http.Error String)
+    | UpdatedTasks (Result Http.Error String)
+    | GotEvents (Result Http.Error String)
+    | GotLastEvent (Result Http.Error String)
     | ActionResponse TabsLayout Int Action (Result Http.Error Bool)
     | RelaunchMsg Int (Result Http.Error Int)
     | OnRefresh

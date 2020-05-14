@@ -3,6 +3,7 @@ module ReworkUI.Decoder exposing
     , decodeWorkers
     , decodeService
     , decodeWorker
+    , eventsdecoder
     , matchTaskResult
     , statusDecoder
     , taskDecoder
@@ -15,6 +16,7 @@ import ReworkUI.Type
     exposing
         ( Action(..)
         , Monitor
+        , Event
         , Flags
         , JsonMonitors
         , JsonStatus
@@ -25,6 +27,17 @@ import ReworkUI.Type
         , TaskResult(..)
         , Worker
         )
+
+
+eventdecoder =
+    D.map3 Event
+        (D.field "id" D.int)
+        (D.field "action" D.string)
+        (D.field "taskid" D.int)
+
+
+eventsdecoder =
+    D.nullable (D.list eventdecoder)
 
 
 statusDecoder : D.Decoder Status

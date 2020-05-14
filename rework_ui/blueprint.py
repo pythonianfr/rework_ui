@@ -365,12 +365,18 @@ def reworkui(engine,
             traceback=traceback
         )
 
+    class tasksargs(uiargsdict):
+        types = {
+            'min': int,
+            'max': int
+        }
+
     @bp.route('/tasks-table-json')
     def tasks_table():
         if not has_permission('read'):
             abort(403, 'Nothing to see there.')
 
-        args = uiargsdict(request.args)
+        args = tasksargs(request.args)
         with engine.begin() as cn:
             q = select(
                 't.id', 'op.name', 't.status', 'op.domain',
@@ -383,6 +389,10 @@ def reworkui(engine,
             ).order('t.id')
             if args.domain != 'all':
                 q.where('op.domain = %(domain)s', domain=args.domain)
+            if args.min:
+                q.where('t.id >= %(minid)s', minid=args.min)
+            if args.max:
+                q.where('t.id <= %(maxid)s', maxid=args.max)
 
             return json.dumps([
                 {'tid': row.id,
@@ -438,19 +448,37 @@ def reworkui(engine,
                 })
         return json.dumps(list_json)
 
+    @bp.route('/lasteventid')
+    def lasteventid():
+        eid = select('max(id)').table(
+            'rework.events'
+        ).do(engine).scalar() or 0
+        return json.dumps(eid)
+
     @bp.route('/events/<int:fromid>')
     def events(fromid):
-        events = select(
+        knownid = select('id').table(
+            'rework.events'
+        ).where(
+            id=fromid
+        ).do(engine).scalar()
+        if not knownid:
+            # this signals to the client
+            # he is needs a full refresh
+            return 'null'
+
+        q = select(
             'id', 'action', 'taskid'
         ).table('rework.events'
-        ).where('id >= %(eid)s', eid=fromid
-        ).order('id'
-        ).do(engine).fetchall()
+        ).where('id > %(eid)s', eid=fromid
+        ).order('id')
+
+        events = [
+            dict(item)
+            for item in q.do(engine).fetchall()
+        ]
         return json.dumps(
-            [
-                (eid, action, taskid)
-                for eid, action, taskid in events
-            ]
+            events
         )
 
     @bp.route('/')
