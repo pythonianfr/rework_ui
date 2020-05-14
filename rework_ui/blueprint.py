@@ -469,7 +469,8 @@ def reworkui(engine,
                 't.metadata', 't.worker', 'w.deathinfo'
             ).table('rework.task as t'
             ).join('rework.operation as op on (op.id = t.operation)'
-            ).join('rework.worker as w on (w.id = t.worker)')
+            ).join('rework.worker as w on (w.id = t.worker)'
+            ).order('t.id')
             if args.domain != 'all':
                 q.where('w.domain = %(domain)s', domain=args.domain)
 
