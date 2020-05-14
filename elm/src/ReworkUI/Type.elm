@@ -11,11 +11,12 @@ type alias Task =
     , result : TaskResult
     , name : String
     , domain : String
+    -- the 3 following are timestamps
     , queued : String
-    , started : String
-    , finished : String
+    , started : Maybe String
+    , finished : Maybe String
     , metadata : Maybe M.Metadata
-    , worker : Int
+    , worker : Maybe Int
     , status : Status
     , deathInfo : Maybe String
     , actions : List Action

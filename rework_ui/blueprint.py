@@ -87,6 +87,12 @@ def initialdomain(domains):
     return 'all' if len(domains) > 1 else domains and domains[0] or 'default'
 
 
+def maybetz(dt):
+    if dt is None:
+        return None
+    return dt.astimezone(TZ).strftime('%Y-%m-%d %H:%M:%S%z')
+
+
 def reworkui(engine,
              serviceactions=None,
              alttemplate=None,
@@ -469,10 +475,10 @@ def reworkui(engine,
                 't.metadata', 't.worker', 'w.deathinfo'
             ).table('rework.task as t'
             ).join('rework.operation as op on (op.id = t.operation)'
-            ).join('rework.worker as w on (w.id = t.worker)'
+            ).join('rework.worker as w on (w.id = t.worker)', jtype='left outer'
             ).order('t.id')
             if args.domain != 'all':
-                q.where('w.domain = %(domain)s', domain=args.domain)
+                q.where('op.domain = %(domain)s', domain=args.domain)
 
             return json.dumps([
                 {'tid': row.id,
@@ -481,9 +487,9 @@ def reworkui(engine,
                  'abort': row.abort,
                  'domain': row.domain,
                  'operation': row.operation,
-                 'queued': row.queued.astimezone(TZ).strftime('%Y-%m-%d %H:%M:%S%z'),
-                 'started': row.queued.astimezone(TZ).strftime('%Y-%m-%d %H:%M:%S%z'),
-                 'finished': row.finished.astimezone(TZ).strftime('%Y-%m-%d %H:%M:%S%z'),
+                 'queued': maybetz(row.queued),
+                 'started': maybetz(row.started),
+                 'finished': maybetz(row.finished),
                  'metadata': row.metadata,
                  'worker': row.worker,
                  'deathinfo': row.deathinfo,
