@@ -238,11 +238,11 @@ init jsonFlags =
     let
         { urlPrefix, domains } =
             case JD.decodeValue decodeFlags jsonFlags of
-                Ok a ->
-                    a
+                Ok val ->
+                    Flags val.urlPrefix <| "all" :: val.domains
 
                 Err _ ->
-                    Flags "" []
+                    Flags "" [ "default" ]
 
         domain =
             Maybe.unwrap
