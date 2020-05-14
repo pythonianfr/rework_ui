@@ -592,29 +592,8 @@ def reworkui(engine,
         if not len(domains):
             return 'No operation registered: nothing to see here'
 
-        h = HTML()
-        firstdomain = initialdomain(domains)
-        with h.select(id='domain-filter', name='domain-filter',
-                      title='domain',
-                      onchange='setdomain(this)')as s:
-            if len(domains) > 1:
-                s.option('all', value='all', selected='selected')
-                for domain in domains:
-                    s.option(domain, value=domain)
-            else:
-                s.option(domains[0], value=domains[0], selected='selected')
-
-        if alttemplate:
-            return render_template_string(alttemplate,
-                                          domain_filter=str(h),
-                                          initialdomain=firstdomain,
-                                          domains=json.dumps(domains),
-                                          homeurl=homeurl())
-
         return render_template('rui_home.html',
-                               domain_filter=str(h),
                                homeurl=homeurl(),
-                               domains=json.dumps(domains),
-                               initialdomain=firstdomain)
+                               domains=json.dumps(domains))
 
     return bp
