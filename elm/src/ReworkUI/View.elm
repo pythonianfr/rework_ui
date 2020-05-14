@@ -178,7 +178,16 @@ view model =
                 table =
                     body columnsName
                         (List.map taskRenderRow (AL.values model.tasks))
+
+                viewerror error =
+                    H.div [] [ H.text error ]
+
+                errors =
+                    List.map viewerror model.errors
             in
+            if List.length model.errors > 0 then
+                H.div [] errors
+            else
             H.div [] [ select, title, head, table ]
 
         ServicesTab ->
