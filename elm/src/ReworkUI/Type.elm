@@ -136,7 +136,7 @@ type Msg
     | OnAbort Int
     | OnRelaunch Int
     | GotTasks (Result Http.Error String)
-    | GotBool TabsLayout Int Action (Result Http.Error Bool)
+    | ActionResponse TabsLayout Int Action (Result Http.Error Bool)
     | RelaunchMsg Int (Result Http.Error Int)
     | OnRefresh
     | Tab TabsLayout

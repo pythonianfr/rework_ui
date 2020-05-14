@@ -81,7 +81,7 @@ update msg model =
                         model.urlPrefix
                         [ "delete-task", String.fromInt taskid ]
                         []
-                , expect = Http.expectJson (GotBool TasksTab taskid Delete) JD.bool
+                , expect = Http.expectJson (ActionResponse TasksTab taskid Delete) JD.bool
                 }
             )
 
@@ -92,7 +92,7 @@ update msg model =
                         model.urlPrefix
                         [ "abort-task", String.fromInt taskid ]
                         []
-                , expect = Http.expectJson (GotBool TasksTab taskid Abort) JD.bool
+                , expect = Http.expectJson (ActionResponse TasksTab taskid Abort) JD.bool
                 }
             )
 
@@ -121,13 +121,13 @@ update msg model =
         OnRefresh ->
             ( model, refreshCmd model model.activetab )
 
-        GotBool _ _ _ (Ok True) ->
+        ActionResponse _ _ _ (Ok True) ->
             nocmd <| model
 
-        GotBool table id action (Ok False) ->
+        ActionResponse table id action (Ok False) ->
             nocmd <| setActionModel table id (Uncompleted action)
 
-        GotBool table id action (Err _) ->
+        ActionResponse table id action (Err _) ->
             nocmd <| setActionModel table id (Uncompleted action)
 
         RelaunchMsg taskid (Ok 0) ->
@@ -166,7 +166,7 @@ update msg model =
                         model.urlPrefix
                         [ "kill-worker", String.fromInt wid ]
                         []
-                , expect = Http.expectJson (GotBool MonitorsTab wid Kill) JD.bool
+                , expect = Http.expectJson (ActionResponse MonitorsTab wid Kill) JD.bool
                 }
             )
 
@@ -177,7 +177,7 @@ update msg model =
                         model.urlPrefix
                         [ "shutdown-worker", String.fromInt wid ]
                         []
-                , expect = Http.expectJson (GotBool MonitorsTab wid Shutdown) JD.bool
+                , expect = Http.expectJson (ActionResponse MonitorsTab wid Shutdown) JD.bool
                 }
             )
 
