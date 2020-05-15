@@ -65,12 +65,7 @@ body namesColumns htmlTable =
         [ H.div [ HA.id "tasks", HA.class "tab-pane active", role "tabpanel" ]
             [ H.br [] []
             , H.table
-                [ HA.class """table
-                               table-sm
-                               table-bordered
-                               table-striped
-                               table-hover"""
-                ]
+                [ HA.class "table table-sm table-bordered table-striped table-hover" ]
                 [ H.thead [ HA.class "thead-inverse" ]
                     [ H.tr []
                         (List.map th namesColumns)
