@@ -261,102 +261,6 @@ def reworkui(engine,
             'domain': initialdomain(alldomains(engine))
         }
 
-    @bp.route('/workers-table')
-    def list_workers():
-        if not has_permission('read'):
-            abort(403, 'Nothing to see there.')
-
-        # workers
-        q = select(
-            'id', 'host', 'domain', 'pid', 'mem', 'cpu',
-            'shutdown', 'kill', 'debugport', 'started'
-        ).table('rework.worker'
-        ).where('running = true'
-        ).order('id')
-
-        domain = uiargsdict(request.args).domain
-        if domain != 'all':
-            q.where(domain=domain)
-
-        workers = q.do(engine).fetchall()
-
-        # monitors
-        q = select(
-            'id', 'domain', 'lastseen', 'options'
-        ).table('rework.monitor')
-        if domain != 'all':
-            q.where(domain=domain)
-
-        monitors = {
-            row.domain: row
-            for row in q.do(engine).fetchall()
-        }
-        now = utcnow().astimezone(TZ)
-
-        h = HTML()
-        h.br()
-        with h.table(klass='table table-sm table-bordered table-striped table-hover') as t:
-            with t.thead(klass='thead-inverse') as th:
-                with th.tr() as r:
-                    r.th('#')
-                    r.th('domain')
-                    r.th('seen last')
-                    r.th('options')
-            for domain, row in sorted(monitors.items()):
-                with t.tr() as r:
-                    r.td(str(row.id))
-                    r.td(row.domain)
-
-                    delta = (now - row.lastseen).total_seconds()
-                    color = 'DarkGreen'
-                    if delta > 60:
-                        color = 'DarkRed'
-                    elif delta > 10:
-                        color = 'DarkMagenta'
-
-                    r.td(row.lastseen.astimezone(TZ).strftime('%Y-%m-%d %H:%M:%S%z'),
-                         style='color: {}'.format(color))
-                    r.td(', '.join('{}={}'.format(k, v) for k, v in sorted(row.options.items())))
-
-        with h.table(klass='table table-sm table-bordered table-striped table-hover') as t:
-            with t.thead(klass='thead-inverse') as th:
-                with th.tr() as r:
-                    r.th('#')
-                    r.th('pid@host')
-                    r.th('domain')
-                    r.th('memory (Mb)')
-                    r.th('cpu')
-                    r.th('debug port')
-                    r.th('started')
-                    r.th('action')
-            for wid, host, domain, pid, mem, cpu, shutdown, kill, debugport, started in workers:
-                with t.tr() as r:
-                    r.th(str(wid), scope='row')
-                    r.td('{}@{}'.format(pid, host))
-                    r.td(domain)
-                    r.td(str(mem))
-                    r.td(str(cpu / 100.))
-                    r.td(debugport and str(debugport) or '')
-                    if started:
-                        started = started.astimezone(TZ).strftime('%Y-%m-%d %H:%M:%S%z')
-                    r.td(started or '')
-                    with r.td() as col:
-                        with col.button() as b:
-                            if shutdown:
-                                b('shutdown asked', klass='btn gltyphicon glyphicon-ban-circle')
-                            else:
-                                b('shutdown', type='button', klass='btn btn-warning btn-sm',
-                                  onclick='shutdown_worker({})'.format(wid))
-                        col.span(' ')
-                        with col.button() as b:
-                            if kill:
-                                b('kill asked', klass='btn glyphicon glyphicon-ban-circle')
-                            else:
-                                b('kill', type='button', klass='btn btn-danger btn-sm',
-                                  onclick='kill_worker({})'.format(wid))
-
-        return str(h)
-
     @bp.route('/workers-table-json')
     def list_workers_json():
         if not has_permission('read'):
@@ -461,7 +365,7 @@ def reworkui(engine,
             traceback=traceback
         )
 
-    @bp.route('/tasks-table')
+    @bp.route('/tasks-table-json')
     def tasks_table():
         if not has_permission('read'):
             abort(403, 'Nothing to see there.')
@@ -508,47 +412,6 @@ def reworkui(engine,
             tid=taskid,
             logsliceuri=url_for('reworkui.job_logslice', jobid=taskid)
         )
-
-    @bp.route('/services-table')
-    def list_services():
-        if not has_permission('read'):
-            abort(403, 'Nothing to see there.')
-
-        args = uiargsdict(request.args)
-        q = select(
-            'id', 'host', 'name', 'path', 'domain'
-        ).table('rework.operation'
-        ).order('domain, name')
-        if args.domain != 'all':
-            q.where(domain=args.domain)
-
-        ops = q.do(engine)
-        h = HTML()
-        h.br()
-        with h.table(klass='table table-sm table-bordered table-striped table-hover') as t:
-            with t.thead(klass='thead-inverse') as th:
-                with th.tr() as r:
-                    r.th('#')
-                    r.th('host')
-                    r.th('name')
-                    r.th('path')
-                    r.th('domain')
-                    if serviceactions:
-                        r.th('action')
-            for opid, host, name, path, domain in ops.fetchall():
-                with t.tr() as r:
-                    r.td(str(opid), scope='row')
-                    r.td(host)
-                    r.td(name)
-                    r.td(path)
-                    r.td(domain)
-                    if not serviceactions:
-                        continue
-                    with r.td() as t:
-                        action = serviceactions.get(name, serviceactions.get('default'))
-                        action(t, host, name, domain)
-
-        return str(h)
 
     @bp.route('/services-table-json')
     def list_services_json():

@@ -208,7 +208,7 @@ refreshCmd model tab =
         ( urlPart, expect ) =
             case tab of
                 TasksTab ->
-                    ( "tasks-table"
+                    ( "tasks-table-json"
                     , Http.expectString GotTasks
                     )
 
