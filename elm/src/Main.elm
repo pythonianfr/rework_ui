@@ -23,7 +23,6 @@ import ReworkUI.Type
         , Monitor
         , MonitorDict
         , Flags
-        , IntDict
         , Model
         , Msg(..)
         , Service

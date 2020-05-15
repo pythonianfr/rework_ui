@@ -74,24 +74,20 @@ type alias JsonMonitors =
     }
 
 
-type alias IntDict a =
-    AL.Dict Int a
-
-
 type alias WorkerDict =
-    IntDict Worker
+    AL.Dict Int Worker
 
 
 type alias MonitorDict =
-    IntDict Monitor
+    AL.Dict Int Monitor
 
 
 type alias TaskDict =
-    IntDict Task
+    AL.Dict Int Task
 
 
 type alias ServiceDict =
-    IntDict Service
+    AL.Dict Int Service
 
 
 type alias Model =
