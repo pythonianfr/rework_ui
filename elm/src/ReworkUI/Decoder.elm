@@ -97,7 +97,7 @@ matchActionResult status =
             [ Abort ]
 
         Aborting ->
-            [ Wait ]
+            [ Pending Abort ]
 
         Done ->
             [ Relaunch, Delete ]

@@ -129,7 +129,6 @@ type Status
 
 type Action
     = Abort
-    | Wait
     | Delete
     | Relaunch
     | Pending Action

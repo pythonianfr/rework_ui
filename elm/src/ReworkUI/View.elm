@@ -434,12 +434,6 @@ renderAction id action =
                 "abort"
                 OnAbort
 
-        Wait ->
-            buttonAction
-                "btn glyphicon glyphicon-ban-circle"
-                "wait"
-                (always NoOperation)
-
         Delete ->
             buttonAction
                 "btn btn-warning btn-sm"
