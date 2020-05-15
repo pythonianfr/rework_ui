@@ -182,7 +182,7 @@ update msg model =
             ( model, refreshCmd model model.activetab )
 
         ActionResponse _ _ _ (Ok True) ->
-            nocmd <| model
+            nocmd model
 
         ActionResponse table id action (Ok False) ->
             nocmd <| setActionModel table id (Uncompleted action)
@@ -205,7 +205,7 @@ update msg model =
             )
 
         GotServices (Ok services) ->
-            nocmd <| { model | services = AL.fromList (groupbyid services) }
+            nocmd { model | services = AL.fromList (groupbyid services) }
 
         GotServices (Err err) ->
             nocmd <| adderror model <| unwraperror err
@@ -242,7 +242,7 @@ update msg model =
             )
 
         SetDomain domain ->
-            nocmd <| { model | domain = LS.select domain model.domain }
+            nocmd { model | domain = LS.select domain model.domain }
 
 
 groupbyid items =
