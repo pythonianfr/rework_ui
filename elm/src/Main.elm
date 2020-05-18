@@ -124,9 +124,6 @@ update msg model =
                 (Http.expectJson (RelaunchMsg taskid) JD.int)
             )
 
-        NoOperation ->
-            nocmd model
-
         GotTasks (Ok rawtasks) ->
             case  JD.decodeString (JD.list taskDecoder) rawtasks of
                 Ok tasks -> nocmd { model | tasks = AL.fromList (groupbyid tasks) }

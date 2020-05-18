@@ -134,7 +134,6 @@ type Action
 
 type Msg
     = OnDelete Int
-    | NoOperation
     | OnAbort Int
     | OnRelaunch Int
     | GotTasks (Result Http.Error String)
