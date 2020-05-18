@@ -4,6 +4,7 @@ module ReworkUI.Decoder exposing
     , decodeService
     , decodeWorker
     , eventsdecoder
+    , matchActionResult
     , matchTaskResult
     , statusDecoder
     , taskDecoder

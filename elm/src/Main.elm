@@ -15,6 +15,7 @@ import ReworkUI.Decoder
         , decodeFlags
         , decodeWorkers
         , decodeService
+        , matchActionResult
         , taskDecoder
         )
 import ReworkUI.Type
@@ -183,7 +184,18 @@ update msg model =
             nocmd <| setActionModel TasksTab taskid (Uncompleted Relaunch)
 
         RelaunchMsg taskid (Ok _) ->
-            nocmd <| setActionModel TasksTab taskid (Completed Relaunch)
+            let
+                maybetask = AL.get taskid model.tasks
+                newmodel =
+                    case maybetask of
+                        Nothing -> model
+                        Just task ->
+                            let
+                                newtask id =
+                                    Just { task | actions = matchActionResult task.status }
+                            in { model | tasks = AL.update task.id newtask model.tasks }
+            in
+            nocmd <| newmodel
 
         RelaunchMsg taskid (Err _) ->
             nocmd <| setActionModel TasksTab taskid (Uncompleted Relaunch)
