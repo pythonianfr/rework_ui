@@ -20,20 +20,10 @@ import ReworkUI.Decoder
 import ReworkUI.Type
     exposing
         ( Action(..)
-        , Monitor
-        , MonitorDict
         , Flags
         , Model
         , Msg(..)
-        , Service
-        , ServiceDict
-        , Status(..)
         , TabsLayout(..)
-        , Task
-        , TaskDict
-        , TaskResult(..)
-        , Worker
-        , WorkerDict
         )
 import ReworkUI.View exposing (view)
 import AssocSet as AS
