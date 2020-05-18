@@ -73,11 +73,12 @@ handleevents model events =
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     let
-        lockactions : TabsLayout -> Int -> Action -> Model
-        lockactions table id action =
+        disableactions table id =
             let
                 updateactions actionable =
-                    { actionable | actions = [ action ] }
+                    { actionable |
+                          actions = List.map (\action -> Disabled action) actionable.actions
+                    }
             in
             case table of
                 TasksTab ->
@@ -91,7 +92,7 @@ update msg model =
     in
     case msg of
         OnDelete taskid ->
-            ( lockactions TasksTab taskid (Pending Delete)
+            ( disableactions TasksTab taskid
             , Http.get
                 { url = UB.crossOrigin
                         model.urlPrefix
@@ -102,7 +103,7 @@ update msg model =
             )
 
         OnAbort taskid ->
-            ( lockactions TasksTab taskid (Pending Abort)
+            ( disableactions TasksTab taskid
             , Http.get
                 { url = UB.crossOrigin
                         model.urlPrefix
@@ -113,7 +114,7 @@ update msg model =
             )
 
         OnRelaunch taskid ->
-            ( lockactions TasksTab taskid (Pending Relaunch)
+            ( disableactions TasksTab taskid
             , cmdPut
                 (UB.crossOrigin
                     model.urlPrefix
@@ -175,13 +176,13 @@ update msg model =
             nocmd model
 
         ActionResponse table id action (Ok False) ->
-            nocmd <| lockactions table id (Uncompleted action)
+            nocmd <| disableactions table id
 
         ActionResponse table id action (Err _) ->
-            nocmd <| lockactions table id (Uncompleted action)
+            nocmd <| disableactions table id
 
         RelaunchMsg taskid (Ok 0) ->
-            nocmd <| lockactions TasksTab taskid (Uncompleted Relaunch)
+            nocmd <| disableactions TasksTab taskid
 
         RelaunchMsg taskid (Ok _) ->
             let
@@ -198,7 +199,7 @@ update msg model =
             nocmd <| newmodel
 
         RelaunchMsg taskid (Err _) ->
-            nocmd <| lockactions TasksTab taskid (Uncompleted Relaunch)
+            nocmd <| disableactions TasksTab taskid
 
         Tab tab ->
             ( { model | activetab = tab }
@@ -221,7 +222,7 @@ update msg model =
             nocmd <| adderror model <| unwraperror err
 
         OnKill wid ->
-            ( lockactions MonitorsTab wid (Pending Kill)
+            ( disableactions MonitorsTab wid
             , Http.get
                 { url = UB.crossOrigin
                         model.urlPrefix
@@ -232,7 +233,7 @@ update msg model =
             )
 
         OnShutdown wid ->
-            ( lockactions MonitorsTab wid (Pending Shutdown)
+            ( disableactions MonitorsTab wid
             , Http.get
                 { url = UB.crossOrigin
                         model.urlPrefix

@@ -127,11 +127,9 @@ type Action
     = Abort
     | Delete
     | Relaunch
-    | Pending Action
-    | Completed Action
-    | Uncompleted Action
     | Kill
     | Shutdown
+    | Disabled Action
 
 
 type Msg

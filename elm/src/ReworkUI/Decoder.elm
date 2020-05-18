@@ -98,7 +98,7 @@ matchActionResult status =
             [ Abort ]
 
         Aborting ->
-            [ Pending Abort ]
+            [ Disabled Abort ]
 
         Done ->
             [ Relaunch, Delete ]
@@ -247,7 +247,7 @@ workerActionsDecoder =
         checkPending : ( Bool, Action ) -> Action
         checkPending ( asked, action ) =
             if asked then
-                Pending action
+                Disabled action
 
             else
                 action

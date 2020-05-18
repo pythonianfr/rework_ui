@@ -398,31 +398,22 @@ workerRenderRow worker =
 renderAction : Int -> Action -> H.Html Msg
 renderAction id action =
     let
-        ( disabled, prefix, newAction ) =
+        disabled =
             case action of
-                Pending act ->
-                    ( True, "Pending ", act )
+                Disabled act -> True
+                _ -> False
 
-                Completed act ->
-                    ( True, "Done ", act )
-
-                Uncompleted act ->
-                    ( True, "Failed ", act )
-
-                _ ->
-                    ( False, "", action )
-
-        buttonAction : String -> String -> (Int -> Msg) -> H.Html Msg
         buttonAction class title msg =
-            H.button
-                [ HA.class class
-                , HA.type_ "button"
-                , HE.onClick (msg id)
-                , HA.disabled disabled
-                ]
-                [ H.text (prefix ++ title) ]
+            if not disabled then
+                H.button
+                    [ HA.class class
+                    , HA.type_ "button"
+                    , HE.onClick (msg id)
+                    ]
+                    [ H.text (title) ]
+            else H.div [] []
     in
-    case newAction of
+    case action of
         Abort ->
             buttonAction
                 "btn btn-danger btn-sm"
