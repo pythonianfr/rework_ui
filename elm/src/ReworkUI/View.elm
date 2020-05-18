@@ -23,29 +23,7 @@ import ReworkUI.Type
         , Worker
         )
 
-
-role : String -> H.Attribute msg
-role =
-    HA.attribute "role"
-
-
-aria_controls : String -> H.Attribute msg
-aria_controls =
-    HA.attribute "aria-controls"
-
-
-data_toggle : String -> H.Attribute msg
-data_toggle =
-    HA.attribute "data-toggle"
-
-
-aria_expanded : String -> H.Attribute msg
-aria_expanded =
-    HA.attribute "aria-expanded"
-
-
 unknownuser = "<unknown>"
-
 
 user2String : Maybe M.Metadata -> String
 user2String metadata =
@@ -62,35 +40,36 @@ user2String metadata =
 body : List String -> List (H.Html Msg) -> H.Html Msg
 body namesColumns htmlTable =
     H.div [ HA.class "tab-content" ]
-        [ H.div [ HA.id "tasks", HA.class "tab-pane active", role "tabpanel" ]
-            [ H.br [] []
-            , H.table
-                [ HA.class "table table-sm table-bordered table-striped table-hover" ]
-                [ H.thead [ HA.class "thead-inverse" ]
-                    [ H.tr []
-                        (List.map th namesColumns)
-                    ]
-                , H.tbody [] htmlTable
-                ]
-            ]
+        [ H.div
+              [ HA.id "tasks"
+              , HA.class "tab-pane active"
+              , HA.attribute "role" "tabpanel"
+              ]
+              [ H.br [] []
+              , H.table
+                  [ HA.class "table table-sm table-bordered table-striped table-hover" ]
+                  [ H.thead [ ]
+                        [ H.tr [] (List.map th namesColumns) ]
+                  , H.tbody [] htmlTable
+                  ]
+              ]
         ]
 
 
-header : LS.Selection TabsLayout -> H.Html Msg
-header listTableLayout =
-    H.ul [ HA.id "tabs", HA.class "nav nav-tabs", role "tablist" ]
-        (LS.toList
-            (LS.mapSelected
-                { selected = buildLi True [ HA.class "active" ]
-                , rest = buildLi False []
-                }
-                listTableLayout
-            )
-        )
+header tabs =
+    H.ul [ HA.id "tabs"
+         , HA.class "nav nav-tabs"
+         , HA.attribute "role" "tablist"
+         ]
+        <| LS.toList
+        <| LS.mapSelected
+            { selected = maketab True
+            , rest = maketab False
+            }
+            tabs
 
 
-strTableLayout : TabsLayout -> String
-strTableLayout tableLayout =
+strtab tableLayout =
     case tableLayout of
         TasksTab ->
             "Tasks"
@@ -102,21 +81,22 @@ strTableLayout tableLayout =
             "Services"
 
 
-buildLi : Bool -> List (H.Attribute Msg) -> TabsLayout -> H.Html Msg
-buildLi bool listAttributes tableLayout =
+maketab active tab =
     let
-        newTableName =
-            strTableLayout tableLayout
+        tabname = strtab tab
     in
-    H.li (listAttributes ++ [ role "presentation" ])
+    H.li
+        [HA.class "nav-item" ]
         [ H.a
-            [ HE.onClick (Tab tableLayout)
-            , aria_controls (String.toLower newTableName)
-            , data_toggle "tab"
-            , role "tabe"
-            , aria_expanded (String.toLower (BE.toString bool))
-            ]
-            [ H.text newTableName ]
+              ([ HE.onClick (Tab tab)
+               , HA.class "nav-link"
+               , HA.attribute "data-toggle" "tab"
+               , HA.attribute "role" "tab"
+               , HA.attribute "aria-selected" (if active then "true" else "false")
+               , HA.id tabname
+               ] ++ if active then [ HA.class "active" ] else []
+              )
+            [ H.text tabname ]
         ]
 
 
@@ -146,7 +126,7 @@ view model =
                     )
                 ]
 
-        listTables =
+        tabs =
             [ TasksTab, ServicesTab, MonitorsTab ]
                 |> LS.fromList
                 |> LS.select model.activetab
@@ -155,7 +135,7 @@ view model =
         TasksTab ->
             let
                 head =
-                    header listTables
+                    header tabs
 
                 columnsName =
                     [ "#"
@@ -188,7 +168,7 @@ view model =
         ServicesTab ->
             let
                 head =
-                    header listTables
+                    header tabs
 
                 columnsName =
                     [ "#"
@@ -207,7 +187,7 @@ view model =
         MonitorsTab ->
             let
                 head =
-                    header listTables
+                    header tabs
 
                 columnsNameDomain =
                     [ "#"
