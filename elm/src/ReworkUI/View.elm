@@ -385,12 +385,16 @@ renderAction id action =
 
         buttonAction class title msg =
             if not disabled then
-                H.button
-                    [ HA.class class
-                    , HA.type_ "button"
-                    , HE.onClick (msg id)
+                H.span
+                    []
+                    [ H.button
+                          [ HA.class class
+                          , HA.type_ "button"
+                          , HE.onClick (msg id)
+                          ]
+                          [ H.text (title) ]
+                    , H.text " "
                     ]
-                    [ H.text (title) ]
             else H.div [] []
     in
     case action of
