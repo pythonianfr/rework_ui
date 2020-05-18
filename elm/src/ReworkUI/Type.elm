@@ -2,7 +2,9 @@ module ReworkUI.Type exposing (..)
 
 import AssocList as AL
 import Http
+import Keyboard.Event exposing (KeyboardEvent)
 import List.Selection as LS
+import Log exposing (Level)
 import ReworkUI.Metadata as M
 
 
@@ -91,8 +93,7 @@ type alias ServiceDict =
 
 
 type alias Model =
-    { errors : List String
-    , tasks : TaskDict
+    { tasks : TaskDict
     , workers : WorkerDict
     , monitors : MonitorDict
     , services : ServiceDict
@@ -100,6 +101,10 @@ type alias Model =
     , activetab : TabsLayout
     , domain : LS.Selection String
     , lasteventid : Int
+    -- logging
+    , loglevel : Level
+    , log : List ( Level, String )
+    , logview : Bool
     }
 
 
@@ -149,6 +154,8 @@ type Msg
     | OnKill Int
     | OnShutdown Int
     | SetDomain String
+    -- events
+    | HandleKeyboardEvent KeyboardEvent
 
 
 type TabsLayout

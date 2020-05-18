@@ -3,11 +3,20 @@ module Main exposing (..)
 import AssocList as AL
 import AssocList.Extra as ALE
 import Browser
+import Browser.Events exposing (onKeyDown)
 import Cmd.Extra exposing (withNoCmd)
 import Http
 import Json.Decode as JD
+import Keyboard.Event exposing
+    (KeyboardEvent
+    , decodeKeyboardEvent
+    )
 import List.Extra as LE
 import List.Selection as LS
+import Log exposing
+    ( Level(..)
+    , log
+    )
 import Maybe.Extra as Maybe
 import ReworkUI.Decoder
     exposing
@@ -33,9 +42,6 @@ import Url.Builder as UB
 
 
 nocmd = withNoCmd
-
-adderror model error =
-    { model | errors = List.append model.errors [error] }
 
 
 unwraperror : Http.Error -> String
@@ -127,10 +133,10 @@ update msg model =
         GotTasks (Ok rawtasks) ->
             case  JD.decodeString (JD.list taskDecoder) rawtasks of
                 Ok tasks -> nocmd { model | tasks = AL.fromList (groupbyid tasks) }
-                Err err -> nocmd <| adderror model <| JD.errorToString err
+                Err err -> nocmd <| log model ERROR <| JD.errorToString err
 
         GotTasks (Err err) ->
-            nocmd <| adderror model <| unwraperror err
+            nocmd <| log model ERROR <| unwraperror err
 
         UpdatedTasks (Ok rawtasks) ->
             case  JD.decodeString (JD.list taskDecoder) rawtasks of
@@ -139,32 +145,34 @@ update msg model =
                                         (AL.fromList (groupbyid tasks))
                                         model.tasks
                                   }
-                Err err -> nocmd <| adderror model <| JD.errorToString err
+                Err err -> nocmd <| log model ERROR <| JD.errorToString err
 
         UpdatedTasks (Err err) ->
-            nocmd <| adderror model <| unwraperror err
+            nocmd <| log model ERROR <| unwraperror err
 
         GotEvents (Ok rawevents) ->
+            let mod = log model INFO ("EVENTS: " ++ rawevents) in
             case JD.decodeString eventsdecoder rawevents of
-                Err err -> nocmd <| adderror model <| JD.errorToString err
+                Err err -> nocmd <| log model ERROR <| JD.errorToString err
                 Ok maybeevents ->
                     case maybeevents of
                         Nothing ->
-                            nocmd model
+                            nocmd mod
                         Just events ->
                             -- try to update the model with minimal effort
-                            handleevents model events
+                            handleevents mod events
 
         GotEvents (Err err) ->
-            nocmd <| adderror model <| unwraperror err
+            nocmd <| log model ERROR <| unwraperror err
 
         GotLastEvent (Ok rawid) ->
+            let mod = log model INFO ("LASTEVENTID: " ++ rawid) in
             case JD.decodeString JD.int rawid of
-                Ok evid -> nocmd { model | lasteventid = evid }
-                Err err -> nocmd <| adderror model <| JD.errorToString err
+                Ok evid -> nocmd { mod | lasteventid = evid }
+                Err err -> nocmd <| log mod ERROR <| JD.errorToString err
 
         GotLastEvent (Err err) ->
-            nocmd <| adderror model <| unwraperror err
+            nocmd <| log model ERROR <| unwraperror err
 
         OnRefresh ->
             ( model, refreshCmd model model.activetab )
@@ -207,7 +215,7 @@ update msg model =
             nocmd { model | services = AL.fromList (groupbyid services) }
 
         GotServices (Err err) ->
-            nocmd <| adderror model <| unwraperror err
+            nocmd <| log model ERROR <| unwraperror err
 
         GotWorkers (Ok monitor) ->
             nocmd { model
@@ -216,7 +224,7 @@ update msg model =
                   }
 
         GotWorkers (Err err) ->
-            nocmd <| adderror model <| unwraperror err
+            nocmd <| log model ERROR <| unwraperror err
 
         OnKill wid ->
             ( disableactions MonitorsTab wid
@@ -242,6 +250,12 @@ update msg model =
 
         SetDomain domain ->
             nocmd { model | domain = LS.select domain model.domain }
+
+        HandleKeyboardEvent event ->
+            if event.ctrlKey && event.key == Just "e" then
+                nocmd { model | logview = not model.logview }
+            else
+                nocmd model
 
 
 groupbyid items =
@@ -347,7 +361,6 @@ init jsonFlags =
                 (List.head domains)
 
         model = Model
-                []
                 AL.empty
                 AL.empty
                 AL.empty
@@ -356,6 +369,9 @@ init jsonFlags =
                 TasksTab
                 domain
                 0
+                DEBUG
+                []
+                False
     in
     ( model
     , Cmd.batch [ Http.get <| tasksquery model GotTasks Nothing Nothing
@@ -378,7 +394,9 @@ sub model =
                 MonitorsTab ->
                     2000
     in
-    Time.every refreshTime (always OnRefresh)
+    Sub.batch [ Time.every refreshTime (always OnRefresh)
+              , onKeyDown (JD.map HandleKeyboardEvent decodeKeyboardEvent)
+              ]
 
 
 main : Program JD.Value Model Msg

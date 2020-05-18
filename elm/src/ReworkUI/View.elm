@@ -8,6 +8,10 @@ import Html.Attributes as HA
 import Html.Events as HE
 import Json.Decode as JD
 import List.Selection as LS
+import Log exposing
+    ( Level(..)
+    , viewlog
+    )
 import ReworkUI.Metadata as M
 import ReworkUI.Type
     exposing
@@ -131,6 +135,7 @@ view model =
                 |> LS.fromList
                 |> LS.select model.activetab
     in
+    if model.logview then viewlog model DEBUG else
     case model.activetab of
         TasksTab ->
             let
@@ -154,15 +159,7 @@ view model =
                     body columnsName
                         (List.map taskRenderRow (AL.values model.tasks))
 
-                viewerror error =
-                    H.div [] [ H.text error ]
-
-                errors =
-                    List.map viewerror model.errors
             in
-            if List.length model.errors > 0 then
-                H.div [] errors
-            else
             H.div [] [ select, title, head, table ]
 
         ServicesTab ->
