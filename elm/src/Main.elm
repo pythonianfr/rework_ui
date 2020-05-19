@@ -165,7 +165,13 @@ update msg model =
                 Ok maybeevents ->
                     case maybeevents of
                         Nothing ->
-                            nocmd mod
+                            -- resync with the server state
+                            ( mod
+                            , Cmd.batch
+                                [ Http.get <| tasksquery model GotTasks Nothing Nothing
+                                , Http.get <| lasteventquery model
+                                ]
+                            )
                         Just events ->
                             -- try to update the model with minimal effort
                             handleevents mod events
