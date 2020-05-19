@@ -16,7 +16,7 @@ type Level
 
 type alias Logger =
     { loglevel : Level
-    , log : List ( Level, String )
+    , log : List ( Level, Int, String )
     }
 
 
@@ -31,9 +31,9 @@ matchlevel given asked =
 
 strlevel level =
     case level of
-        DEBUG -> "D"
-        INFO -> "I"
-        ERROR -> "E"
+        DEBUG -> "DEBUG"
+        INFO ->  "INFO"
+        ERROR -> "ERROR"
 
 
 levelcolor level =
@@ -48,20 +48,34 @@ levelcolor level =
 -- which forbids us to use a type annotation :)
 -- Logger ~ { log : List ( Level, String ), loglevel : Level }
 log logger level msg =
-    if matchlevel level logger.loglevel
-    then { logger | log = ( level, msg ) :: logger.log }
-    else logger
+    if not <| matchlevel level logger.loglevel then logger else
+        case logger.log of
+            [] -> { logger | log = ( level, 1, msg ) :: logger.log }
+            (hlevel, hcount, hmsg) :: tail ->
+                if ( hlevel, hmsg ) /= ( level, msg ) then
+                    { logger | log = ( level, 1, msg ) :: logger.log }
+                else
+                    { logger | log = ( level, hcount + 1, msg ) :: tail }
 
 
 viewlog logger level =
     let
-        filterline ( lev, msg ) =
+        filterline ( lev, count, msg ) =
             matchlevel lev level
 
-        viewline ( lev, msg ) =
+        repeats val =
+            if val > 1 then String.fromInt val else ""
+
+        viewline ( lev, count, msg ) =
             H.div
-                [ HA.attribute "style" ("color:" ++ (levelcolor lev) ++ ";") ]
-                [ H.span [] [ H.text (strlevel lev ++ ":" ++ msg) ] ]
+                []
+                [ H.span
+                      [ HA.attribute "style" ("color:" ++ (levelcolor lev) ++ ";")]
+                      [ H.text (strlevel lev ++ ": " ++ msg ++ " ") ]
+                , H.span
+                    [ HA.class "badge badge-info" ]
+                    [ H.text (repeats count) ]
+                ]
 
         lines = List.filter filterline logger.log
 

@@ -103,7 +103,7 @@ type alias Model =
     , lasteventid : Int
     -- logging
     , loglevel : Level
-    , log : List ( Level, String )
+    , log : List ( Level, Int, String )
     , logview : Bool
     }
 
