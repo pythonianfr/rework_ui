@@ -79,7 +79,7 @@ handleevents model events =
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     let
-        disableactions table id =
+        disableactions mod table id =
             let
                 updateactions actionable =
                     { actionable |
@@ -88,17 +88,19 @@ update msg model =
             in
             case table of
                 TasksTab ->
-                    { model | tasks = AL.update id (Maybe.map updateactions) model.tasks }
+                    { mod | tasks = AL.update id (Maybe.map updateactions) mod.tasks }
 
                 MonitorsTab ->
-                    { model | workers = AL.update id (Maybe.map updateactions) model.workers }
+                    { mod | workers = AL.update id (Maybe.map updateactions) mod.workers }
 
                 ServicesTab ->
-                    model
+                    mod
     in
     case msg of
         OnDelete taskid ->
-            ( disableactions TasksTab taskid
+            ( disableactions
+                  (log model INFO <| "DELETE " ++ String.fromInt taskid)
+                  TasksTab taskid
             , Http.get
                 { url = UB.crossOrigin
                         model.urlPrefix
@@ -109,7 +111,7 @@ update msg model =
             )
 
         OnAbort taskid ->
-            ( disableactions TasksTab taskid
+            ( disableactions model TasksTab taskid
             , Http.get
                 { url = UB.crossOrigin
                         model.urlPrefix
@@ -120,7 +122,7 @@ update msg model =
             )
 
         OnRelaunch taskid ->
-            ( disableactions TasksTab taskid
+            ( disableactions model TasksTab taskid
             , cmdPut
                 (UB.crossOrigin
                     model.urlPrefix
@@ -131,6 +133,7 @@ update msg model =
             )
 
         GotTasks (Ok rawtasks) ->
+            let mod = log model INFO ("TASKS (all):" ++ rawtasks) in
             case  JD.decodeString (JD.list taskDecoder) rawtasks of
                 Ok tasks -> nocmd { model | tasks = AL.fromList (groupbyid tasks) }
                 Err err -> nocmd <| log model ERROR <| JD.errorToString err
@@ -139,7 +142,8 @@ update msg model =
             nocmd <| log model ERROR <| unwraperror err
 
         UpdatedTasks (Ok rawtasks) ->
-            case  JD.decodeString (JD.list taskDecoder) rawtasks of
+            let mod = log model INFO ("TASKS (subset):" ++ rawtasks) in
+            case JD.decodeString (JD.list taskDecoder) rawtasks of
                 Ok tasks -> nocmd { model
                                       | tasks = AL.union
                                         (AL.fromList (groupbyid tasks))
@@ -151,7 +155,11 @@ update msg model =
             nocmd <| log model ERROR <| unwraperror err
 
         GotEvents (Ok rawevents) ->
-            let mod = log model INFO ("EVENTS: " ++ rawevents) in
+            let mod =
+                    if rawevents /= "[]"
+                    then log model INFO ("EVENTS: " ++ rawevents)
+                    else model
+            in
             case JD.decodeString eventsdecoder rawevents of
                 Err err -> nocmd <| log model ERROR <| JD.errorToString err
                 Ok maybeevents ->
@@ -181,13 +189,13 @@ update msg model =
             nocmd model
 
         ActionResponse table id action (Ok False) ->
-            nocmd <| disableactions table id
+            nocmd <| disableactions model table id
 
         ActionResponse table id action (Err _) ->
-            nocmd <| disableactions table id
+            nocmd <| disableactions model table id
 
         RelaunchMsg taskid (Ok 0) ->
-            nocmd <| disableactions TasksTab taskid
+            nocmd <| disableactions model TasksTab taskid
 
         RelaunchMsg taskid (Ok _) ->
             let
@@ -204,7 +212,7 @@ update msg model =
             nocmd <| newmodel
 
         RelaunchMsg taskid (Err _) ->
-            nocmd <| disableactions TasksTab taskid
+            nocmd <| disableactions model TasksTab taskid
 
         Tab tab ->
             ( { model | activetab = tab }
@@ -227,7 +235,7 @@ update msg model =
             nocmd <| log model ERROR <| unwraperror err
 
         OnKill wid ->
-            ( disableactions MonitorsTab wid
+            ( disableactions model MonitorsTab wid
             , Http.get
                 { url = UB.crossOrigin
                         model.urlPrefix
@@ -238,7 +246,7 @@ update msg model =
             )
 
         OnShutdown wid ->
-            ( disableactions MonitorsTab wid
+            ( disableactions model MonitorsTab wid
             , Http.get
                 { url = UB.crossOrigin
                         model.urlPrefix
