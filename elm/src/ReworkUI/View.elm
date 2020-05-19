@@ -27,7 +27,9 @@ import ReworkUI.Type
         , Worker
         )
 
+
 unknownuser = "<unknown>"
+
 
 user2String : Maybe M.Metadata -> String
 user2String metadata =
@@ -186,7 +188,7 @@ view model =
                 head =
                     header tabs
 
-                columnsNameDomain =
+                columnsNameMonitor =
                     [ "#"
                     , "domain"
                     , "seen last"
@@ -205,7 +207,7 @@ view model =
                     ]
 
                 tableDomain =
-                    body columnsNameDomain
+                    body columnsNameMonitor
                         (List.map
                             monitorRenderRow
                             (AL.values model.monitors)
