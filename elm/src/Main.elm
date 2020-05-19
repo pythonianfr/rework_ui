@@ -265,11 +265,16 @@ update msg model =
         SetDomain domain ->
             nocmd { model | domain = LS.select domain model.domain }
 
+        -- logging
+
         HandleKeyboardEvent event ->
             if event.ctrlKey && event.key == Just "e" then
                 nocmd { model | logview = not model.logview }
             else
                 nocmd model
+
+        SelectDisplayLevel level ->
+            nocmd { model | logdisplaylevel = level }
 
 
 groupbyid items =
@@ -383,6 +388,7 @@ init jsonFlags =
                 TasksTab
                 domain
                 0
+                DEBUG
                 DEBUG
                 []
                 False

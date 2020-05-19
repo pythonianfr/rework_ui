@@ -103,6 +103,7 @@ type alias Model =
     , lasteventid : Int
     -- logging
     , loglevel : Level
+    , logdisplaylevel : Level
     , log : List ( Level, Int, String )
     , logview : Bool
     }
@@ -156,6 +157,7 @@ type Msg
     | SetDomain String
     -- events
     | HandleKeyboardEvent KeyboardEvent
+    | SelectDisplayLevel Level
 
 
 type TabsLayout

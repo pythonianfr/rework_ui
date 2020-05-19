@@ -135,7 +135,7 @@ view model =
                 |> LS.fromList
                 |> LS.select model.activetab
     in
-    if model.logview then viewlog model DEBUG else
+    if model.logview then viewlog model SelectDisplayLevel else
     case model.activetab of
         TasksTab ->
             let
