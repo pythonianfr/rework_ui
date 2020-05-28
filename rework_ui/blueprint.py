@@ -295,29 +295,39 @@ def reworkui(engine,
         domains_list = []
         for domain, row in sorted(monitors.items()):
             domains_list.append({
-                "id": row.id,
-                "domain": row.domain,
-                "delta": (now - row.lastseen).total_seconds(),
-                "lastSeen": row.lastseen.astimezone(TZ).strftime('%Y-%m-%d %H:%M:%S%z'),
-                "options": sorted(row.options.items())
+                'id': row.id,
+                'domain': row.domain,
+                'delta': (now - row.lastseen).total_seconds(),
+                'lastseen': row.lastseen.astimezone(TZ).strftime('%Y-%m-%d %H:%M:%S%z'),
+                'options': sorted(row.options.items())
             })
 
         workers_list =[]
         for wid, host, domain, pid, mem, cpu, shutdown, kill, debugport, started in workers:
             if started:
                 started = started.astimezone(TZ).strftime('%Y-%m-%d %H:%M:%S%z')
-            workers_list.append({
-              "wId": wid,
-              "host":host,
-              "pid": pid,
-              "domain": domain,
-              "mem": mem,
-              "cpu": cpu,
-              "debugPort": debugport,
-              "started": started,
-              "button": {"kill":kill,"shutdown":shutdown}
-            })
-        return json.dumps({"domains":domains_list,"workers":workers_list})
+            workers_list.append(
+                {
+                    'wid': wid,
+                    'host':host,
+                    'pid': pid,
+                    'domain': domain,
+                    'mem': mem,
+                    'cpu': cpu,
+                    'debugPort': debugport,
+                    'started': started,
+                    'button': {
+                        'kill': kill,
+                        'shutdown': shutdown
+                    }
+                }
+            )
+        return json.dumps(
+            {
+                'domains': domains_list,
+                'workers':workers_list
+            }
+        )
 
     @bp.route('/delete-task/<tid>')
     def delete_task(tid):

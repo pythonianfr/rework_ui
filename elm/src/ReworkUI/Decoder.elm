@@ -210,13 +210,13 @@ map9 func da db dc dd de df dg dh di =
 decodeWorker : D.Decoder Worker
 decodeWorker =
     map9 Worker
-        (D.field "wId" D.int)
+        (D.field "wid" D.int)
         (D.field "host" D.string)
         (D.field "pid" D.int)
         (D.field "domain" D.string)
         (D.field "mem" D.int)
         (D.field "cpu" D.float)
-        (D.field "debugPort" (D.nullable D.int))
+        (D.field "debugport" (D.nullable D.int))
         (D.field "started" D.string)
         (D.field "button" workerActionsDecoder)
 
