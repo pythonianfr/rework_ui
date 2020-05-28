@@ -251,7 +251,8 @@ taskRenderRow task =
                     H.td []
                         [ span
                         , H.span []
-                            [ H.a
+                            [ H.span [] [ H.text " " ]
+                            , H.a
                                 [ HA.title "show the error"
                                 , HA.target "_blank"
                                 , HA.href ("taskerror/" ++ String.fromInt task.id)
