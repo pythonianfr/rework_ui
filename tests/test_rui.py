@@ -74,10 +74,9 @@ def test_bad_request(engine, client):
     assert res.status == '400 BAD REQUEST'
     assert b'No operation was found' in res.body
 
-    # bad operation
+    # no input file
     res = client.put('/schedule-task/good_job?user={}'.format('Babar'))
-    assert res.status == '400 BAD REQUEST'
-    assert b'input file is mandatory' in res.body
+    assert res.status == '200 OK'
 
 
 def test_abort(engine, client):

@@ -116,13 +116,15 @@ def reworkui(engine,
         args.update(argsdict(request.args))
         fileargs = argsdict(request.files)
 
-        if 'input_file' not in fileargs:
-            abort(400, 'input file is mandatory')
+        if fileargs.input_file is None:
+            inputfile = None
+        else:
+            inputfile = fileargs.input_file.read()
 
         return _schedule_job(engine,
                              service,
                              args,
-                             fileargs.input_file.read())
+                             inputfile)
 
     @bp.route('/relaunch-task/<int:tid>', methods=['PUT'])
     def relaunch_task(tid):
