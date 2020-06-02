@@ -136,6 +136,8 @@ view model =
             [ TasksTab, ServicesTab, MonitorsTab ]
                 |> LS.fromList
                 |> LS.select model.activetab
+
+        topmargin = HA.style "margin" ".5em"
     in
     if model.logview then viewlog model SelectDisplayLevel else
     case model.activetab of
@@ -162,7 +164,7 @@ view model =
                         (List.map taskRenderRow (AL.values model.tasks))
 
             in
-            H.div [] [ select, title, head, table ]
+            H.div [ topmargin ] [ select, title, head, table ]
 
         ServicesTab ->
             let
@@ -181,7 +183,7 @@ view model =
                     body columnsName
                         (List.map serviceRenderRow (AL.values model.services))
             in
-            H.div [] [ select, title, head, table ]
+            H.div [ topmargin ] [ select, title, head, table ]
 
         MonitorsTab ->
             let
@@ -217,7 +219,7 @@ view model =
                     body columnsNameWorker
                         (List.map workerRenderRow (AL.values model.workers))
             in
-            H.div [] [ select, title, head, tableDomain, tableWorker ]
+            H.div [ topmargin ] [ select, title, head, tableDomain, tableWorker ]
 
 
 th : String -> H.Html msg
