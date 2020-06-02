@@ -291,6 +291,8 @@ taskRenderRow task =
 
                 Aborted ->
                     tdStatus "aborted" title
+
+        user = user2String task.metadata
     in
     H.tr []
         [ H.th [ HA.scope "row" ]
@@ -300,7 +302,12 @@ taskRenderRow task =
         , H.td [ HA.style "color" "grey" ] [ H.text task.queued ]
         , td <| Maybe.withDefault "" task.started
         , td <| Maybe.withDefault "" task.finished
-        , td <| user2String task.metadata
+        , H.td
+            [ if user == unknownuser
+              then HA.style "color" "grey"
+              else HA.style "color" "blue"
+            ]
+            [ H.text user ]
         , td <| case task.worker of
                     Nothing -> "#"
                     Just worker -> "#" ++ String.fromInt worker
