@@ -255,9 +255,10 @@ taskRenderRow task =
                             , H.a
                                 [ HA.title "show the error"
                                 , HA.target "_blank"
+                                , HA.style "color" "red"
                                 , HA.href ("taskerror/" ++ String.fromInt task.id)
                                 ]
-                                [ H.text "[traceback]" ]
+                                [ H.text " [traceback]" ]
                             ]
                         ]
 
