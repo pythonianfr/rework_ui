@@ -297,7 +297,7 @@ taskRenderRow task =
             [ H.text (String.fromInt task.id) ]
         , renderResult task.result
         , td task.domain
-        , td <| task.queued
+        , H.td [ HA.style "color" "grey" ] [ H.text task.queued ]
         , td <| Maybe.withDefault "" task.started
         , td <| Maybe.withDefault "" task.finished
         , td <| user2String task.metadata
