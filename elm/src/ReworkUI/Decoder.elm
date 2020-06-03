@@ -175,7 +175,7 @@ decodeMonitor =
         (D.field "id" D.int)
         (D.field "domain" D.string)
         (D.field "delta" D.float)
-        (D.field "lastSeen" D.string)
+        (D.field "lastseen" D.string)
         (D.field "options" (D.list decodeOption))
 
 
