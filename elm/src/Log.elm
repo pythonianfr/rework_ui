@@ -69,7 +69,10 @@ viewlog logger event =
             let
                 name = strlevel loglevel
             in
-            H.div [ colorize loglevel ]
+            H.div
+                [ colorize loglevel
+                , HA.style "margin-right" "1em"
+                ]
                 [ H.input [ HA.class "form-check-input"
                           , HA.type_ "radio"
                           , HA.name name
@@ -85,8 +88,11 @@ viewlog logger event =
 
         header =
             H.div [ HA.class "form-check form-check-inline" ]
-                <| [ H.span [ HA.class "font-weight-bold" ]
-                         [ H.text "Display Level : " ]
+                <| [ H.span
+                         [ HA.class "font-weight-bold"
+                         , HA.style "margin-right" "1em"
+                         ]
+                         [ H.text "Display level :" ]
                    ] ++ List.map input [DEBUG, INFO, ERROR]
 
         -- lines
