@@ -304,7 +304,7 @@ def reworkui(engine,
                 'options': sorted(row.options.items())
             })
 
-        workers_list =[]
+        workers_list = []
         for wid, host, domain, pid, mem, cpu, shutdown, kill, debugport, started in workers:
             if started:
                 started = started.astimezone(TZ).strftime('%Y-%m-%d %H:%M:%S%z')
@@ -316,7 +316,7 @@ def reworkui(engine,
                     'domain': domain,
                     'mem': mem,
                     'cpu': cpu,
-                    'debugPort': debugport,
+                    'debugport': debugport,
                     'started': started,
                     'button': {
                         'kill': kill,
@@ -327,7 +327,7 @@ def reworkui(engine,
         return json.dumps(
             {
                 'domains': domains_list,
-                'workers':workers_list
+                'workers': workers_list
             }
         )
 
