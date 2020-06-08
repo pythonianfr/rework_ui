@@ -4,6 +4,7 @@ all: ui_elm
 
 ui_elm:
 	cd elm && elm make src/Main.elm $(FLAGS) --output ../rework_ui/rui_static/rework_ui_elm.js
+	cd elm && elm make src/Logview.elm $(FlAGS) --output ../rework_ui/rui_static/logview.js
 
 elm-test:
 	cd elm && elm-test
@@ -15,3 +16,4 @@ cleanstuff:
 
 cleanbuild:
 	rm rework_ui/rui_static/rework_ui_elm.js -f
+	rm rework_ui/rui_static/logview.js -f

@@ -1,6 +1,7 @@
 module Log exposing
     ( Level(..)
     , log
+    , Logger
     , viewlog
     )
 
