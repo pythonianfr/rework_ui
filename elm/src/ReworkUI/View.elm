@@ -159,9 +159,18 @@ view model =
                     , "action"
                     ]
 
+                domain = Maybe.withDefault "all" <| LS.selected model.domain
+
+                filtertask task  =
+                    case domain of
+                        "all" -> True
+                        _ -> domain == task.domain
+
                 table =
                     body columnsName
-                        (List.map taskRenderRow (AL.values model.tasks))
+                        (List.map taskRenderRow
+                             <| List.filter filtertask (AL.values model.tasks)
+                        )
 
             in
             H.div [ topmargin ] [ select, title, head, table ]
