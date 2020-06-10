@@ -1,19 +1,29 @@
-{% extends "rui_base.html" %}
-
-{% block body %}
-
-
-<h1>Task #{{tid}}</h1>
-
-<div id="logs" style="color: green"></div>
-
-
-<script>
- document.onreadystatechange = function () {
-     if (document.readyState == 'complete') {
-         show_logs('{{logsliceuri}}')
-     }
- }
-</script>
-
-{% endblock %}
+<html>
+    <head>
+        <title>"Rework Task Log"</title>
+        <link
+            href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.0/css/bootstrap.min.css"
+            rel="stylesheet"
+            integrity="sha384-9aIt2nRpC12Uk9gS9baDl411NQApFmC26EwAOH8WgZl5MYYxFfc+NcPb1dKGj7Sk"
+            crossorigin="anonymous">
+        <script
+            src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.0/js/bootstrap.min.js"
+            integrity="sha384-OgVRvuATP1z7JjHLkuOU7Xw704+h835Lr+6QL9UvYjZE3Ipu6Tp75j7Bh/kR0JKI"
+            crossorigin="anonymous">
+        </script>
+    </head>
+    <body>
+        <h1>Task #{{taskid}}</h1>
+        <div id="logs"></div>
+        <script src="{{ url_for('reworkui.static', filename='logview.js') }}"></script>
+        <script>
+         var app = Elm.Logview.init({
+             node: document.getElementById("logs"),
+             flags: {
+                 baseurl: "{{homeurl}}",
+                 taskid: {{taskid}}
+             }
+         });
+        </script>
+    </body>
+</html>

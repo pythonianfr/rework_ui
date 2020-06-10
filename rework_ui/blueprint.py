@@ -29,12 +29,14 @@ from rework_ui.helper import argsdict
 
 TZ = tzlocal.get_localzone()
 
+
 def homeurl():
     homeurl = url_for('reworkui.home')
     baseurl = homeurl[:homeurl.rindex('/')]
     if len(baseurl):
-        return baseurl + '/'
+        return baseurl
     return baseurl
+
 
 def getjob(engine, jobid):
     try:
@@ -431,8 +433,8 @@ def reworkui(engine,
 
         return render_template(
             'tasklogs.html',
-            tid=taskid,
-            logsliceuri=url_for('reworkui.job_logslice', jobid=taskid)
+            taskid=taskid,
+            homeurl=homeurl()
         )
 
     @bp.route('/services-table-json')

@@ -1,15 +1,9 @@
-<!doctype html>
 <html>
-  <head>
-    <title>Rework Monitor</title>
+    <head>
+        <title>Rework Monitor</title>
+        <link rel="stylesheet" href="{{ url_for('reworkui.static', filename='style.css') }}">
+    </head>
 
-    <link rel="stylesheet" href="{{ url_for('reworkui.static', filename='style.css') }}">
-    <script src="{{ url_for('reworkui.static', filename='rework_ui_elm.js') }}"></script>
-    <script src="{{ url_for('reworkui.static', filename='util.js') }}"></script>
-
-  </head>
-
-  {% block body %}
-  {% endblock %}
-
+    {% block body %}
+    {% endblock %}
 </html>
