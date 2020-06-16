@@ -17,7 +17,8 @@
 <script>
      app = Elm.Main.init({
         node: document.getElementById("app"),
-        flags: {urlPrefix : "{{homeurl}}", domains : {{domains | safe }} }
+        flags: {baseurl : "{{homeurl}}",
+                domains : {{domains | safe }} }
      });
 </script>
 

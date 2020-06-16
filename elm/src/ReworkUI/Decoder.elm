@@ -262,5 +262,5 @@ workerActionsDecoder =
 decodeFlags : D.Decoder Flags
 decodeFlags =
     D.map2 Flags
-        (D.field "urlPrefix" D.string)
+        (D.field "baseurl" D.string)
         (D.field "domains" (D.list D.string))

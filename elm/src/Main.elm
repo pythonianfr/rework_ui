@@ -103,7 +103,7 @@ update msg model =
                   TasksTab taskid
             , Http.get
                 { url = UB.crossOrigin
-                        model.urlPrefix
+                        model.baseurl
                         [ "delete-task", String.fromInt taskid ]
                         []
                 , expect = Http.expectJson (ActionResponse TasksTab taskid Delete) JD.bool
@@ -114,7 +114,7 @@ update msg model =
             ( disableactions model TasksTab taskid
             , Http.get
                 { url = UB.crossOrigin
-                        model.urlPrefix
+                        model.baseurl
                         [ "abort-task", String.fromInt taskid ]
                         []
                 , expect = Http.expectJson (ActionResponse TasksTab taskid Abort) JD.bool
@@ -125,7 +125,7 @@ update msg model =
             ( disableactions model TasksTab taskid
             , cmdPut
                 (UB.crossOrigin
-                    model.urlPrefix
+                    model.baseurl
                     [ "relaunch-task", String.fromInt taskid ]
                     []
                 )
@@ -244,7 +244,7 @@ update msg model =
             ( disableactions model MonitorsTab wid
             , Http.get
                 { url = UB.crossOrigin
-                        model.urlPrefix
+                        model.baseurl
                         [ "kill-worker", String.fromInt wid ]
                         []
                 , expect = Http.expectJson (ActionResponse MonitorsTab wid Kill) JD.bool
@@ -255,7 +255,7 @@ update msg model =
             ( disableactions model MonitorsTab wid
             , Http.get
                 { url = UB.crossOrigin
-                        model.urlPrefix
+                        model.baseurl
                         [ "shutdown-worker", String.fromInt wid ]
                         []
                 , expect = Http.expectJson (ActionResponse MonitorsTab wid Shutdown) JD.bool
@@ -295,7 +295,7 @@ cmdPut url expect =
 
 
 eventsquery model =
-    { url = UB.crossOrigin model.urlPrefix
+    { url = UB.crossOrigin model.baseurl
           [ "events", String.fromInt model.lasteventid ]
           []
     , expect = Http.expectString GotEvents
@@ -303,7 +303,7 @@ eventsquery model =
 
 
 lasteventquery model =
-    { url = UB.crossOrigin model.urlPrefix
+    { url = UB.crossOrigin model.baseurl
           [ "lasteventid" ]
           []
     , expect = Http.expectString GotLastEvent
@@ -321,7 +321,7 @@ tasksquery model msg min max =
                    Nothing -> []
                    Just num -> [ UB.int "max" num ])
     in
-    { url = UB.crossOrigin model.urlPrefix
+    { url = UB.crossOrigin model.baseurl
           [ "tasks-table-json" ]
           args
     , expect = Http.expectString msg
@@ -341,13 +341,13 @@ refreshCmd model tab =
                 TasksTab ->
                     eventsquery model
                 ServicesTab ->
-                    { url = UB.crossOrigin model.urlPrefix
+                    { url = UB.crossOrigin model.baseurl
                             [ "services-table-json" ] [ ]
                     , expect = Http.expectJson GotServices (JD.list decodeService)
                     }
 
                 MonitorsTab ->
-                    { url = UB.crossOrigin model.urlPrefix
+                    { url = UB.crossOrigin model.baseurl
                             [ "workers-table-json" ] [ ]
                     , expect = Http.expectJson GotWorkers decodeWorkers
                     }
@@ -359,7 +359,7 @@ refreshCmd model tab =
 init : JD.Value -> ( Model, Cmd Msg )
 init jsonFlags =
     let
-        { urlPrefix, domains } =
+        { baseurl, domains } =
             case JD.decodeValue decodeFlags jsonFlags of
                 Ok val ->
                     let
@@ -368,7 +368,7 @@ init jsonFlags =
                                 "all" :: val.domains
                             else val.domains
                     in
-                    Flags val.urlPrefix dom
+                    Flags val.baseurl dom
 
                 Err _ ->
                     Flags "" [ "default" ]
@@ -380,11 +380,11 @@ init jsonFlags =
                 (List.head domains)
 
         model = Model
+                baseurl
                 AL.empty
                 AL.empty
                 AL.empty
                 AL.empty
-                urlPrefix
                 TasksTab
                 domain
                 0

@@ -93,11 +93,11 @@ type alias ServiceDict =
 
 
 type alias Model =
-    { tasks : TaskDict
+    { baseurl : String
+    , tasks : TaskDict
     , workers : WorkerDict
     , monitors : MonitorDict
     , services : ServiceDict
-    , urlPrefix : String
     , activetab : TabsLayout
     , domain : LS.Selection String
     , lasteventid : Int
@@ -110,7 +110,7 @@ type alias Model =
 
 
 type alias Flags =
-    { urlPrefix : String
+    { baseurl : String
     , domains : List String
     }
 
