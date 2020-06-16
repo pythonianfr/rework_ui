@@ -2,10 +2,16 @@ module Logview exposing (main)
 
 import Browser
 import Http
+import Html as H
+import Html.Attributes as HA
 import Json.Decode as D
 import List.Extra as LE
+import Main exposing (tasksquery)
 import Maybe.Extra as Maybe
 import Regex as RE
+import ReworkUI.Decoder exposing (taskDecoder)
+import ReworkUI.Type exposing (Task)
+import ReworkUI.View exposing (strstatus)
 import Time
 import Url.Builder as UB
 
@@ -20,7 +26,7 @@ import Log exposing
 
 type alias Model =
     { baseurl : String
-    , taskid : Int
+    , task : Maybe Task
     , lastlogid : Int
     , logger : Logger
     }
@@ -33,18 +39,23 @@ type alias Flags =
 
 
 type Msg
-    = GotLogs (Result Http.Error String)
+    = GotTask (Result Http.Error String)
+    | GotLogs (Result Http.Error String)
     | Refreshed
     | SelectDisplayLevel Level
 
 
 logsquery model =
-    Http.get
-        { url = UB.crossOrigin model.baseurl
-              [ "job_logslice", String.fromInt model.taskid ]
-              [ UB.int "from_log_id" model.lastlogid ]
-        , expect = Http.expectString GotLogs
-        }
+    case model.task of
+        Just task ->
+            Http.get
+                { url = UB.crossOrigin model.baseurl
+                      [ "job_logslice", String.fromInt task.id ]
+                      [ UB.int "from_log_id" model.lastlogid ]
+                , expect = Http.expectString GotLogs
+                }
+
+        Nothing -> Cmd.none
 
 
 nocmd model = ( model, Cmd.none )
@@ -89,6 +100,17 @@ rawlogstologentries rawlogs =
 
 update msg model =
     case msg of
+        GotTask (Ok rawtask) ->
+            case D.decodeString (D.list taskDecoder) rawtask of
+                Ok decoded ->
+                    ( { model | task = List.head decoded }
+                    , logsquery model
+                    )
+                Err err -> nocmd model
+
+        GotTask (Err err) ->
+            nocmd model
+
         GotLogs (Ok rawlogs) ->
             case D.decodeString logsdecoder rawlogs of
                 Ok parsedlogs ->
@@ -121,8 +143,25 @@ update msg model =
         SelectDisplayLevel level -> nocmd model
 
 
+view : Model -> H.Html Msg
 view model =
-    viewlog model.logger SelectDisplayLevel
+    let
+        taskid =
+            case model.task of
+                Just task -> String.fromInt task.id
+                Nothing -> "<unknown>"
+        taskstatus =
+            case model.task of
+                Just task -> strstatus task
+                Nothing -> "N/A"
+    in
+    H.div []
+        [ H.h1 []
+              [ H.span [] [ H.text ("Task #" ++ taskid ++ " ") ]
+              , H.span [ HA.class "badge badge-info" ] [ H.text taskstatus ]
+              ]
+        , viewlog model.logger SelectDisplayLevel
+        ]
 
 
 init : { baseurl : String, taskid : Int } -> ( Model, Cmd Msg )
@@ -131,12 +170,12 @@ init flags =
         model =
             Model
                 flags.baseurl
-                flags.taskid
+                Nothing
                 0
                 (Logger DEBUG DEBUG [])
     in
     ( model
-    , logsquery model
+    , Http.get <| tasksquery model GotTask (Just flags.taskid) (Just flags.taskid)
     )
 
 

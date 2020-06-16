@@ -1,4 +1,4 @@
-module ReworkUI.View exposing (view)
+module ReworkUI.View exposing (view, strstatus)
 
 import AssocList as AL
 import Bool.Extra as BE
@@ -85,6 +85,16 @@ strtab tableLayout =
 
         ServicesTab ->
             "Services"
+
+
+strstatus task =
+    case task.status of
+        Queued -> "queued"
+        Running -> "running"
+        Done -> "done"
+        Failed x -> "failed"
+        Aborting -> "aborting"
+        Aborted -> "aborted"
 
 
 maketab active tab =
@@ -274,34 +284,18 @@ taskRenderRow task =
                         ]
 
         tdStatus : String -> String -> H.Html msg
-        tdStatus class title =
-            H.td [ HA.class class, HA.title title ]
-                [ H.text class ]
+        tdStatus status info =
+            H.td [ HA.class status, HA.title info ]
+                [ H.text status ]
 
-        renderStatus : Status -> H.Html msg
-        renderStatus status =
+        renderStatus : H.Html msg
+        renderStatus =
             let
-                title =
+                info =
                     Maybe.withDefault "" task.deathInfo
+                status = strstatus task
             in
-            case status of
-                Queued ->
-                    tdStatus "queued" title
-
-                Running ->
-                    tdStatus "running" title
-
-                Done ->
-                    tdStatus "done" title
-
-                Failed x ->
-                    tdStatus "failed" x
-
-                Aborting ->
-                    tdStatus "aborting" title
-
-                Aborted ->
-                    tdStatus "aborted" title
+            tdStatus status info
 
         user = user2String task.metadata
     in
@@ -322,7 +316,7 @@ taskRenderRow task =
         , td <| case task.worker of
                     Nothing -> "#"
                     Just worker -> "#" ++ String.fromInt worker
-        , renderStatus task.status
+        , renderStatus
         , H.td [] (List.map (renderAction task.id) task.actions)
         ]
 
