@@ -55,11 +55,11 @@ logsdecoder =
         (D.index 1 D.string)
 
 
-rawlogstologentries : List (Int, String) -> List (Level, String)
+rawlogstologentries : List (Int, String) -> List (Int, Level, String)
 rawlogstologentries rawlogs =
     let
         re = Maybe.withDefault RE.never <| RE.fromString "(\\w+):(\\w+):(.*)"
-        transform (lineno, line) =
+        transform (lineid, line) =
             let
                 matches = RE.find re line
                 items = Maybe.values
@@ -70,15 +70,18 @@ rawlogstologentries rawlogs =
                         )
             in
             case items of
-                (source::level::rest) ->
-                    let logline = Maybe.withDefault "nope" <| List.head rest in
-                    case level of
-                        "DEBUG" -> ( DEBUG, logline )
-                        "INFO" -> ( INFO, logline )
-                        "ERROR" -> ( ERROR, logline )
-                        _ -> ( DEBUG, logline )
+                (source::strlevel::rest) ->
+                    let
+                        logline = Maybe.withDefault "nope" <| List.head rest
+                        level =
+                            case strlevel of
+                                "DEBUG" -> DEBUG
+                                "INFO" -> INFO
+                                "ERROR" -> ERROR
+                                _ -> DEBUG
+                    in (lineid, level, logline)
 
-                _ -> ( ERROR, "could not parse the log line" )
+                _ -> ( lineid, ERROR, "could not parse the log line" )
 
     in
     List.map transform rawlogs
@@ -90,20 +93,31 @@ update msg model =
             case D.decodeString logsdecoder rawlogs of
                 Ok parsedlogs ->
                     let
-                        logmany : List (Level, String) -> Logger -> Logger
-                        logmany parsedloglist logger =
+                        -- inject into the logger the new log entries
+                        -- while tracking the last log id
+                        logmany : List (Int, Level, String) -> Logger -> Int -> (Logger, Int)
+                        logmany parsedloglist logger curlineid =
                             case parsedloglist of
-                                [] -> logger
-                                (level, line) :: rest ->
-                                    logmany rest <| log logger level line
+                                [] -> ( logger, curlineid )
+                                (lineid, level, line) :: rest ->
+                                    logmany rest (log logger level line) lineid
+
+                        ( newlogger, lastid) =
+                            logmany (rawlogstologentries parsedlogs) model.logger -1
                     in
                     nocmd { model
-                              | logger = logmany (rawlogstologentries parsedlogs) model.logger
+                              | logger = newlogger
+                              , lastlogid = if lastid == -1 then model.lastlogid else lastid
                           }
                 Err err -> nocmd model
 
         GotLogs (Err error) -> nocmd model
-        Refreshed -> nocmd model
+
+        Refreshed ->
+            ( model
+            , logsquery model
+            )
+
         SelectDisplayLevel level -> nocmd model
 
 
