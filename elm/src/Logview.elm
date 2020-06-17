@@ -41,7 +41,7 @@ type alias Flags =
 type Msg
     = GotTask (Result Http.Error String)
     | GotLogs (Result Http.Error String)
-    | Refreshed
+    | Refresh
     | SelectDisplayLevel Level
 
 
@@ -139,7 +139,7 @@ update msg model =
 
         GotLogs (Err error) -> nocmd model
 
-        Refreshed ->
+        Refresh ->
             ( model
             , logsquery model
             )
@@ -203,7 +203,7 @@ refresh model =
                         Aborted -> False
 
     in
-    if doit then Time.every 1000 (always Refreshed) else Sub.none
+    if doit then Time.every 1000 (always Refresh) else Sub.none
 
 
 main : Program Flags Model Msg
