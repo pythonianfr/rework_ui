@@ -140,7 +140,12 @@ update msg model =
             , logsquery model
             )
 
-        SelectDisplayLevel level -> nocmd model
+        SelectDisplayLevel level ->
+            let
+                logger = model.logger
+                newlogger = { logger | logdisplaylevel = level }
+            in
+            nocmd { model | logger = newlogger }
 
 
 view : Model -> H.Html Msg
