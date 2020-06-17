@@ -140,9 +140,22 @@ update msg model =
         GotLogs (Err error) -> nocmd model
 
         Refresh ->
-            ( model
-            , logsquery model
-            )
+            let
+                logcmd =
+                    logsquery model
+                taskcmd task =
+                    Http.get <| tasksquery model GotTask (Just task.id) (Just task.id)
+                cmd =
+                    case model.task of
+                        Nothing -> logcmd
+                        Just task ->
+                            case task.status of
+                                Queued -> taskcmd task
+                                Running -> taskcmd task
+                                Aborting -> taskcmd task
+                                _ -> logcmd
+            in
+            ( model, cmd )
 
         SelectDisplayLevel level ->
             let
