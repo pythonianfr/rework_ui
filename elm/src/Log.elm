@@ -10,6 +10,7 @@ import Html as H
 import Html.Attributes as HA
 import Html.Events as HE
 import Html.Keyed as HK
+import Html.Lazy as HL
 
 
 type Level
@@ -117,7 +118,6 @@ viewlog logger event =
             if val > 1 then String.fromInt val else ""
 
         viewline entry =
-            ( String.fromInt entry.id ,  -- vdom key
               H.div
                   []
                   [ H.span
@@ -131,7 +131,12 @@ viewlog logger event =
                       [ HA.class "badge badge-info" ]
                       [ H.text (repeats entry.count) ]
                   ]
+
+        viewkeyedline entry =
+            ( String.fromInt entry.id ,  -- vdom key
+              HL.lazy viewline entry
             )
+
 
         lines = List.filter filterline logger.log
 
@@ -139,6 +144,6 @@ viewlog logger event =
     H.div
         []
         [ header
-        , HK.node "div" []  <| List.map viewline lines
+        , HK.node "div" []  <| List.map viewkeyedline lines
         ]
 
