@@ -10,7 +10,7 @@ import Main exposing (tasksquery)
 import Maybe.Extra as Maybe
 import Regex as RE
 import ReworkUI.Decoder exposing (taskDecoder)
-import ReworkUI.Type exposing (Task)
+import ReworkUI.Type exposing (Task, Status(..))
 import ReworkUI.View exposing (strstatus)
 import Time
 import Url.Builder as UB
@@ -103,9 +103,13 @@ update msg model =
         GotTask (Ok rawtask) ->
             case D.decodeString (D.list taskDecoder) rawtask of
                 Ok decoded ->
-                    ( { model | task = List.head decoded }
-                    , logsquery model
+                    let
+                        newmodel = { model | task = List.head decoded }
+                    in
+                    ( newmodel
+                    , logsquery newmodel
                     )
+
                 Err err -> nocmd model
 
         GotTask (Err err) ->
@@ -184,11 +188,29 @@ init flags =
     )
 
 
+refresh model =
+    let
+        doit =
+            case model.task of
+                Nothing -> False
+                Just task ->
+                    case task.status of
+                        Queued -> True
+                        Running -> True
+                        Done -> False
+                        Failed x -> False
+                        Aborting -> True
+                        Aborted -> False
+
+    in
+    if doit then Time.every 1000 (always Refreshed) else Sub.none
+
+
 main : Program Flags Model Msg
 main =
     Browser.element
         { init = init
         , view = view
         , update = update
-        , subscriptions = \model -> Time.every 1000 (always Refreshed)
+        , subscriptions = refresh
         }
