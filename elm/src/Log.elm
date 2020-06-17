@@ -119,5 +119,4 @@ viewlog logger event =
 
     in
     H.div
-        [ HA.style "margin" ".5em"]
-        ([ header ] ++ List.map viewline lines)
+        [] ([ header ] ++ List.map viewline lines)

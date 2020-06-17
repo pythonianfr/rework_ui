@@ -149,7 +149,9 @@ view model =
 
         topmargin = HA.style "margin" ".5em"
     in
-    if model.logview then viewlog model SelectDisplayLevel else
+    if model.logview then
+        H.div [ HA.style "margin" ".5em" ] [ viewlog model SelectDisplayLevel ]
+    else
     case model.activetab of
         TasksTab ->
             let

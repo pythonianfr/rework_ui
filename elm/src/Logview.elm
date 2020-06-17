@@ -155,10 +155,10 @@ view model =
                 Just task -> strstatus task
                 Nothing -> "N/A"
     in
-    H.div []
-        [ H.h1 []
+    H.div [ HA.style "margin" ".5em" ]
+        [ H.h2 [ ]
               [ H.span [] [ H.text ("Task #" ++ taskid ++ " ") ]
-              , H.span [ HA.class "badge badge-info" ] [ H.text taskstatus ]
+              , H.small [ HA.class "badge badge-info" ] [ H.text taskstatus ]
               ]
         , viewlog model.logger SelectDisplayLevel
         ]
