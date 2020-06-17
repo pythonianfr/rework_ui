@@ -9,6 +9,7 @@ module Log exposing
 import Html as H
 import Html.Attributes as HA
 import Html.Events as HE
+import Html.Keyed as HK
 
 
 type Level
@@ -21,6 +22,7 @@ type alias LogEntry =
     { level : Level
     , count : Int
     , message : String
+    , id : Int
     }
 
 
@@ -61,12 +63,13 @@ levelcolor level =
 log logger level msg =
     if not <| matchlevel level logger.loglevel then logger else
         case logger.log of
-            [] -> { logger | log = [ LogEntry level 1 msg ] }
-            (logentry) :: tail ->
+            [] -> { logger | log = [ LogEntry level 1 msg 0 ] }
+            logentry :: tail ->
+                let newid = logentry.id + 1 in
                 if ( logentry.level, logentry.message ) /= ( level, msg ) then
-                    { logger | log = LogEntry level 1 msg :: logger.log }
+                    { logger | log = LogEntry level 1 msg newid :: logger.log }
                 else
-                    { logger | log = LogEntry level (logentry.count + 1) msg :: tail }
+                    { logger | log = LogEntry level (logentry.count + 1) msg newid :: tail }
 
 
 -- viewlog : Logger -> (Level -> msg) -> H.Html msg
@@ -114,18 +117,28 @@ viewlog logger event =
             if val > 1 then String.fromInt val else ""
 
         viewline entry =
-            H.div
-                []
-                [ H.span
-                      [ colorize entry.level ]
-                      [ H.text (strlevel entry.level ++ ": " ++ entry.message ++ " ") ]
-                , H.span
-                    [ HA.class "badge badge-info" ]
-                    [ H.text (repeats entry.count) ]
-                ]
+            ( String.fromInt entry.id ,  -- vdom key
+              H.div
+                  []
+                  [ H.span
+                        [ HA.class "badge badge-dark" ]
+                        [ H.text <| String.fromInt entry.id ]
+                  , H.span [] [ H.text " " ]
+                  , H.span
+                        [ colorize entry.level ]
+                        [ H.text (strlevel entry.level ++ ": " ++ entry.message ++ " ") ]
+                  , H.span
+                      [ HA.class "badge badge-info" ]
+                      [ H.text (repeats entry.count) ]
+                  ]
+            )
 
         lines = List.filter filterline logger.log
 
     in
     H.div
-        [] ([ header ] ++ List.map viewline lines)
+        []
+        [ header
+        , HK.node "div" []  <| List.map viewline lines
+        ]
+
