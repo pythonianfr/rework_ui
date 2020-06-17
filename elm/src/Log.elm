@@ -1,6 +1,7 @@
 module Log exposing
     ( Level(..)
     , log
+    , LogEntry
     , Logger
     , viewlog
     )
@@ -16,10 +17,17 @@ type Level
     | ERROR
 
 
+type alias LogEntry =
+    { level : Level
+    , count : Int
+    , message : String
+    }
+
+
 type alias Logger =
     { loglevel : Level
     , logdisplaylevel : Level
-    , log : List ( Level, Int, String )
+    , log : List LogEntry
     }
 
 
@@ -49,18 +57,19 @@ levelcolor level =
 -- in practice your logger will be the Model (or embedded within)
 -- and it will work because of row polymorphism
 -- which forbids us to use a type annotation :)
--- Logger ~ { log : List ( Level, String ), loglevel : Level }
+-- Logger ~ { log : List LogEntry , loglevel : Level }
 log logger level msg =
     if not <| matchlevel level logger.loglevel then logger else
         case logger.log of
-            [] -> { logger | log = ( level, 1, msg ) :: logger.log }
-            (hlevel, hcount, hmsg) :: tail ->
-                if ( hlevel, hmsg ) /= ( level, msg ) then
-                    { logger | log = ( level, 1, msg ) :: logger.log }
+            [] -> { logger | log = [ LogEntry level 1 msg ] }
+            (logentry) :: tail ->
+                if ( logentry.level, logentry.message ) /= ( level, msg ) then
+                    { logger | log = LogEntry level 1 msg :: logger.log }
                 else
-                    { logger | log = ( level, hcount + 1, msg ) :: tail }
+                    { logger | log = LogEntry level (logentry.count + 1) msg :: tail }
 
 
+-- viewlog : Logger -> (Level -> msg) -> H.Html msg
 viewlog logger event =
     let
         colorize level =
@@ -98,21 +107,21 @@ viewlog logger event =
 
         -- lines
 
-        filterline ( level, count, msg ) =
-            matchlevel level logger.logdisplaylevel
+        filterline entry =
+            matchlevel entry.level logger.logdisplaylevel
 
         repeats val =
             if val > 1 then String.fromInt val else ""
 
-        viewline ( level, count, msg ) =
+        viewline entry =
             H.div
                 []
                 [ H.span
-                      [ colorize level ]
-                      [ H.text (strlevel level ++ ": " ++ msg ++ " ") ]
+                      [ colorize entry.level ]
+                      [ H.text (strlevel entry.level ++ ": " ++ entry.message ++ " ") ]
                 , H.span
                     [ HA.class "badge badge-info" ]
-                    [ H.text (repeats count) ]
+                    [ H.text (repeats entry.count) ]
                 ]
 
         lines = List.filter filterline logger.log

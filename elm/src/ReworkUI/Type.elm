@@ -4,7 +4,7 @@ import AssocList as AL
 import Http
 import Keyboard.Event exposing (KeyboardEvent)
 import List.Selection as LS
-import Log exposing (Level)
+import Log exposing (LogEntry, Level)
 import ReworkUI.Metadata as M
 
 
@@ -104,7 +104,7 @@ type alias Model =
     -- logging
     , loglevel : Level
     , logdisplaylevel : Level
-    , log : List ( Level, Int, String )
+    , log : List LogEntry
     , logview : Bool
     }
 
