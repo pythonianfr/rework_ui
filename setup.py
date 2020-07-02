@@ -6,7 +6,7 @@ doc = Path(__file__).parent / 'README.md'
 
 
 setup(name='rework_ui',
-      version='0.8.0',
+      version='0.9.0',
       author='Aurelien Campeas',
       author_email='aurelien.campeas@pythonian.fr',
       description='A web ui for the rework distributed task dispatcher',
@@ -38,6 +38,7 @@ setup(name='rework_ui',
           'License :: OSI Approved :: GNU Lesser General Public License v3 (LGPLv3)',
           'Operating System :: OS Independent',
           'Programming Language :: Python :: 3',
+          'Programming Language :: Elm :: 0.19.1',
           'Environment :: Web Environment',
           'Topic :: System :: Distributed Computing',
           'Topic :: Software Development :: User Interfaces'
