@@ -12,7 +12,7 @@ setup(name='rework_ui',
       description='A web ui for the rework distributed task dispatcher',
       long_description=doc.read_text(),
       long_description_content_type='text/markdown',
-      url='https://bitbucket.org/pythonian/rework_ui',
+      url='https://hg.sr.ht/~pythonian/rework_ui',
 
       packages=['rework_ui'],
       zip_safe=False,
