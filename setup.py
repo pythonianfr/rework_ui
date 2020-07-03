@@ -38,7 +38,7 @@ setup(name='rework_ui',
           'License :: OSI Approved :: GNU Lesser General Public License v3 (LGPLv3)',
           'Operating System :: OS Independent',
           'Programming Language :: Python :: 3',
-          'Programming Language :: Elm :: 0.19.1',
+          'Programming Language :: ML',
           'Environment :: Web Environment',
           'Topic :: System :: Distributed Computing',
           'Topic :: Software Development :: User Interfaces'
