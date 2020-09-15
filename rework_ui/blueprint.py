@@ -449,17 +449,16 @@ def reworkui(engine,
         if args.domain != 'all':
             q.where(domain=args.domain)
 
-        ops = q.do(engine)
-        list_json =[]
-        for opid, host, name, path, domain in ops.fetchall():
-            list_json.append({
-                "opid": opid,
-                "host": host,
-                "name": name,
-                "path": path,
-                "domain": domain
-                })
-        return json.dumps(list_json)
+        out = []
+        for opid, host, name, path, domain in q.do(engine).fetchall():
+            out.append({
+                'opid': opid,
+                'host': host,
+                'name': name,
+                'path': path,
+                'domain': domain
+            })
+        return json.dumps(out)
 
     @bp.route('/lasteventid')
     def lasteventid():
