@@ -41,6 +41,14 @@ type alias Service =
     }
 
 
+type alias Launcher =
+    { id : Int
+    , operation : String
+    , domain : String
+    , host : String
+    }
+
+
 type alias Monitor =
     { id : Int
     , domain : String
@@ -92,12 +100,17 @@ type alias ServiceDict =
     AL.Dict Int Service
 
 
+type alias LauncherDict =
+    AL.Dict Int Launcher
+
+
 type alias Model =
     { baseurl : String
     , tasks : TaskDict
     , workers : WorkerDict
     , monitors : MonitorDict
     , services : ServiceDict
+    , launchers : LauncherDict
     , activetab : TabsLayout
     , domain : LS.Selection String
     , lasteventid : Int
@@ -151,6 +164,7 @@ type Msg
     | OnRefresh
     | Tab TabsLayout
     | GotServices (Result Http.Error (List Service))
+    | GotLaunchers (Result Http.Error (List Launcher))
     | GotWorkers (Result Http.Error JsonMonitors)
     | OnKill Int
     | OnShutdown Int
@@ -164,3 +178,4 @@ type TabsLayout
     = TasksTab
     | MonitorsTab
     | ServicesTab
+    | LauncherTab

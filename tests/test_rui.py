@@ -5,7 +5,7 @@ import time
 
 from lxml import etree
 
-from rework import api
+from rework import api, input
 from rework.task import Task
 from rework.testutils import workers, scrub
 
@@ -51,6 +51,14 @@ def abortme(task):
         time.sleep(1)
 
 
+@api.task(inputs=(input.file('babar.xlsx'), input.string('name')))
+def with_inputs(task):
+    inputs = task.input
+    task.save_output(
+        f'{len(inputs["babar.xlsx"])}, {inputs["name"]}'
+    )
+
+
 # tests
 
 def test_no_job(client):
@@ -77,6 +85,21 @@ def test_bad_request(engine, client):
     # no input file
     res = client.put('/schedule-task/good_job?user={}'.format('Babar'))
     assert res.status == '200 OK'
+
+
+def test_with_input(engine, client):
+    res = client.get('/launchers-table-json')
+    assert res.json == [
+        [4,
+         'with_inputs',
+         'default',
+         '10.211.55.3',
+         [
+             {'name': 'babar.xlsx', 'required': False, 'type': 'file'},
+             {'choices': None, 'name': 'name', 'required': False, 'type': 'string'}
+         ]
+        ]
+    ]
 
 
 def test_abort(engine, client):

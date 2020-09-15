@@ -460,6 +460,33 @@ def reworkui(engine,
             })
         return json.dumps(out)
 
+    @bp.route('/launchers-table-json')
+    def launchers_table_json():
+        if not has_permission('read'):
+            abort(403, 'Nothing to see there.')
+
+        q = select(
+            'id', 'host', 'name', 'domain', 'inputs'
+        ).table('rework.operation'
+        ).where('inputs is not null'
+        ).order('domain, name')
+
+        out = []
+        for row in q.do(engine).fetchall():
+            out.append(
+                (row.id,
+                 row.name,
+                 row.domain,
+                 row.host,
+                 row.inputs
+                )
+            )
+        return make_response(
+            json.dumps(out),
+            200,
+            {'content-type': 'application/json'}
+        )
+
     @bp.route('/lasteventid')
     def lasteventid():
         eid = select('max(id)').table(

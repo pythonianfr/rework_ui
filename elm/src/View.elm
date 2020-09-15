@@ -16,6 +16,7 @@ import Metadata as M
 import Type
     exposing
         ( Action(..)
+        , Launcher
         , Monitor
         , Model
         , Msg(..)
@@ -86,6 +87,9 @@ strtab tableLayout =
         ServicesTab ->
             "Services"
 
+        LauncherTab ->
+            "Launch"
+
 
 strstatus task =
     case task.status of
@@ -143,7 +147,7 @@ view model =
                 ]
 
         tabs =
-            [ TasksTab, ServicesTab, MonitorsTab ]
+            [ TasksTab, ServicesTab, LauncherTab, MonitorsTab ]
                 |> LS.fromList
                 |> LS.select model.activetab
 
@@ -203,6 +207,22 @@ view model =
                 table =
                     body columnsName
                         (List.map serviceRenderRow (AL.values model.services))
+            in
+            H.div [ topmargin ] [ select, title, head, table ]
+
+        LauncherTab ->
+            let
+                head = header tabs
+                columnsName =
+                    [ "#"
+                    , "operation"
+                    , "domain"
+                    , "host"
+                    ]
+                table =
+                    body columnsName
+                        (List.map launcherRenderRow (AL.values model.launchers))
+
             in
             H.div [ topmargin ] [ select, title, head, table ]
 
@@ -337,6 +357,17 @@ serviceRenderRow service =
         , td service.name
         , td service.path
         , td service.domain
+        ]
+
+
+launcherRenderRow : Launcher -> H.Html Msg
+launcherRenderRow launcher =
+    H.tr []
+        [ H.th [ HA.scope "row" ]
+            [ H.text (String.fromInt launcher.id) ]
+        , td launcher.operation
+        , td launcher.domain
+        , td launcher.host
         ]
 
 

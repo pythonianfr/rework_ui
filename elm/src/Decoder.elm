@@ -1,5 +1,6 @@
 module Decoder exposing
     ( decodeFlags
+    , decodeLauncher
     , decodeWorkers
     , decodeService
     , decodeWorker
@@ -21,6 +22,7 @@ import Type
         , Flags
         , JsonMonitors
         , JsonStatus
+        , Launcher
         , Msg(..)
         , Service
         , Status(..)
@@ -167,6 +169,15 @@ decodeService =
         (D.field "name" D.string)
         (D.field "path" D.string)
         (D.field "domain" D.string)
+
+
+decodeLauncher : D.Decoder Launcher
+decodeLauncher =
+    D.map4 Launcher
+        (D.index 0 D.int)
+        (D.index 1 D.string)
+        (D.index 2 D.string)
+        (D.index 3 D.string)
 
 
 decodeMonitor : D.Decoder Monitor

@@ -22,6 +22,7 @@ import Decoder
     exposing
         ( eventsdecoder
         , decodeFlags
+        , decodeLauncher
         , decodeWorkers
         , decodeService
         , matchActionResult
@@ -94,6 +95,9 @@ update msg model =
                     { mod | workers = AL.update id (Maybe.map updateactions) mod.workers }
 
                 ServicesTab ->
+                    mod
+
+                LauncherTab ->
                     mod
     in
     case msg of
@@ -231,6 +235,12 @@ update msg model =
         GotServices (Err err) ->
             nocmd <| log model ERROR <| unwraperror err
 
+        GotLaunchers (Ok launchers) ->
+            nocmd { model | launchers = AL.fromList (groupbyid launchers) }
+
+        GotLaunchers (Err err) ->
+            nocmd <| log model ERROR <| unwraperror err
+
         GotWorkers (Ok monitor) ->
             nocmd { model
                       | monitors = AL.fromList (groupbyid monitor.monitors)
@@ -352,6 +362,12 @@ refreshCmd model tab =
                     , expect = Http.expectJson GotWorkers decodeWorkers
                     }
 
+                LauncherTab ->
+                    { url = UB.crossOrigin model.baseurl
+                            [ "launchers-table-json" ] [ ]
+                    , expect = Http.expectJson GotLaunchers (JD.list decodeLauncher)
+                    }
+
     in
     Http.get query
 
@@ -385,6 +401,7 @@ init jsonFlags =
                 AL.empty
                 AL.empty
                 AL.empty
+                AL.empty
                 TasksTab
                 domain
                 0
@@ -410,6 +427,9 @@ sub model =
 
                 ServicesTab ->
                     10000
+
+                LauncherTab ->
+                    1000000
 
                 MonitorsTab ->
                     2000
