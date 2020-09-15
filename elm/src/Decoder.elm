@@ -1,4 +1,4 @@
-module ReworkUI.Decoder exposing
+module Decoder exposing
     ( decodeFlags
     , decodeWorkers
     , decodeService
@@ -12,8 +12,8 @@ module ReworkUI.Decoder exposing
     )
 
 import Json.Decode as D
-import ReworkUI.Metadata as M
-import ReworkUI.Type
+import Metadata as M
+import Type
     exposing
         ( Action(..)
         , Monitor

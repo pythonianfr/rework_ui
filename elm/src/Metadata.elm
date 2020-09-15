@@ -1,4 +1,4 @@
-module ReworkUI.Metadata
+module Metadata
     exposing (MetaVal(..)
              , decodemeta
              , Metadata

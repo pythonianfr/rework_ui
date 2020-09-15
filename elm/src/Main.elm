@@ -18,7 +18,7 @@ import Log exposing
     , log
     )
 import Maybe.Extra as Maybe
-import ReworkUI.Decoder
+import Decoder
     exposing
         ( eventsdecoder
         , decodeFlags
@@ -27,7 +27,7 @@ import ReworkUI.Decoder
         , matchActionResult
         , taskDecoder
         )
-import ReworkUI.Type
+import Type
     exposing
         ( Action(..)
         , Flags
@@ -35,7 +35,7 @@ import ReworkUI.Type
         , Msg(..)
         , TabsLayout(..)
         )
-import ReworkUI.View exposing (view)
+import View exposing (view)
 import AssocSet as AS
 import Time
 import Url.Builder as UB

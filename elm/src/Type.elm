@@ -1,11 +1,11 @@
-module ReworkUI.Type exposing (..)
+module Type exposing (..)
 
 import AssocList as AL
 import Http
 import Keyboard.Event exposing (KeyboardEvent)
 import List.Selection as LS
 import Log exposing (LogEntry, Level)
-import ReworkUI.Metadata as M
+import Metadata as M
 
 
 type alias Task =

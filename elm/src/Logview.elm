@@ -9,9 +9,9 @@ import List.Extra as LE
 import Main exposing (tasksquery)
 import Maybe.Extra as Maybe
 import Regex as RE
-import ReworkUI.Decoder exposing (taskDecoder)
-import ReworkUI.Type exposing (Task, Status(..))
-import ReworkUI.View exposing (strstatus)
+import Decoder exposing (taskDecoder)
+import Type exposing (Task, Status(..))
+import View exposing (strstatus)
 import Time
 import Url.Builder as UB
 

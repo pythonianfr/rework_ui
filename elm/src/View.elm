@@ -1,4 +1,4 @@
-module ReworkUI.View exposing (view, strstatus)
+module View exposing (view, strstatus)
 
 import AssocList as AL
 import Bool.Extra as BE
@@ -12,8 +12,8 @@ import Log exposing
     ( Level(..)
     , viewlog
     )
-import ReworkUI.Metadata as M
-import ReworkUI.Type
+import Metadata as M
+import Type
     exposing
         ( Action(..)
         , Monitor
