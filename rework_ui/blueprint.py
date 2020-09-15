@@ -14,7 +14,6 @@ from flask import (
     url_for
 )
 
-from pml import HTML
 from pygments import highlight
 from pygments.lexers import PythonTracebackLexer
 from pygments.formatters import HtmlFormatter

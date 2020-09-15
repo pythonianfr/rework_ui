@@ -20,7 +20,6 @@ setup(name='rework_ui',
           'rework',
           'flask',
           'werkzeug >= 1.0.0',
-          'pml',
           'sqlalchemy',
       ],
       package_data={'rework_ui': [
