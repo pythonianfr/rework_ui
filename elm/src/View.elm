@@ -16,6 +16,7 @@ import Metadata as M
 import Type
     exposing
         ( Action(..)
+        , InputSpec
         , Launcher
         , Monitor
         , Model
@@ -218,6 +219,7 @@ view model =
                     , "operation"
                     , "domain"
                     , "host"
+                    , "form"
                     ]
                 table =
                     body columnsName
@@ -360,6 +362,21 @@ serviceRenderRow service =
         ]
 
 
+inputspecRenderRow : List InputSpec -> H.Html Msg
+inputspecRenderRow inputs =
+    let
+        renderInput input =
+            H.span []
+                [ H.text (input.spectype ++ " -> ")
+                , H.text (input.name ++ " ")
+                , H.text (if (List.isEmpty input.choices)
+                          then "(no choice)"
+                          else ("(choices:" ++(String.join  ", " input.choices) ++ ")"))
+                ]
+    in
+    H.td [] (List.map renderInput inputs)
+
+
 launcherRenderRow : Launcher -> H.Html Msg
 launcherRenderRow launcher =
     H.tr []
@@ -368,6 +385,7 @@ launcherRenderRow launcher =
         , td launcher.operation
         , td launcher.domain
         , td launcher.host
+        , (inputspecRenderRow launcher.inputs)
         ]
 
 

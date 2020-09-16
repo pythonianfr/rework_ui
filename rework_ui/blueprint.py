@@ -473,12 +473,16 @@ def reworkui(engine,
 
         out = []
         for row in q.do(engine).fetchall():
+            inputs = row.inputs
+            for field in inputs:
+                if field['choices'] is None:
+                    field['choices'] = []
             out.append(
                 (row.id,
                  row.name,
                  row.domain,
                  row.host,
-                 row.inputs
+                 inputs
                 )
             )
         return make_response(

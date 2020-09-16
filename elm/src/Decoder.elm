@@ -20,6 +20,7 @@ import Type
         , Monitor
         , Event
         , Flags
+        , InputSpec
         , JsonMonitors
         , JsonStatus
         , Launcher
@@ -171,13 +172,23 @@ decodeService =
         (D.field "domain" D.string)
 
 
+decodeInputspec : D.Decoder InputSpec
+decodeInputspec =
+    D.map4 InputSpec
+        (D.field "type" D.string)
+        (D.field "name" D.string)
+        (D.field "required" D.bool)
+        (D.field "choices" (D.list D.string))
+
+
 decodeLauncher : D.Decoder Launcher
 decodeLauncher =
-    D.map4 Launcher
+    D.map5 Launcher
         (D.index 0 D.int)
         (D.index 1 D.string)
         (D.index 2 D.string)
         (D.index 3 D.string)
+        (D.index 4 (D.list decodeInputspec))
 
 
 decodeMonitor : D.Decoder Monitor

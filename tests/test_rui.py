@@ -51,7 +51,10 @@ def abortme(task):
         time.sleep(1)
 
 
-@api.task(inputs=(input.file('babar.xlsx'), input.string('name')))
+@api.task(inputs=(
+    input.file('babar.xlsx'),
+    input.string('name', choices=('Babar', 'Celeste')))
+)
 def with_inputs(task):
     inputs = task.input
     task.save_output(
@@ -95,8 +98,18 @@ def test_with_input(engine, client):
          'default',
          '10.211.55.3',
          [
-             {'name': 'babar.xlsx', 'required': False, 'type': 'file'},
-             {'choices': None, 'name': 'name', 'required': False, 'type': 'string'}
+             {
+                 'choices': None, 'name':
+                 'babar.xlsx',
+                 'required': False,
+                 'type': 'file'
+             },
+             {
+                 'choices': ['Babar', 'Celeste'],
+                 'name': 'name',
+                 'required': False,
+                 'type': 'string'
+             }
          ]
         ]
     ]

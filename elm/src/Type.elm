@@ -41,11 +41,20 @@ type alias Service =
     }
 
 
+type alias InputSpec =
+    { spectype : String
+    , name : String
+    , required : Bool
+    , choices : List String
+    }
+
+
 type alias Launcher =
     { id : Int
     , operation : String
     , domain : String
     , host : String
+    , inputs : List InputSpec
     }
 
 
