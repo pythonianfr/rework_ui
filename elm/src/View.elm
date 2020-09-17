@@ -13,6 +13,7 @@ import Log exposing
     , viewlog
     )
 import Metadata as M
+import String.Extra as SE
 import Type
     exposing
         ( Action(..)
@@ -22,6 +23,7 @@ import Type
         , Model
         , Msg(..)
         , Service
+        , SpecType(..)
         , Status(..)
         , TabsLayout(..)
         , Task
@@ -362,19 +364,68 @@ serviceRenderRow service =
         ]
 
 
-inputspecRenderRow : List InputSpec -> H.Html Msg
-inputspecRenderRow inputs =
+inputspecRenderRow : Launcher -> H.Html Msg
+inputspecRenderRow launcher =
     let
+        renderTop rest =
+            H.form [ ]
+                ([ H.input [ HA.type_ "hidden"
+                          , HA.name "domain"
+                          , HA.value launcher.domain ] []
+                , H.input [ HA.type_ "hidden"
+                          , HA.name "host"
+                          , HA.value launcher.host ] []
+                , H.input [ HA.type_ "hidden"
+                          , HA.name "operation"
+                          , HA.value launcher.operation ] []
+                ] ++ rest)
+
         renderInput input =
-            H.span []
-                [ H.text (input.spectype ++ " -> ")
-                , H.text (input.name ++ " ")
-                , H.text (if (List.isEmpty input.choices)
-                          then "(no choice)"
-                          else ("(choices:" ++(String.join  ", " input.choices) ++ ")"))
-                ]
+            case input.spectype of
+                Num ->
+                    H.div [ HA.class "form-group" ]
+                        [ H.input
+                              [ HA.type_ "text"
+                              , HA.placeholder input.name
+                              , HA.name input.name  ] []
+                        ]
+                Str ->
+                    if List.isEmpty input.choices then
+                        H.input
+                            [ HA.type_ "text"
+                            , HA.placeholder input.name
+                            , HA.name input.name  ] []
+                    else
+                        let
+                            makeoption choice =
+                                H.option [ HA.value choice ] [ H.text choice ]
+                            options =
+                                if input.required then
+                                    List.map makeoption input.choices
+                                else
+                                    [ H.option [] [] ] ++ (List.map makeoption input.choices)
+                        in
+                        H.div
+                            [ HA.class "form-group" ]
+                            [ H.label [ HA.for input.name
+                                      , HA.class "control-label" ]
+                                  [ H.text (SE.toTitleCase input.name) ]
+                            , H.select [ HA.name input.name
+                                       , HA.class "form-control" ]
+                                options
+                            ]
+                File ->
+                    H.div [ HA.class "form-group" ] [
+                         H.label [ HA.for input.name
+                                 , HA.class "control-label" ]
+                             [ H.text (SE.toTitleCase input.name) ]
+                        , H.input [ HA.type_ "file"
+                                  , HA.name input.name
+                                  , HA.class "form-control"
+                                  ] []
+                        ]
     in
-    H.td [] (List.map renderInput inputs)
+    H.td [] [ renderTop (List.map renderInput launcher.inputs) ]
 
 
 launcherRenderRow : Launcher -> H.Html Msg
@@ -385,7 +436,7 @@ launcherRenderRow launcher =
         , td launcher.operation
         , td launcher.domain
         , td launcher.host
-        , (inputspecRenderRow launcher.inputs)
+        , inputspecRenderRow launcher
         ]
 
 

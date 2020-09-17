@@ -13,6 +13,7 @@ module Decoder exposing
     )
 
 import Json.Decode as D
+import Json.Decode.Field as F
 import Metadata as M
 import Type
     exposing
@@ -26,6 +27,7 @@ import Type
         , Launcher
         , Msg(..)
         , Service
+        , SpecType(..)
         , Status(..)
         , Task
         , TaskResult(..)
@@ -174,11 +176,21 @@ decodeService =
 
 decodeInputspec : D.Decoder InputSpec
 decodeInputspec =
-    D.map4 InputSpec
-        (D.field "type" D.string)
-        (D.field "name" D.string)
-        (D.field "required" D.bool)
-        (D.field "choices" (D.list D.string))
+    F.require "type" D.string <| \stype ->
+    F.require "name" D.string <| \name ->
+    F.require "required" D.bool <| \required ->
+    F.require "choices" (D.list D.string) <| \choices ->
+
+    D.succeed
+        { spectype = case stype of
+                         "file" -> File
+                         "string" -> Str
+                         "number" -> Num
+                         _ -> Str
+        , name = name
+        , required = required
+        , choices = choices
+        }
 
 
 decodeLauncher : D.Decoder Launcher

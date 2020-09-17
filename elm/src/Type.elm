@@ -41,8 +41,14 @@ type alias Service =
     }
 
 
+type SpecType
+    = Num
+    | Str
+    | File
+
+
 type alias InputSpec =
-    { spectype : String
+    { spectype : SpecType
     , name : String
     , required : Bool
     , choices : List String
