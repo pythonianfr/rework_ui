@@ -275,6 +275,10 @@ update msg model =
         SetDomain domain ->
             nocmd { model | domain = LS.select domain model.domain }
 
+
+        OpenForm lid ->
+            nocmd { model | launching = Just lid }
+
         -- logging
 
         HandleKeyboardEvent event ->
@@ -402,6 +406,7 @@ init jsonFlags =
                 AL.empty
                 AL.empty
                 AL.empty
+                Nothing
                 TasksTab
                 domain
                 0

@@ -225,7 +225,9 @@ view model =
                     ]
                 table =
                     body columnsName
-                        (List.map launcherRenderRow (AL.values model.launchers))
+                        (List.map
+                             (launcherRenderRow model.launching)
+                             (AL.values model.launchers))
 
             in
             H.div [ topmargin ] [ select, title, head, table ]
@@ -368,7 +370,7 @@ inputspecRenderRow : Launcher -> H.Html Msg
 inputspecRenderRow launcher =
     let
         renderTop rest =
-            H.form [ ]
+            H.form [ HA.id "run-form" ]
                 ([ H.input [ HA.type_ "hidden"
                           , HA.name "domain"
                           , HA.value launcher.domain ] []
@@ -428,15 +430,29 @@ inputspecRenderRow launcher =
     H.td [] [ renderTop (List.map renderInput launcher.inputs) ]
 
 
-launcherRenderRow : Launcher -> H.Html Msg
-launcherRenderRow launcher =
+launcherRenderRow : Maybe Int -> Launcher -> H.Html Msg
+launcherRenderRow launching launcher =
+    let
+        preform id =
+            H.td [ HE.onClick (OpenForm launcher.id) ]
+                [ H.button [ HA.class "btn btn-primary"
+                           , HA.type_ "button"
+                           ] [ H.text "open form" ]
+                ]
+    in
     H.tr []
         [ H.th [ HA.scope "row" ]
             [ H.text (String.fromInt launcher.id) ]
         , td launcher.operation
         , td launcher.domain
         , td launcher.host
-        , inputspecRenderRow launcher
+        , case launching of
+              Nothing -> preform launcher.id
+              Just lid ->
+                  if launcher.id == lid then
+                      inputspecRenderRow launcher
+                  else
+                      preform launcher.id
         ]
 
 

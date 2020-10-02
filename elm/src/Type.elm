@@ -126,6 +126,7 @@ type alias Model =
     , monitors : MonitorDict
     , services : ServiceDict
     , launchers : LauncherDict
+    , launching : Maybe Int
     , activetab : TabsLayout
     , domain : LS.Selection String
     , lasteventid : Int
@@ -184,6 +185,8 @@ type Msg
     | OnKill Int
     | OnShutdown Int
     | SetDomain String
+    -- launcher
+    | OpenForm Int
     -- events
     | HandleKeyboardEvent KeyboardEvent
     | SelectDisplayLevel Level
