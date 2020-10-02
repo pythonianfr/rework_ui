@@ -187,6 +187,7 @@ type Msg
     | SetDomain String
     -- launcher
     | OpenForm Int
+    | CloseForm
     -- events
     | HandleKeyboardEvent KeyboardEvent
     | SelectDisplayLevel Level

@@ -276,8 +276,13 @@ update msg model =
             nocmd { model | domain = LS.select domain model.domain }
 
 
+        -- launcher
+
         OpenForm lid ->
             nocmd { model | launching = Just lid }
+
+        CloseForm ->
+            nocmd { model | launching = Nothing }
 
         -- logging
 

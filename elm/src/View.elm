@@ -372,15 +372,24 @@ inputspecRenderRow launcher =
         renderTop rest =
             H.form [ HA.id "run-form" ]
                 ([ H.input [ HA.type_ "hidden"
-                          , HA.name "domain"
-                          , HA.value launcher.domain ] []
-                , H.input [ HA.type_ "hidden"
-                          , HA.name "host"
-                          , HA.value launcher.host ] []
-                , H.input [ HA.type_ "hidden"
-                          , HA.name "operation"
-                          , HA.value launcher.operation ] []
-                ] ++ rest)
+                           , HA.name "domain"
+                           , HA.value launcher.domain ] []
+                 , H.input [ HA.type_ "hidden"
+                           , HA.name "host"
+                           , HA.value launcher.host ] []
+                 , H.input [ HA.type_ "hidden"
+                           , HA.name "operation"
+                           , HA.value launcher.operation ] []
+                 ] ++ rest ++ [
+                      H.button [ HA.class "btn btn-success"
+                               , HA.type_ "button" ]
+                          [ H.text "launch" ]
+                     , H.button [ HA.class "btn btn-danger"
+                                , HA.type_ "button"
+                                , HE.onClick CloseForm ]
+                          [ H.text "cancel" ]
+                     ]
+                )
 
         renderInput input =
             case input.spectype of
