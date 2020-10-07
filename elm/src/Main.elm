@@ -1,4 +1,4 @@
-module Main exposing (..)
+port module Main exposing (..)
 
 import AssocList as AL
 import AssocList.Extra as ALE
@@ -284,6 +284,11 @@ update msg model =
         CloseForm ->
             nocmd { model | launching = Nothing }
 
+        Schedule operation ->
+            ( model
+            , schedule_task operation
+            )
+
         -- logging
 
         HandleKeyboardEvent event ->
@@ -457,3 +462,6 @@ main =
         , update = update
         , subscriptions = sub
         }
+
+port schedule_task : String -> Cmd msg
+

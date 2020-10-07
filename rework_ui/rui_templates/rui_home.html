@@ -15,11 +15,24 @@
 
 <div id="app"></div>
 <script>
+
  app = Elm.Main.init({
      node: document.getElementById("app"),
      flags: {baseurl : "{{homeurl}}",
              domains : {{domains | safe }} }
- });
+ })
+
+ app.ports.schedule_task.subscribe(
+     function(operation) {
+         let form = document.getElementById('run-form')
+         fetch(
+             `schedule-task/${operation}?user=WEBUI`,
+             {method: 'PUT', body: new FormData(form), credentials: 'same-origin'}
+         ).catch(
+             error => console.log(error)
+         )
+     }
+ )
 </script>
 
 {% endblock %}

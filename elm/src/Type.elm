@@ -188,6 +188,7 @@ type Msg
     -- launcher
     | OpenForm Int
     | CloseForm
+    | Schedule String
     -- events
     | HandleKeyboardEvent KeyboardEvent
     | SelectDisplayLevel Level

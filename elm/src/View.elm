@@ -382,7 +382,8 @@ inputspecRenderRow launcher =
                            , HA.value launcher.operation ] []
                  ] ++ rest ++ [
                       H.button [ HA.class "btn btn-success"
-                               , HA.type_ "button" ]
+                               , HA.type_ "button"
+                               , HE.onClick (Schedule launcher.operation ) ]
                           [ H.text "launch" ]
                      , H.button [ HA.class "btn btn-danger"
                                 , HA.type_ "button"
