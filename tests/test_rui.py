@@ -53,7 +53,9 @@ def abortme(task):
 
 @api.task(inputs=(
     input.file('babar.xlsx'),
-    input.string('name', choices=('Babar', 'Celeste')))
+    input.string('name', choices=('Babar', 'Celeste')),
+    input.number('weight'),
+    input.file('celeste.xlsx'))
 )
 def with_inputs(task):
     inputs = task.input
@@ -97,21 +99,10 @@ def test_with_input(engine, client):
          'with_inputs',
          'default',
          '10.211.55.3',
-         [
-             {
-                 'choices': None, 'name':
-                 'babar.xlsx',
-                 'required': False,
-                 'type': 'file'
-             },
-             {
-                 'choices': ['Babar', 'Celeste'],
-                 'name': 'name',
-                 'required': False,
-                 'type': 'string'
-             }
-         ]
-        ]
+         [{'choices': [], 'name': 'babar.xlsx', 'required': False, 'type': 'file'},
+          {'choices': ['Babar', 'Celeste'], 'name': 'name', 'required': False, 'type': 'string'},
+          {'choices': [], 'name': 'weight', 'required': False, 'type': 'number'},
+          {'choices': [], 'name': 'celeste.xlsx', 'required': False, 'type': 'file'}]]
     ]
 
 
