@@ -107,7 +107,6 @@ def reworkui(engine,
     )
 
     @bp.route('/schedule-task/<service>', methods=['PUT'])
-    @bp.route('/new_job/<service>', methods=['PUT'])  # bw compat
     def schedule_task(service):
         if not has_permission('schedule'):
             return json.dumps(-1)
