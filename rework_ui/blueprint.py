@@ -20,10 +20,9 @@ from pygments.formatters import HtmlFormatter
 
 from sqlhelp import select, update
 from rework import api
+
 from rework.helper import (
-    filterinput,
     inputspec,
-    pack_inputs,
     utcnow
 )
 from rework.task import Task
@@ -138,27 +137,17 @@ def reworkui(engine,
             for k, v in argsdict(request.files).items()
             if v
         }
-
-        # merge args sources
-        meta = argsdict(request.args)
-        hostid = meta.pop('hostid', None)
-        domain = meta.pop('domain', None)
         args.update(
             argsdict(request.form)
         )
 
-        try:
-            spec = filterinput(
-                inputspec(engine), service, domain, hostid
-            )
-        except Exception as err:
-            abort(400, str(err))
+        meta = argsdict(request.args)
+        hostid = meta.pop('hostid', None)
+        domain = meta.pop('domain', None)
 
-        rawinput = pack_inputs(spec, args)
         try:
             task = api.schedule(
-                engine, service,
-                rawinputdata=rawinput,
+                engine, service, args,
                 hostid=hostid,
                 domain=domain,
                 metadata=meta
