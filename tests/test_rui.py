@@ -105,6 +105,26 @@ def test_with_input(engine, client):
           {'choices': [], 'name': 'celeste.xlsx', 'required': False, 'type': 'file'}]]
     ]
 
+    res = client.put(
+        '/schedule2/with_inputs?user=Babar',
+        {'name': 'Babar', 'weight': '65'},
+        upload_files=[
+            ('babar.xlsx', 'babar.xlsx', b'babar.xslx contents',
+             'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'),
+            ('celeste.xlsx', 'celeste.xlsx', b'celeste.xlsx contents',
+             'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'),
+        ]
+    )
+
+    tid = int(res.body)
+    t = Task.byid(engine, tid)
+    assert t.input == {
+        'babar.xlsx': b'babar.xslx contents',
+        'celeste.xlsx': b'celeste.xlsx contents',
+        'name': 'Babar',
+        'weight': 65
+    }
+
 
 def test_abort(engine, client):
     with workers(engine) as mon:

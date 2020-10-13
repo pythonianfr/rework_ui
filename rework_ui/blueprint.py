@@ -20,7 +20,12 @@ from pygments.formatters import HtmlFormatter
 
 from sqlhelp import select, update
 from rework import api
-from rework.helper import utcnow
+from rework.helper import (
+    filterinput,
+    inputspec,
+    pack_inputs,
+    utcnow
+)
 from rework.task import Task
 
 from rework_ui.helper import argsdict
@@ -125,6 +130,42 @@ def reworkui(engine,
                              service,
                              args,
                              inputfile)
+
+    @bp.route('/schedule2/<service>', methods=['PUT'])
+    def schedule2(service):
+        args = {
+            k: v.read()
+            for k, v in argsdict(request.files).items()
+            if v
+        }
+
+        # merge args sources
+        meta = argsdict(request.args)
+        hostid = meta.pop('hostid', None)
+        domain = meta.pop('domain', None)
+        args.update(
+            argsdict(request.form)
+        )
+
+        try:
+            spec = filterinput(
+                inputspec(engine), service, domain, hostid
+            )
+        except Exception as err:
+            abort(400, str(err))
+
+        rawinput = pack_inputs(spec, args)
+        try:
+            task = api.schedule(
+                engine, service,
+                rawinputdata=rawinput,
+                hostid=hostid,
+                domain=domain,
+                metadata=meta
+            )
+        except Exception as err:
+            abort(400, str(err))
+        return json.dumps(task.tid)
 
     @bp.route('/relaunch-task/<int:tid>', methods=['PUT'])
     def relaunch_task(tid):
@@ -464,28 +505,9 @@ def reworkui(engine,
         if not has_permission('read'):
             abort(403, 'Nothing to see there.')
 
-        q = select(
-            'id', 'host', 'name', 'domain', 'inputs'
-        ).table('rework.operation'
-        ).where('inputs is not null'
-        ).order('domain, name')
-
-        out = []
-        for row in q.do(engine).fetchall():
-            inputs = row.inputs
-            for field in inputs:
-                if field['choices'] is None:
-                    field['choices'] = []
-            out.append(
-                (row.id,
-                 row.name,
-                 row.domain,
-                 row.host,
-                 inputs
-                )
-            )
+        spec = inputspec(engine)
         return make_response(
-            json.dumps(out),
+            json.dumps(spec),
             200,
             {'content-type': 'application/json'}
         )
