@@ -377,15 +377,16 @@ inputspecRenderRow launcher =
                  , H.input [ HA.type_ "hidden"
                            , HA.name "host"
                            , HA.value launcher.host ] []
-                 ] ++ rest ++ [
-                      H.button [ HA.class "btn btn-success"
-                               , HA.type_ "button"
-                               , HE.onClick (Schedule launcher.operation ) ]
-                          [ H.text "launch" ]
+                 ] ++ rest ++
+                     [ H.br [] []
+                     , H.button [ HA.class "btn btn-success"
+                                , HA.type_ "button"
+                                , HE.onClick (Schedule launcher.operation ) ]
+                         [ H.text "launch" ]
                      , H.button [ HA.class "btn btn-danger"
                                 , HA.type_ "button"
                                 , HE.onClick CloseForm ]
-                          [ H.text "cancel" ]
+                         [ H.text "cancel" ]
                      ]
                 )
 
