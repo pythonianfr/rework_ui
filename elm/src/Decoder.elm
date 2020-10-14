@@ -186,6 +186,7 @@ decodeInputspec =
                          "file" -> File
                          "string" -> Str
                          "number" -> Num
+                         "datetime" -> Datetime
                          _ -> Str
         , name = name
         , required = required

@@ -425,6 +425,13 @@ inputspecRenderRow launcher =
                                        , HA.class "form-control" ]
                                 options
                             ]
+                Datetime ->
+                        H.input
+                            [ HA.type_ "datetime-local"
+                            , HA.placeholder input.name
+                            , HA.required input.required
+                            , HA.name input.name  ] []
+
                 File ->
                     H.div [ HA.class "form-group" ] [
                          H.label [ HA.for input.name

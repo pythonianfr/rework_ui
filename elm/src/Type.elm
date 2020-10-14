@@ -45,6 +45,7 @@ type SpecType
     = Num
     | Str
     | File
+    | Datetime
 
 
 type alias InputSpec =
