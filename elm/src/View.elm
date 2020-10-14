@@ -370,7 +370,7 @@ inputspecRenderRow : Launcher -> H.Html Msg
 inputspecRenderRow launcher =
     let
         renderTop rest =
-            H.form [ HA.id "run-form" ]
+            H.form [ HA.id "run-form", HA.class "was-validated" ]
                 ([ H.input [ HA.type_ "hidden"
                            , HA.name "domain"
                            , HA.value launcher.domain ] []
@@ -396,6 +396,7 @@ inputspecRenderRow launcher =
                         [ H.input
                               [ HA.type_ "text"
                               , HA.placeholder input.name
+                              , HA.required input.required
                               , HA.name input.name  ] []
                         ]
                 Str ->
@@ -403,6 +404,7 @@ inputspecRenderRow launcher =
                         H.input
                             [ HA.type_ "text"
                             , HA.placeholder input.name
+                            , HA.required input.required
                             , HA.name input.name  ] []
                     else
                         let
@@ -430,6 +432,7 @@ inputspecRenderRow launcher =
                              [ H.text (SE.toTitleCase input.name) ]
                         , H.input [ HA.type_ "file"
                                   , HA.name input.name
+                                  , HA.required input.required
                                   , HA.class "form-control"
                                   ] []
                         ]
