@@ -26,7 +26,7 @@
      function(operation) {
          let form = document.getElementById('run-form')
          fetch(
-             `schedule-task/${operation}?user=WEBUI`,
+             `schedule2/${operation}?user=WEBUI`,
              {method: 'PUT', body: new FormData(form), credentials: 'same-origin'}
          ).catch(
              error => console.log(error)

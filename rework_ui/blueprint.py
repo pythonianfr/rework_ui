@@ -142,8 +142,8 @@ def reworkui(engine,
         )
 
         meta = argsdict(request.args)
-        hostid = meta.pop('hostid', None)
-        domain = meta.pop('domain', None)
+        hostid = args.pop('host', None)
+        domain = args.pop('domain', None)
 
         try:
             task = api.schedule(

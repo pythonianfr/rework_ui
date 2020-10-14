@@ -377,9 +377,6 @@ inputspecRenderRow launcher =
                  , H.input [ HA.type_ "hidden"
                            , HA.name "host"
                            , HA.value launcher.host ] []
-                 , H.input [ HA.type_ "hidden"
-                           , HA.name "operation"
-                           , HA.value launcher.operation ] []
                  ] ++ rest ++ [
                       H.button [ HA.class "btn btn-success"
                                , HA.type_ "button"
