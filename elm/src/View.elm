@@ -288,8 +288,12 @@ view model =
                 table =
                     body columnsName
                         (List.map schedulerRenderRow (AL.values model.schedulers))
+
+                action =
+                    H.button [ HA.class "btn btn-primary" ] [ H.text "Schedule Task" ]
+
             in
-            H.div [ topmargin ] [ select, title, head, table ]
+            H.div [ topmargin ] [ select, title, head, table, action ]
 
 
 th : String -> H.Html msg
