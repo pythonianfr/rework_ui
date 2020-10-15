@@ -290,10 +290,14 @@ view model =
                         (List.map schedulerRenderRow (AL.values model.schedulers))
 
                 action =
-                    H.button
-                        [ HA.class "btn btn-primary"
-                        , HE.onClick NewScheduler ]
-                        [ H.text "Schedule Task" ]
+                    case model.createscheduler of
+                        False ->
+                            H.button
+                                [ HA.class "btn btn-primary"
+                                , HE.onClick NewScheduler ]
+                                [ H.text "Schedule Task" ]
+                        True ->
+                            H.form [] []
 
             in
             H.div [ topmargin ] [ select, title, head, table, action ]
