@@ -378,11 +378,11 @@ inputspecRenderRow launcher =
                            , HA.name "host"
                            , HA.value launcher.host ] []
                  ] ++ rest ++
-                     [ H.br [] []
-                     , H.button [ HA.class "btn btn-success"
+                     [ H.button [ HA.class "btn btn-success"
                                 , HA.type_ "button"
                                 , HE.onClick (Schedule launcher.operation ) ]
-                         [ H.text "launch" ]
+                           [ H.text "launch" ]
+                     , H.span [] [ H.text " " ]
                      , H.button [ HA.class "btn btn-danger"
                                 , HA.type_ "button"
                                 , HE.onClick CloseForm ]
@@ -402,11 +402,13 @@ inputspecRenderRow launcher =
                         ]
                 Str ->
                     if List.isEmpty input.choices then
-                        H.input
-                            [ HA.type_ "text"
-                            , HA.placeholder input.name
-                            , HA.required input.required
-                            , HA.name input.name  ] []
+                    H.div [ HA.class "form-group" ]
+                        [ H.input
+                              [ HA.type_ "text"
+                              , HA.placeholder input.name
+                              , HA.required input.required
+                              , HA.name input.name  ] []
+                        ]
                     else
                         let
                             makeoption choice =
@@ -427,11 +429,13 @@ inputspecRenderRow launcher =
                                 options
                             ]
                 Datetime ->
-                        H.input
-                            [ HA.type_ "datetime-local"
-                            , HA.placeholder input.name
-                            , HA.required input.required
-                            , HA.name input.name  ] []
+                    H.div [ HA.class "form-group" ]
+                        [ H.input
+                              [ HA.type_ "datetime-local"
+                              , HA.placeholder input.name
+                              , HA.required input.required
+                              , HA.name input.name  ] []
+                        ]
 
                 File ->
                     H.div [ HA.class "form-group" ] [
