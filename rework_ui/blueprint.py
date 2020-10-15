@@ -514,7 +514,13 @@ def reworkui(engine,
             )
             res = cn.execute(sql).fetchall()
 
-        return json.dumps(res)
+        return make_response(
+            json.dumps(
+                [list(row) for row in res]
+            ),
+            200,
+            {'content-type': 'application/json'}
+        )
 
     @bp.route('/lasteventid')
     def lasteventid():

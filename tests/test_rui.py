@@ -196,3 +196,22 @@ def test_task_life_cycle(engine, client, refresh):
 
         assert all(res.body == b'true' for res in results)
 
+
+def test_schedulers(engine, client):
+    sid = api.prepare(
+        engine,
+        'with_inputs'
+    )
+
+    sid = api.prepare(
+        engine,
+        'with_inputs',
+        rule='1 2 * * * *'
+    )
+
+    res = client.get('/schedulers-table-json')
+    assert res.json == [
+        [1, 'with_inputs', 'default', None, '* * * * * *'],
+        [2, 'with_inputs', 'default', None, '1 2 * * * *']
+    ]
+
