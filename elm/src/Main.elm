@@ -105,6 +105,8 @@ update msg model =
                     mod
     in
     case msg of
+        -- tasks
+
         OnDelete taskid ->
             ( disableactions
                   (log model INFO <| "DELETE " ++ String.fromInt taskid)
@@ -233,17 +235,10 @@ update msg model =
             , refreshCmd model tab
             )
 
-        GotServices (Ok services) ->
-            nocmd { model | services = AL.fromList (groupbyid services) }
+        SetDomain domain ->
+            nocmd { model | domain = LS.select domain model.domain }
 
-        GotServices (Err err) ->
-            nocmd <| log model ERROR <| unwraperror err
-
-        GotLaunchers (Ok launchers) ->
-            nocmd { model | launchers = AL.fromList (groupbyid launchers) }
-
-        GotLaunchers (Err err) ->
-            nocmd <| log model ERROR <| unwraperror err
+        -- monitors/workers
 
         GotWorkers (Ok monitor) ->
             nocmd { model
@@ -276,11 +271,22 @@ update msg model =
                 }
             )
 
-        SetDomain domain ->
-            nocmd { model | domain = LS.select domain model.domain }
+        -- services
 
+        GotServices (Ok services) ->
+            nocmd { model | services = AL.fromList (groupbyid services) }
 
-        -- launcher
+        GotServices (Err err) ->
+            nocmd <| log model ERROR <| unwraperror err
+
+        -- launchers
+
+        GotLaunchers (Ok launchers) ->
+            nocmd { model | launchers = AL.fromList (groupbyid launchers) }
+
+        GotLaunchers (Err err) ->
+            nocmd <| log model ERROR <| unwraperror err
+
 
         OpenForm lid ->
             nocmd { model | launching = Just lid }
@@ -293,7 +299,7 @@ update msg model =
             , schedule_task operation
             )
 
-        -- scheduler
+        -- schedulers
 
         GotSchedulers (Ok schedulers) ->
             nocmd { model | schedulers = AL.fromList (groupbyid schedulers) }
