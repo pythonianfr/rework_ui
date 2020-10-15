@@ -285,7 +285,7 @@ update msg model =
             nocmd { model | launching = Nothing }
 
         Schedule operation ->
-            ( model
+            ( { model | launching = Nothing }
             , schedule_task operation
             )
 
