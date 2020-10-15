@@ -1,3 +1,4 @@
+import datetime
 import re
 from pathlib import Path
 import json
@@ -55,7 +56,8 @@ def abortme(task):
     input.file('babar.xlsx'),
     input.string('name', choices=('Babar', 'Celeste')),
     input.number('weight'),
-    input.file('celeste.xlsx'))
+    input.file('celeste.xlsx'),
+    input.datetime('birthdate'))
 )
 def with_inputs(task):
     inputs = task.input
@@ -102,12 +104,14 @@ def test_with_input(engine, client):
          [{'choices': [], 'name': 'babar.xlsx', 'required': False, 'type': 'file'},
           {'choices': ['Babar', 'Celeste'], 'name': 'name', 'required': False, 'type': 'string'},
           {'choices': [], 'name': 'weight', 'required': False, 'type': 'number'},
-          {'choices': [], 'name': 'celeste.xlsx', 'required': False, 'type': 'file'}]]
+          {'choices': [], 'name': 'celeste.xlsx', 'required': False, 'type': 'file'},
+          {'choices': [], 'name': 'birthdate', 'required': False, 'type': 'datetime'}
+         ]]
     ]
 
     res = client.put(
         '/schedule2/with_inputs?user=Babar',
-        {'name': 'Babar', 'weight': '65'},
+        {'name': 'Babar', 'weight': '65', 'birthdate': '2020-1-1'},
         upload_files=[
             ('babar.xlsx', 'babar.xlsx', b'babar.xslx contents',
              'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'),
@@ -120,6 +124,7 @@ def test_with_input(engine, client):
     t = Task.byid(engine, tid)
     assert t.input == {
         'babar.xlsx': b'babar.xslx contents',
+        'birthdate': datetime.datetime(2020, 1, 1, 0, 0),
         'celeste.xlsx': b'celeste.xlsx contents',
         'name': 'Babar',
         'weight': 65
