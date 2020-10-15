@@ -105,42 +105,20 @@ update msg model =
                     mod
     in
     case msg of
+        -- general/ui
+
+        Tab tab ->
+            ( { model | activetab = tab }
+            , refreshCmd model tab
+            )
+
+        SetDomain domain ->
+            nocmd { model | domain = LS.select domain model.domain }
+
+        OnRefresh ->
+            ( model, refreshCmd model model.activetab )
+
         -- tasks
-
-        OnDelete taskid ->
-            ( disableactions
-                  (log model INFO <| "DELETE " ++ String.fromInt taskid)
-                  TasksTab taskid
-            , Http.get
-                { url = UB.crossOrigin
-                        model.baseurl
-                        [ "delete-task", String.fromInt taskid ]
-                        []
-                , expect = Http.expectJson (ActionResponse TasksTab taskid Delete) JD.bool
-                }
-            )
-
-        OnAbort taskid ->
-            ( disableactions model TasksTab taskid
-            , Http.get
-                { url = UB.crossOrigin
-                        model.baseurl
-                        [ "abort-task", String.fromInt taskid ]
-                        []
-                , expect = Http.expectJson (ActionResponse TasksTab taskid Abort) JD.bool
-                }
-            )
-
-        OnRelaunch taskid ->
-            ( disableactions model TasksTab taskid
-            , cmdPut
-                (UB.crossOrigin
-                    model.baseurl
-                    [ "relaunch-task", String.fromInt taskid ]
-                    []
-                )
-                (Http.expectJson (RelaunchMsg taskid) JD.int)
-            )
 
         GotTasks (Ok rawtasks) ->
             let mod = log model INFO ("TASKS (all):" ++ rawtasks) in
@@ -198,8 +176,40 @@ update msg model =
         GotLastEvent (Err err) ->
             nocmd <| log model ERROR <| unwraperror err
 
-        OnRefresh ->
-            ( model, refreshCmd model model.activetab )
+        OnDelete taskid ->
+            ( disableactions
+                  (log model INFO <| "DELETE " ++ String.fromInt taskid)
+                  TasksTab taskid
+            , Http.get
+                { url = UB.crossOrigin
+                        model.baseurl
+                        [ "delete-task", String.fromInt taskid ]
+                        []
+                , expect = Http.expectJson (ActionResponse TasksTab taskid Delete) JD.bool
+                }
+            )
+
+        OnAbort taskid ->
+            ( disableactions model TasksTab taskid
+            , Http.get
+                { url = UB.crossOrigin
+                        model.baseurl
+                        [ "abort-task", String.fromInt taskid ]
+                        []
+                , expect = Http.expectJson (ActionResponse TasksTab taskid Abort) JD.bool
+                }
+            )
+
+        OnRelaunch taskid ->
+            ( disableactions model TasksTab taskid
+            , cmdPut
+                (UB.crossOrigin
+                    model.baseurl
+                    [ "relaunch-task", String.fromInt taskid ]
+                    []
+                )
+                (Http.expectJson (RelaunchMsg taskid) JD.int)
+            )
 
         ActionResponse _ _ _ (Ok True) ->
             nocmd model
@@ -229,14 +239,6 @@ update msg model =
 
         RelaunchMsg taskid (Err _) ->
             nocmd <| disableactions model TasksTab taskid
-
-        Tab tab ->
-            ( { model | activetab = tab }
-            , refreshCmd model tab
-            )
-
-        SetDomain domain ->
-            nocmd { model | domain = LS.select domain model.domain }
 
         -- monitors/workers
 
