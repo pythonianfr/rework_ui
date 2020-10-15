@@ -1,5 +1,4 @@
-REWORK-UI
-============
+# REWORK-UI
 
 Rework-UI is a [rework][rework] plugin which provides a `view`
 subcommand to the `rework` command.
@@ -7,7 +6,7 @@ subcommand to the `rework` command.
 The command launches a simple Web front-end to monitor and control
 workers, tasks and operations of `rework`.
 
-[rework]: https://bitbucket.org/pythonian/rework
+[rework]: https://hg.sr.ht/~pythonian/rework
 
 
 It works like this:
@@ -24,5 +23,5 @@ It works like this:
 
 At the same time, a browser tab opens, and we can see the big picture.
 
-![rework view](https://bitbucket.org/pythonian/rework_ui/downloads/reworkui.png)
+![rework view](pics/reworkui.png)
 
