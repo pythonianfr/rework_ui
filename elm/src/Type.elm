@@ -142,6 +142,7 @@ type alias Model =
     , launchers : LauncherDict
     , launching : Maybe Int
     , schedulers : SchedulerDict
+    , createscheduler : Bool
     , activetab : TabsLayout
     , domain : LS.Selection String
     , lasteventid : Int
@@ -204,6 +205,7 @@ type Msg
     | OpenForm Int
     | CloseForm
     | Schedule String
+    | NewScheduler
     -- scheduler
     | GotSchedulers (Result Http.Error (List Scheduler))
     -- events

@@ -309,6 +309,9 @@ update msg model =
         GotSchedulers (Err err) ->
             nocmd <| log model ERROR <| unwraperror err
 
+        NewScheduler ->
+            nocmd { model | createscheduler = True }
+
         -- logging
 
         HandleKeyboardEvent event ->
@@ -444,6 +447,7 @@ init jsonFlags =
                 AL.empty
                 Nothing
                 AL.empty
+                False
                 TasksTab
                 domain
                 0
