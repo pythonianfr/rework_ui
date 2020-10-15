@@ -2,6 +2,7 @@ module Decoder exposing
     ( decodeFlags
     , decodeLauncher
     , decodeWorkers
+    , decodeScheduler
     , decodeService
     , decodeWorker
     , eventsdecoder
@@ -26,6 +27,7 @@ import Type
         , JsonStatus
         , Launcher
         , Msg(..)
+        , Scheduler
         , Service
         , SpecType(..)
         , Status(..)
@@ -202,6 +204,16 @@ decodeLauncher =
         (D.index 2 D.string)
         (D.index 3 D.string)
         (D.index 4 (D.list decodeInputspec))
+
+
+decodeScheduler : D.Decoder Scheduler
+decodeScheduler =
+    D.map5 Scheduler
+        (D.index 0 D.int)
+        (D.index 1 D.string)
+        (D.index 2 D.string)
+        (D.index 3 D.string)
+        (D.index 4 D.string)
 
 
 decodeMonitor : D.Decoder Monitor

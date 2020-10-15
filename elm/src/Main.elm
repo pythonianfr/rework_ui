@@ -23,6 +23,7 @@ import Decoder
         ( eventsdecoder
         , decodeFlags
         , decodeLauncher
+        , decodeScheduler
         , decodeWorkers
         , decodeService
         , matchActionResult
@@ -98,6 +99,9 @@ update msg model =
                     mod
 
                 LauncherTab ->
+                    mod
+
+                SchedulerTab ->
                     mod
     in
     case msg of
@@ -289,6 +293,14 @@ update msg model =
             , schedule_task operation
             )
 
+        -- scheduler
+
+        GotSchedulers (Ok schedulers) ->
+            nocmd { model | schedulers = AL.fromList (groupbyid schedulers) }
+
+        GotSchedulers (Err err) ->
+            nocmd <| log model ERROR <| unwraperror err
+
         -- logging
 
         HandleKeyboardEvent event ->
@@ -382,6 +394,12 @@ refreshCmd model tab =
                     , expect = Http.expectJson GotLaunchers (JD.list decodeLauncher)
                     }
 
+                SchedulerTab ->
+                    { url = UB.crossOrigin model.baseurl
+                            [ "schedulers-table-json" ] [ ]
+                    , expect = Http.expectJson GotSchedulers (JD.list decodeScheduler)
+                    }
+
     in
     Http.get query
 
@@ -417,6 +435,7 @@ init jsonFlags =
                 AL.empty
                 AL.empty
                 Nothing
+                AL.empty
                 TasksTab
                 domain
                 0
@@ -444,6 +463,9 @@ sub model =
                     10000
 
                 LauncherTab ->
+                    1000000
+
+                SchedulerTab ->
                     1000000
 
                 MonitorsTab ->

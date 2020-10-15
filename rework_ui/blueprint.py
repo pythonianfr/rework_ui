@@ -501,6 +501,21 @@ def reworkui(engine,
             {'content-type': 'application/json'}
         )
 
+    @bp.route('/schedulers-table-json')
+    def schedulers_table_json():
+        if not has_permission('read'):
+            abort(403, 'Nothing to see there.')
+
+        with engine.begin() as cn:
+            sql = (
+                'select sched.id, op.name, sched.domain, sched.host, rule '
+                'from rework.sched as sched, rework.operation as op '
+                'where sched.operation = op.id'
+            )
+            res = cn.execute(sql).fetchall()
+
+        return json.dumps(res)
+
     @bp.route('/lasteventid')
     def lasteventid():
         eid = select('max(id)').table(

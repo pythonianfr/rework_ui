@@ -41,6 +41,15 @@ type alias Service =
     }
 
 
+type alias Scheduler =
+    { id : Int
+    , service : String
+    , domain : String
+    , host : String
+    , rule : String
+    }
+
+
 type SpecType
     = Num
     | Str
@@ -120,6 +129,10 @@ type alias LauncherDict =
     AL.Dict Int Launcher
 
 
+type alias SchedulerDict =
+    AL.Dict Int Scheduler
+
+
 type alias Model =
     { baseurl : String
     , tasks : TaskDict
@@ -128,6 +141,7 @@ type alias Model =
     , services : ServiceDict
     , launchers : LauncherDict
     , launching : Maybe Int
+    , schedulers : SchedulerDict
     , activetab : TabsLayout
     , domain : LS.Selection String
     , lasteventid : Int
@@ -181,15 +195,17 @@ type Msg
     | OnRefresh
     | Tab TabsLayout
     | GotServices (Result Http.Error (List Service))
-    | GotLaunchers (Result Http.Error (List Launcher))
     | GotWorkers (Result Http.Error JsonMonitors)
     | OnKill Int
     | OnShutdown Int
     | SetDomain String
     -- launcher
+    | GotLaunchers (Result Http.Error (List Launcher))
     | OpenForm Int
     | CloseForm
     | Schedule String
+    -- scheduler
+    | GotSchedulers (Result Http.Error (List Scheduler))
     -- events
     | HandleKeyboardEvent KeyboardEvent
     | SelectDisplayLevel Level
@@ -200,3 +216,4 @@ type TabsLayout
     | MonitorsTab
     | ServicesTab
     | LauncherTab
+    | SchedulerTab

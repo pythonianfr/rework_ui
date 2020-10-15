@@ -22,6 +22,7 @@ import Type
         , Monitor
         , Model
         , Msg(..)
+        , Scheduler
         , Service
         , SpecType(..)
         , Status(..)
@@ -93,6 +94,9 @@ strtab tableLayout =
         LauncherTab ->
             "Launch"
 
+        SchedulerTab ->
+            "Schedulers"
+
 
 strstatus task =
     case task.status of
@@ -150,7 +154,7 @@ view model =
                 ]
 
         tabs =
-            [ TasksTab, ServicesTab, LauncherTab, MonitorsTab ]
+            [ TasksTab, ServicesTab, LauncherTab, MonitorsTab, SchedulerTab ]
                 |> LS.fromList
                 |> LS.select model.activetab
 
@@ -268,6 +272,25 @@ view model =
             in
             H.div [ topmargin ] [ select, title, head, tableDomain, tableWorker ]
 
+        SchedulerTab ->
+            let
+                head =
+                    header tabs
+
+                columnsName =
+                    [ "#"
+                    , "service"
+                    , "domain"
+                    , "host"
+                    , "rule"
+                    ]
+
+                table =
+                    body columnsName
+                        (List.map schedulerRenderRow (AL.values model.schedulers))
+            in
+            H.div [ topmargin ] [ select, title, head, table ]
+
 
 th : String -> H.Html msg
 th title =
@@ -364,6 +387,11 @@ serviceRenderRow service =
         , td service.path
         , td service.domain
         ]
+
+
+schedulerRenderRow : Scheduler -> H.Html Msg
+schedulerRenderRow sched =
+    H.tr [] []
 
 
 inputspecRenderRow : Launcher -> H.Html Msg
