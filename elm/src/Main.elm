@@ -354,10 +354,12 @@ update msg model =
                     )
 
         Prepared (Ok done) ->
-            nocmd { model
-                      | selectedservice = Nothing
-                      , selectedhost = Nothing
-                      , selectedrule = Nothing }
+            ( { model
+                  | selectedservice = Nothing
+                  , selectedhost = Nothing
+                  , selectedrule = Nothing }
+            , Http.get (getschedulers model)
+            )
 
         Prepared (Err err) ->
             nocmd <| log model ERROR <| unwraperror err
@@ -450,6 +452,13 @@ getservices model =
     }
 
 
+getschedulers model =
+    { url = UB.crossOrigin model.baseurl
+          [ "schedulers-table-json" ] [ ]
+    , expect = Http.expectJson GotSchedulers (JD.list decodeScheduler)
+    }
+
+
 refreshCmd : Model -> TabsLayout -> Cmd Msg
 refreshCmd model tab =
     let
@@ -478,11 +487,7 @@ refreshCmd model tab =
                     , expect = Http.expectJson GotLaunchers (JD.list decodeLauncher)
                     }
 
-                SchedulerTab ->
-                    { url = UB.crossOrigin model.baseurl
-                            [ "schedulers-table-json" ] [ ]
-                    , expect = Http.expectJson GotSchedulers (JD.list decodeScheduler)
-                    }
+                SchedulerTab -> getschedulers model
 
     in
     Http.get query
