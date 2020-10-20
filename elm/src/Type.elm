@@ -153,6 +153,7 @@ type alias Model =
     , schedulers : SchedulerDict
     , selectedservice : Maybe (String, String)
     , selectedhost : Maybe String
+    , selectedrule : Maybe String
     }
 
 
@@ -212,6 +213,9 @@ type Msg
     | GotSchedulers (Result Http.Error (List Scheduler))
     | ScheduleService String String
     | ScheduleHost String
+    | ScheduleRule String
+    | PreSchedule
+    | CancelPreSchedule
     -- events
     | HandleKeyboardEvent KeyboardEvent
     | SelectDisplayLevel Level

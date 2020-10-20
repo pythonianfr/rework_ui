@@ -328,7 +328,17 @@ scheduleaction model =
                           , HA.placeholder "host" ] []
                 , H.input [ HA.type_ "text"
                           , HA.name "rule"
+                          , HE.onInput ScheduleRule
                           , HA.placeholder "rule" ] []
+                , H.button [ HA.class "btn btn-success"
+                           , HA.type_ "button"
+                           , HE.onClick PreSchedule ]
+                    [ H.text "record" ]
+                , H.span [] [ H.text " " ]
+                , H.button [ HA.class "btn btn-danger"
+                           , HA.type_ "button"
+                           , HE.onClick CancelPreSchedule ]
+                    [ H.text "cancel" ]
                 ]
 
 

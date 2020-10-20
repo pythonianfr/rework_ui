@@ -314,7 +314,8 @@ update msg model =
                 Just service ->
                     nocmd { model
                               | selectedservice = Nothing
-                              , selectedhost = Nothing }
+                              , selectedhost = Nothing
+                              , selectedrule = Nothing }
 
                 Nothing ->
                     let firstservice =
@@ -333,6 +334,18 @@ update msg model =
 
         ScheduleHost host ->
             nocmd { model | selectedhost = Just host }
+
+        ScheduleRule rule ->
+            nocmd { model | selectedrule = Just rule }
+
+        CancelPreSchedule ->
+            nocmd { model
+                      | selectedservice = Nothing
+                      , selectedhost = Nothing
+                      , selectedrule = Nothing }
+
+        PreSchedule ->
+            nocmd model
 
         -- logging
 
@@ -481,6 +494,7 @@ init jsonFlags =
                 []
                 False
                 AL.empty
+                Nothing
                 Nothing
                 Nothing
     in
