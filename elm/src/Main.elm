@@ -7,6 +7,7 @@ import Browser.Events exposing (onKeyDown)
 import Cmd.Extra exposing (withNoCmd)
 import Http
 import Json.Decode as JD
+import Json.Encode as JE
 import Keyboard.Event exposing
     (KeyboardEvent
     , decodeKeyboardEvent
@@ -345,7 +346,21 @@ update msg model =
                       , selectedrule = Nothing }
 
         PreSchedule ->
-            nocmd model
+            case model.selectedservice of
+                Nothing -> nocmd model  -- silly dead code
+                Just selectedservice ->
+                    ( model
+                    , preparelaunch model selectedservice
+                    )
+
+        Prepared (Ok done) ->
+            nocmd { model
+                      | selectedservice = Nothing
+                      , selectedhost = Nothing
+                      , selectedrule = Nothing }
+
+        Prepared (Err err) ->
+            nocmd <| log model ERROR <| unwraperror err
 
         -- logging
 
@@ -357,6 +372,24 @@ update msg model =
 
         SelectDisplayLevel level ->
             nocmd { model | logdisplaylevel = level }
+
+
+preparelaunch model selectedservice =
+    Http.request
+        { method = "PUT"
+        , headers = []
+        , url = UB.crossOrigin model.baseurl
+                [ "prepare-schedule" ] []
+        , expect = Http.expectString Prepared
+        , body = Http.jsonBody <| JE.object
+                 [ ("operation", JE.string (Tuple.first selectedservice))
+                 , ("domain" , JE.string (Tuple.second selectedservice))
+                 , ("host", JE.string (Maybe.withDefault "" model.selectedhost))
+                 , ("rule", JE.string (Maybe.withDefault "" model.selectedrule))
+                 ]
+        , timeout = Nothing
+        , tracker = Nothing
+        }
 
 
 groupbyid items =

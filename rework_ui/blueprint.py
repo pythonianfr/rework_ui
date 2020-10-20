@@ -522,6 +522,24 @@ def reworkui(engine,
             {'content-type': 'application/json'}
         )
 
+    @bp.route('/prepare-schedule', methods=['PUT'])
+    def prepare_schedule():
+        args = argsdict(
+            json.loads(request.data)
+        )
+
+        try:
+            api.prepare(
+                engine,
+                opname=args.operation,
+                domain=args.domain,
+                rule=args.rule
+            )
+        except Exception as err:
+            abort(400, 'bad prepared schedule: {err}')
+
+        return 'done'
+
     @bp.route('/lasteventid')
     def lasteventid():
         eid = select('max(id)').table(

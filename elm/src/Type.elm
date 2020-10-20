@@ -216,6 +216,7 @@ type Msg
     | ScheduleRule String
     | PreSchedule
     | CancelPreSchedule
+    | Prepared (Result Http.Error String)
     -- events
     | HandleKeyboardEvent KeyboardEvent
     | SelectDisplayLevel Level
