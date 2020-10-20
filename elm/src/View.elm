@@ -289,36 +289,47 @@ view model =
                     body columnsName
                         (List.map schedulerRenderRow (AL.values model.schedulers))
 
-                action =
-                    case model.createscheduler of
-                        False ->
-                            H.button
-                                [ HA.class "btn btn-primary"
-                                , HE.onClick NewScheduler ]
-                                [ H.text "Schedule Task" ]
-                        True ->
-                            H.form []
-                                [ H.input [ HA.type_ "text"
-                                          , HA.name "service"
-                                          , HA.placeholder "service" ] []
-                                , H.input [ HA.type_ "text"
-                                          , HA.name "domain"
-                                          , HA.placeholder "domain" ] []
-                                , H.input [ HA.type_ "text"
-                                          , HA.name "host"
-                                          , HA.placeholder "host" ] []
-                                , H.input [ HA.type_ "text"
-                                          , HA.name "rule"
-                                          , HA.placeholder "rule" ] []
-                                ]
-
             in
-            H.div [ topmargin ] [ select, title, head, table, action ]
+            H.div [ topmargin ] [ select, title, head, table, scheduleaction model ]
 
 
 th : String -> H.Html msg
 th title =
     H.th [] [ H.text title ]
+
+
+scheduleaction model =
+    let serviceoption service =
+            H.option [ HA.value service.name ] [ H.text service.name ]
+
+        serviceinput =
+            H.div [ HA.class "form-group" ]
+                [ H.select [ HA.name "service"
+                           , HA.class "form-control" ]
+                      <| List.map
+                      serviceoption
+                      (AL.values model.services)
+                ]
+    in
+    case model.createscheduler of
+        False ->
+            H.button
+                [ HA.class "btn btn-primary"
+                , HE.onClick NewScheduler ]
+                [ H.text "Schedule Task" ]
+        True ->
+            H.form []
+                [ serviceinput
+                , H.input [ HA.type_ "text"
+                          , HA.name "domain"
+                          , HA.placeholder "domain" ] []
+                , H.input [ HA.type_ "text"
+                          , HA.name "host"
+                          , HA.placeholder "host" ] []
+                , H.input [ HA.type_ "text"
+                          , HA.name "rule"
+                          , HA.placeholder "rule" ] []
+                ]
 
 
 taskRenderRow : Task -> H.Html Msg
