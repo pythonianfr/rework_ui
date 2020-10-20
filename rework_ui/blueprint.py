@@ -550,6 +550,17 @@ def reworkui(engine,
 
         return 'done'
 
+    @bp.route('/delete-schedule', methods=['DELETE'])
+    def delete_schedule():
+        sid = json.loads(request.data)
+        with engine.begin() as cn:
+            cn.execute(
+                'delete from rework.sched '
+                'where id = %(id)s',
+                id=sid
+            )
+        return make_response('', 200)
+
     @bp.route('/lasteventid')
     def lasteventid():
         eid = select('max(id)').table(

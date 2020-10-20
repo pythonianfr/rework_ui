@@ -217,6 +217,8 @@ type Msg
     | PreSchedule
     | CancelPreSchedule
     | Prepared (Result Http.Error String)
+    | DeleteSched Int
+    | DeletedSched (Result Http.Error String)
     -- events
     | HandleKeyboardEvent KeyboardEvent
     | SelectDisplayLevel Level

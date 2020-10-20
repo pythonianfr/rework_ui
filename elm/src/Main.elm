@@ -364,6 +364,19 @@ update msg model =
         Prepared (Err err) ->
             nocmd <| log model ERROR <| unwraperror err
 
+        DeleteSched sid ->
+            ( model
+            , deletescheduler model sid
+            )
+
+        DeletedSched (Ok _) ->
+            ( model
+            , Http.get (getschedulers model)
+            )
+
+        DeletedSched (Err err) ->
+            nocmd <| log model ERROR <| unwraperror err
+
         -- logging
 
         HandleKeyboardEvent event ->
@@ -392,6 +405,20 @@ preparelaunch model selectedservice =
         , timeout = Nothing
         , tracker = Nothing
         }
+
+
+deletescheduler model sid =
+    Http.request
+        { method = "DELETE"
+        , headers = []
+        , url = UB.crossOrigin model.baseurl
+                [ "delete-schedule" ] []
+        , expect = Http.expectString DeletedSched
+        , body = Http.jsonBody (JE.string <| String.fromInt sid)
+        , timeout = Nothing
+        , tracker = Nothing
+        }
+
 
 
 groupbyid items =

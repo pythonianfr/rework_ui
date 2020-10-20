@@ -283,6 +283,7 @@ view model =
                     , "domain"
                     , "host"
                     , "rule"
+                    , "action"
                     ]
 
                 table =
@@ -456,6 +457,13 @@ schedulerRenderRow sched =
         , td sched.domain
         , td sched.host
         , td sched.rule
+        , H.td [] [
+               H.button [ HA.class "btn btn-outline-danger"
+                        , HA.type_ "button"
+                        , HE.onClick (DeleteSched sched.id)
+                        ]
+                   [ H.text "delete" ]
+              ]
         ]
 
 
