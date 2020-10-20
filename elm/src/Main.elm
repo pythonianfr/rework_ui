@@ -312,7 +312,9 @@ update msg model =
         NewScheduler ->
             case model.selectedservice of
                 Just service ->
-                    nocmd { model | selectedservice = Nothing }
+                    nocmd { model
+                              | selectedservice = Nothing
+                              , selectedhost = Nothing }
 
                 Nothing ->
                     let firstservice =
@@ -328,6 +330,9 @@ update msg model =
 
         ScheduleService service domain ->
             nocmd { model | selectedservice = Just (service, domain) }
+
+        ScheduleHost host ->
+            nocmd { model | selectedhost = Just host }
 
         -- logging
 
@@ -476,6 +481,7 @@ init jsonFlags =
                 []
                 False
                 AL.empty
+                Nothing
                 Nothing
     in
     ( model

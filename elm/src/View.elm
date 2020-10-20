@@ -324,6 +324,7 @@ scheduleaction model =
                 [ serviceinput
                 , H.input [ HA.type_ "text"
                           , HA.name "host"
+                          , HE.onInput ScheduleHost
                           , HA.placeholder "host" ] []
                 , H.input [ HA.type_ "text"
                           , HA.name "rule"
