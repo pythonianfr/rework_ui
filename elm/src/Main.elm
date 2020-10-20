@@ -375,6 +375,13 @@ tasksquery model msg min max =
     }
 
 
+getservices model =
+    { url = UB.crossOrigin model.baseurl
+          [ "services-table-json" ] [ ]
+    , expect = Http.expectJson GotServices (JD.list decodeService)
+    }
+
+
 refreshCmd : Model -> TabsLayout -> Cmd Msg
 refreshCmd model tab =
     let
@@ -387,11 +394,9 @@ refreshCmd model tab =
             case tab of
                 TasksTab ->
                     eventsquery model
+
                 ServicesTab ->
-                    { url = UB.crossOrigin model.baseurl
-                            [ "services-table-json" ] [ ]
-                    , expect = Http.expectJson GotServices (JD.list decodeService)
-                    }
+                    getservices model
 
                 MonitorsTab ->
                     { url = UB.crossOrigin model.baseurl
@@ -459,6 +464,7 @@ init jsonFlags =
     ( model
     , Cmd.batch [ Http.get <| tasksquery model GotTasks Nothing Nothing
                 , Http.get <| lasteventquery model
+                , Http.get <| getservices model
                 ]
     )
 
