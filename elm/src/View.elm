@@ -300,7 +300,9 @@ th title =
 
 scheduleaction model =
     let serviceoption service =
-            H.option [ HA.value service.name ] [ H.text service.name ]
+            H.option
+                [ HA.value (service.name ++ ":" ++ service.domain) ]
+                [ H.text (service.name ++ " (" ++ service.domain ++ ")") ]
 
         serviceinput =
             H.div [ HA.class "form-group" ]
@@ -320,9 +322,6 @@ scheduleaction model =
         True ->
             H.form []
                 [ serviceinput
-                , H.input [ HA.type_ "text"
-                          , HA.name "domain"
-                          , HA.placeholder "domain" ] []
                 , H.input [ HA.type_ "text"
                           , HA.name "host"
                           , HA.placeholder "host" ] []
