@@ -98,6 +98,13 @@ def maybetz(dt):
     return dt.astimezone(TZ).strftime('%Y-%m-%d %H:%M:%S%z')
 
 
+def none_as_empty_str(alist):
+    return [
+        elt if elt is not None else ""
+        for elt in alist
+    ]
+
+
 def reworkui(engine,
              serviceactions=None,
              alttemplate=None,
@@ -516,7 +523,10 @@ def reworkui(engine,
 
         return make_response(
             json.dumps(
-                [list(row) for row in res]
+                [
+                    none_as_empty_str(row)
+                    for row in res
+                ]
             ),
             200,
             {'content-type': 'application/json'}

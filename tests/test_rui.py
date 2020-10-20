@@ -211,7 +211,7 @@ def test_schedulers(engine, client):
 
     res = client.get('/schedulers-table-json')
     assert res.json == [
-        [1, 'with_inputs', 'default', None, '* * * * * *'],
-        [2, 'with_inputs', 'default', None, '1 2 * * * *']
+        [1, 'with_inputs', 'default', '', '* * * * * *'],
+        [2, 'with_inputs', 'default', '', '1 2 * * * *']
     ]
 

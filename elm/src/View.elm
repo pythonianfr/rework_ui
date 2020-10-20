@@ -449,7 +449,14 @@ serviceRenderRow service =
 
 schedulerRenderRow : Scheduler -> H.Html Msg
 schedulerRenderRow sched =
-    H.tr [] []
+    H.tr []
+        [ H.th [ HA.scope "row" ]
+            [ H.text (String.fromInt sched.id) ]
+        , td sched.service
+        , td sched.domain
+        , td sched.host
+        , td sched.rule
+        ]
 
 
 inputspecRenderRow : Launcher -> H.Html Msg
