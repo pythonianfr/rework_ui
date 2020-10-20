@@ -310,7 +310,24 @@ update msg model =
             nocmd <| log model ERROR <| unwraperror err
 
         NewScheduler ->
-            nocmd { model | createscheduler = True }
+            case model.selectedservice of
+                Just service ->
+                    nocmd { model | selectedservice = Nothing }
+
+                Nothing ->
+                    let firstservice =
+                            List.head (AL.values model.services)
+                    in
+                    case firstservice of
+                        Nothing ->
+                            nocmd model
+                        Just service ->
+                            nocmd { model | selectedservice =
+                                        Just (service.name, service.domain)
+                                  }
+
+        ScheduleService service domain ->
+            nocmd { model | selectedservice = Just (service, domain) }
 
         -- logging
 
@@ -451,8 +468,6 @@ init jsonFlags =
                 AL.empty
                 AL.empty
                 Nothing
-                AL.empty
-                False
                 TasksTab
                 domain
                 0
@@ -460,6 +475,8 @@ init jsonFlags =
                 DEBUG
                 []
                 False
+                AL.empty
+                Nothing
     in
     ( model
     , Cmd.batch [ Http.get <| tasksquery model GotTasks Nothing Nothing

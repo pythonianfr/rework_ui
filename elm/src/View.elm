@@ -301,7 +301,7 @@ th title =
 scheduleaction model =
     let serviceoption service =
             H.option
-                [ HA.value (service.name ++ ":" ++ service.domain) ]
+                [ HE.onClick (ScheduleService service.name service.domain) ]
                 [ H.text (service.name ++ " (" ++ service.domain ++ ")") ]
 
         serviceinput =
@@ -313,13 +313,13 @@ scheduleaction model =
                       (AL.values model.services)
                 ]
     in
-    case model.createscheduler of
-        False ->
+    case model.selectedservice of
+        Nothing ->
             H.button
                 [ HA.class "btn btn-primary"
                 , HE.onClick NewScheduler ]
                 [ H.text "Schedule Task" ]
-        True ->
+        Just _ ->
             H.form []
                 [ serviceinput
                 , H.input [ HA.type_ "text"

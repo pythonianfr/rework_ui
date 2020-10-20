@@ -141,8 +141,6 @@ type alias Model =
     , services : ServiceDict
     , launchers : LauncherDict
     , launching : Maybe Int
-    , schedulers : SchedulerDict
-    , createscheduler : Bool
     , activetab : TabsLayout
     , domain : LS.Selection String
     , lasteventid : Int
@@ -151,6 +149,9 @@ type alias Model =
     , logdisplaylevel : Level
     , log : List LogEntry
     , logview : Bool
+    -- scheduler
+    , schedulers : SchedulerDict
+    , selectedservice : Maybe (String, String)
     }
 
 
@@ -208,6 +209,7 @@ type Msg
     | NewScheduler
     -- scheduler
     | GotSchedulers (Result Http.Error (List Scheduler))
+    | ScheduleService String String
     -- events
     | HandleKeyboardEvent KeyboardEvent
     | SelectDisplayLevel Level
