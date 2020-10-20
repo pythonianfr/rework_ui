@@ -322,14 +322,18 @@ scheduleaction model =
         Just _ ->
             H.form []
                 [ serviceinput
-                , H.input [ HA.type_ "text"
-                          , HA.name "host"
-                          , HE.onInput ScheduleHost
-                          , HA.placeholder "host" ] []
-                , H.input [ HA.type_ "text"
-                          , HA.name "rule"
-                          , HE.onInput ScheduleRule
-                          , HA.placeholder "rule" ] []
+                , H.div [ HA.class "form-group" ]
+                    [ H.input [ HA.type_ "text"
+                              , HA.name "host"
+                              , HE.onInput ScheduleHost
+                              , HA.placeholder "host" ] []
+                    ]
+                , H.div [ HA.class "form-group" ] [
+                       H.input [ HA.type_ "text"
+                               , HA.name "rule"
+                               , HE.onInput ScheduleRule
+                               , HA.placeholder "rule" ] []
+                      ]
                 , H.button [ HA.class "btn btn-success"
                            , HA.type_ "button"
                            , HE.onClick PreSchedule ]
