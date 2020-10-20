@@ -298,6 +298,14 @@ th title =
     H.th [] [ H.text title ]
 
 
+validrule model =
+    case model.selectedrule of
+        Nothing -> False
+        Just rule ->
+            let rules = String.split " " rule in
+            (List.length (List.filter (\x -> String.length x > 0) rules) == 6)
+
+
 scheduleaction model =
     let serviceoption service =
             H.option
@@ -336,6 +344,7 @@ scheduleaction model =
                       ]
                 , H.button [ HA.class "btn btn-success"
                            , HA.type_ "button"
+                           , HA.disabled (not (validrule model))
                            , HE.onClick PreSchedule ]
                     [ H.text "record" ]
                 , H.span [] [ H.text " " ]
