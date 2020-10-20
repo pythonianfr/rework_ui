@@ -297,7 +297,20 @@ view model =
                                 , HE.onClick NewScheduler ]
                                 [ H.text "Schedule Task" ]
                         True ->
-                            H.form [] []
+                            H.form []
+                                [ H.input [ HA.type_ "text"
+                                          , HA.name "service"
+                                          , HA.placeholder "service" ] []
+                                , H.input [ HA.type_ "text"
+                                          , HA.name "domain"
+                                          , HA.placeholder "domain" ] []
+                                , H.input [ HA.type_ "text"
+                                          , HA.name "host"
+                                          , HA.placeholder "host" ] []
+                                , H.input [ HA.type_ "text"
+                                          , HA.name "rule"
+                                          , HA.placeholder "rule" ] []
+                                ]
 
             in
             H.div [ topmargin ] [ select, title, head, table, action ]
