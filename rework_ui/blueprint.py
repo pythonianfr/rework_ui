@@ -546,9 +546,17 @@ def reworkui(engine,
                 rule=args.rule
             )
         except Exception as err:
-            abort(400, f'{err}')
+            return make_response(
+                f'{err}',
+                400,
+                {'content-type': 'application/json'}
+            )
 
-        return 'done'
+        return make_response(
+            'done',
+            200,
+            {'content-type': 'application/json'}
+        )
 
     @bp.route('/delete-schedule', methods=['DELETE'])
     def delete_schedule():

@@ -2,6 +2,7 @@ module Type exposing (..)
 
 import AssocList as AL
 import Http
+import Http.Detailed as HD
 import Keyboard.Event exposing (KeyboardEvent)
 import List.Selection as LS
 import Log exposing (LogEntry, Level)
@@ -217,7 +218,7 @@ type Msg
     | ScheduleRule String
     | PreSchedule
     | CancelPreSchedule
-    | Prepared (Result Http.Error String)
+    | Prepared (Result (HD.Error String) (Http.Metadata, String))
     | DeleteSched Int
     | DeletedSched (Result Http.Error String)
     -- events

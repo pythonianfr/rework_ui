@@ -6,6 +6,7 @@ import Browser
 import Browser.Events exposing (onKeyDown)
 import Cmd.Extra exposing (withNoCmd)
 import Http
+import Http.Detailed as HD
 import Json.Decode as JD
 import Json.Encode as JE
 import Keyboard.Event exposing
@@ -55,6 +56,17 @@ unwraperror resp =
         Http.NetworkError -> "there was a network error"
         Http.BadStatus val -> "we got a bad status answer: " ++ String.fromInt val
         Http.BadBody body -> "we got a bad body: " ++ body
+
+
+unwraperror2 : HD.Error  String -> String
+unwraperror2 resp =
+    case resp of
+        HD.BadUrl x -> "bad url: " ++ x
+        HD.Timeout -> "the query timed out"
+        HD.NetworkError -> "there was a network error"
+        HD.BadStatus _ body ->
+            "the server signals an issue: "  ++ body
+        HD.BadBody _ a b -> "we got a bad body: " ++ a ++ b
 
 
 handleevents model events =
@@ -343,7 +355,9 @@ update msg model =
             nocmd { model
                       | selectedservice = Nothing
                       , selectedhost = Nothing
-                      , selectedrule = Nothing }
+                      , selectedrule = Nothing
+                      , lasterror = Nothing
+                  }
 
         PreSchedule ->
             case model.selectedservice of
@@ -357,12 +371,14 @@ update msg model =
             ( { model
                   | selectedservice = Nothing
                   , selectedhost = Nothing
-                  , selectedrule = Nothing }
+                  , selectedrule = Nothing
+                  , lasterror = Nothing
+              }
             , Http.get (getschedulers model)
             )
 
         Prepared (Err err) ->
-            let errmsg = unwraperror err
+            let errmsg = unwraperror2 err
                 newmodel = { model | lasterror = Just errmsg }
             in
             nocmd <| log newmodel ERROR <| errmsg
@@ -398,7 +414,7 @@ preparelaunch model selectedservice =
         , headers = []
         , url = UB.crossOrigin model.baseurl
                 [ "prepare-schedule" ] []
-        , expect = Http.expectString Prepared
+        , expect = HD.expectString Prepared
         , body = Http.jsonBody <| JE.object
                  [ ("operation", JE.string (Tuple.first selectedservice))
                  , ("domain" , JE.string (Tuple.second selectedservice))
