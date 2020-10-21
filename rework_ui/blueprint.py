@@ -546,7 +546,7 @@ def reworkui(engine,
                 rule=args.rule
             )
         except Exception as err:
-            abort(400, 'bad prepared schedule: {err}')
+            abort(400, f'{err}')
 
         return 'done'
 

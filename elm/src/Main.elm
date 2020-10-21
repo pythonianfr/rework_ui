@@ -362,7 +362,10 @@ update msg model =
             )
 
         Prepared (Err err) ->
-            nocmd <| log model ERROR <| unwraperror err
+            let errmsg = unwraperror err
+                newmodel = { model | lasterror = Just errmsg }
+            in
+            nocmd <| log newmodel ERROR <| errmsg
 
         DeleteSched sid ->
             ( model
@@ -559,6 +562,7 @@ init jsonFlags =
                 []
                 False
                 AL.empty
+                Nothing
                 Nothing
                 Nothing
                 Nothing

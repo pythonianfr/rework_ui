@@ -154,6 +154,7 @@ type alias Model =
     , selectedservice : Maybe (String, String)
     , selectedhost : Maybe String
     , selectedrule : Maybe String
+    , lasterror : Maybe String
     }
 
 

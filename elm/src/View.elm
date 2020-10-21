@@ -353,6 +353,12 @@ scheduleaction model =
                            , HA.type_ "button"
                            , HE.onClick CancelPreSchedule ]
                     [ H.text "cancel" ]
+                , case model.lasterror of
+                      Nothing -> H.span [] []
+                      Just error ->
+                          H.p
+                              [ HA.class "text-danger" ]
+                              [ H.text error ]
                 ]
 
 
