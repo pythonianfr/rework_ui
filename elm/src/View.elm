@@ -359,7 +359,39 @@ scheduleaction model =
                           H.p
                               [ HA.class "text-danger" ]
                               [ H.text error ]
+                , H.pre [ HA.class "text-monospace text-muted" ]
+                    (List.intersperse (H.br [] [])
+                        <| List.map H.text (String.lines crondocumentation)
+                    )
                 ]
+
+
+crondocumentation = """
+How to use the `rule` field: six specifiers must be provided.
+Each one specifies a part of the rule.
+
+┌────────────── second (0 - 59)
+│ ┌───────────── minute (0 - 59)
+│ │ ┌───────────── hour (0 - 23)
+│ │ │ ┌───────────── day of the month (1 - 31)
+│ │ │ │ ┌───────────── month (1 - 12)
+│ │ │ │ │ ┌───────────── day of the week (0 - 6 or mon,tue,wed,thu,fri,sat,sun)
+│ │ │ │ │ │
+│ │ │ │ │ │
+│ │ │ │ │ │
+* * * * * *
+
+│Expression Field Description
+├────────────────────────────
+│*          any   Fire on every value
+│*/a        any   Fire every a values, starting from the minimum
+│a-b        any   Fire on any value within the a-b range (a must be smaller than b)
+│a-b/c      any   Fire every c values within the a-b range
+│xth y      day   Fire on the x -th occurrence of weekday y within the month
+│last x     day   Fire on the last occurrence of weekday x within the month
+│last       day   Fire on the last day within the month
+│x,y,z      any   Fire on any matching expression; can combine any number of any of the above expressions
+"""
 
 
 taskRenderRow : Task -> H.Html Msg
