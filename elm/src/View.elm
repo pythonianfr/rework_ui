@@ -307,6 +307,30 @@ validrule model =
             (List.length (List.filter (\x -> String.length x > 0) rules) == 6)
 
 
+findandrenderinput model service =
+    -- find the relevant input using the selected service
+    let
+        findfirst alist matchfunc =
+            case alist of
+                [] -> Nothing
+                (head::tail) ->
+                    if matchfunc head
+                    then Just head
+                    else findfirst tail matchfunc
+
+        matchservice launcher =
+            (launcher.operation == Tuple.first service) &&
+            (launcher.domain == Tuple.second service)
+
+        maybelauncher = findfirst (AL.values model.launchers) matchservice
+    in
+    case maybelauncher of
+        Nothing -> H.span [] []
+        Just alauncher -> H.fieldset
+                          [ HA.class "form-group" ]
+                          <| List.map renderInput alauncher.inputs
+
+
 scheduleaction model =
     let serviceoption service =
             H.option
@@ -328,8 +352,8 @@ scheduleaction model =
                 [ HA.class "btn btn-primary"
                 , HE.onClick NewScheduler ]
                 [ H.text "Schedule Task" ]
-        Just _ ->
-            H.form []
+        Just service ->
+            H.form [ HA.id "pre-schedule-form" ]
                 [ serviceinput
                 , H.div [ HA.class "form-group" ]
                     [ H.input [ HA.type_ "text"
@@ -343,6 +367,7 @@ scheduleaction model =
                                , HE.onInput ScheduleRule
                                , HA.placeholder "rule" ] []
                       ]
+                , findandrenderinput model service
                 , H.button [ HA.class "btn btn-success"
                            , HA.type_ "button"
                            , HA.disabled (not (validrule model))

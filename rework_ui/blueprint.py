@@ -532,18 +532,40 @@ def reworkui(engine,
             {'content-type': 'application/json'}
         )
 
+    class prepareargs(argsdict):
+        defaults = {
+            'domain': 'default'
+        }
+
     @bp.route('/prepare-schedule', methods=['PUT'])
     def prepare_schedule():
-        args = argsdict(
-            json.loads(request.data)
+        args = prepareargs({
+            k: v.read()
+            for k, v in argsdict(request.files).items()
+            if v
+        })
+        args.update(
+            argsdict(request.form)
         )
+
+        # this is bit a mess ... some sync with the elm side
+        # would be welcome
+        meta = argsdict(request.args)
+        host = args.pop('host', None)
+        domain = args.pop('domain', None)
+        operation = meta.pop('operation', None)
+        args.pop('service', None)
+        rule = args.pop('rule', None)
 
         try:
             api.prepare(
                 engine,
-                opname=args.operation,
-                domain=args.domain,
-                rule=args.rule
+                opname=operation,
+                domain=domain,
+                host=host,
+                rule=rule,
+                inputdata=args,
+                metadata=meta or None
             )
         except Exception as err:
             return make_response(

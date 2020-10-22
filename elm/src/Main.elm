@@ -363,25 +363,16 @@ update msg model =
             case model.selectedservice of
                 Nothing -> nocmd model  -- silly dead code
                 Just selectedservice ->
-                    ( model
-                    , preparelaunch model selectedservice
+                    ( { model
+                          | selectedservice = Nothing
+                          , selectedhost = Nothing
+                          , selectedrule = Nothing
+                          , lasterror = Nothing
+                      }
+                    , Cmd.batch [ pre_schedule_task (Tuple.first selectedservice)
+                                , Http.get (getschedulers model)
+                                ]
                     )
-
-        Prepared (Ok done) ->
-            ( { model
-                  | selectedservice = Nothing
-                  , selectedhost = Nothing
-                  , selectedrule = Nothing
-                  , lasterror = Nothing
-              }
-            , Http.get (getschedulers model)
-            )
-
-        Prepared (Err err) ->
-            let errmsg = unwraperror2 err
-                newmodel = { model | lasterror = Just errmsg }
-            in
-            nocmd <| log newmodel ERROR <| errmsg
 
         DeleteSched sid ->
             ( model
@@ -406,24 +397,6 @@ update msg model =
 
         SelectDisplayLevel level ->
             nocmd { model | logdisplaylevel = level }
-
-
-preparelaunch model selectedservice =
-    Http.request
-        { method = "PUT"
-        , headers = []
-        , url = UB.crossOrigin model.baseurl
-                [ "prepare-schedule" ] []
-        , expect = HD.expectString Prepared
-        , body = Http.jsonBody <| JE.object
-                 [ ("operation", JE.string (Tuple.first selectedservice))
-                 , ("domain" , JE.string (Tuple.second selectedservice))
-                 , ("host", JE.string (Maybe.withDefault "" model.selectedhost))
-                 , ("rule", JE.string (Maybe.withDefault "" model.selectedrule))
-                 ]
-        , timeout = Nothing
-        , tracker = Nothing
-        }
 
 
 deletescheduler model sid =
@@ -505,6 +478,13 @@ getschedulers model =
     }
 
 
+getlaunchers model =
+    { url = UB.crossOrigin model.baseurl
+          [ "launchers-table-json" ] [ ]
+    , expect = Http.expectJson GotLaunchers (JD.list decodeLauncher)
+    }
+
+
 refreshCmd : Model -> TabsLayout -> Cmd Msg
 refreshCmd model tab =
     let
@@ -516,27 +496,24 @@ refreshCmd model tab =
         query =
             case tab of
                 TasksTab ->
-                    eventsquery model
+                    [ eventsquery model ]
 
                 ServicesTab ->
-                    getservices model
+                    [ getservices model ]
 
                 MonitorsTab ->
-                    { url = UB.crossOrigin model.baseurl
+                    [ { url = UB.crossOrigin model.baseurl
                             [ "workers-table-json" ] [ ]
-                    , expect = Http.expectJson GotWorkers decodeWorkers
-                    }
+                      , expect = Http.expectJson GotWorkers decodeWorkers
+                      }
+                    ]
 
-                LauncherTab ->
-                    { url = UB.crossOrigin model.baseurl
-                            [ "launchers-table-json" ] [ ]
-                    , expect = Http.expectJson GotLaunchers (JD.list decodeLauncher)
-                    }
+                LauncherTab -> [ getlaunchers model ]
 
-                SchedulerTab -> getschedulers model
+                SchedulerTab -> [ getlaunchers model, getschedulers model ]
 
     in
-    Http.get query
+    Cmd.batch <| List.map Http.get query
 
 
 init : JD.Value -> ( Model, Cmd Msg )
@@ -626,4 +603,4 @@ main =
         }
 
 port schedule_task : String -> Cmd msg
-
+port pre_schedule_task : String -> Cmd msg

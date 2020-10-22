@@ -218,7 +218,6 @@ type Msg
     | ScheduleRule String
     | PreSchedule
     | CancelPreSchedule
-    | Prepared (Result (HD.Error String) (Http.Metadata, String))
     | DeleteSched Int
     | DeletedSched (Result Http.Error String)
     -- events

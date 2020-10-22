@@ -47,6 +47,19 @@
          )
      }
  )
+
+ app.ports.pre_schedule_task.subscribe(
+     function(operation) {
+         let form = document.getElementById('pre-schedule-form')
+         fetch(
+             `prepare-schedule?user=WEBUI&operation=${operation}`,
+             {method: 'PUT', body: new FormData(form), credentials: 'same-origin'}
+         ).catch(
+             error => console.log(error)
+         )
+     }
+ )
+
 </script>
 
 {% endblock %}
