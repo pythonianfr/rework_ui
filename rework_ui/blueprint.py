@@ -22,6 +22,7 @@ from sqlhelp import select, update
 from rework import api
 
 from rework.helper import (
+    BetterCronTrigger,
     inputspec,
     utcnow
 )
@@ -622,6 +623,15 @@ def reworkui(engine,
         return json.dumps(
             events
         )
+
+    @bp.route('/test-cron-rule')
+    def test_cron_rule():
+        args = argsdict(request.args)
+        try:
+            BetterCronTrigger.from_extended_crontab(args.rule)
+            return make_response('', 200)
+        except Exception as err:
+            return make_response(str(err), 200)
 
     @bp.route('/')
     def home():

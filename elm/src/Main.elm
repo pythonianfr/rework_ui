@@ -349,7 +349,20 @@ update msg model =
             nocmd { model | selectedhost = Just host }
 
         ScheduleRule rule ->
-            nocmd { model | selectedrule = Just rule }
+            ( { model | selectedrule = Just rule }
+            , Http.get
+                { url = UB.crossOrigin model.baseurl
+                      [ "test-cron-rule" ] [ UB.string "rule" rule ]
+                , expect = HD.expectString TestedRule
+                }
+            )
+
+        TestedRule (Ok err) ->
+            let errmsg = Tuple.second err in
+            nocmd { model | lasterror = if errmsg == "" then Nothing else Just errmsg }
+
+        TestedRule (Err err) ->
+            nocmd <| log model ERROR <| unwraperror2 err
 
         CancelPreSchedule ->
             nocmd { model
@@ -375,7 +388,6 @@ update msg model =
                         , selectedrule = Nothing
                         , lasterror = Nothing
                     }
-                x=Debug.log "M" m
             in
             ( newmodel
             , Http.get (getschedulers newmodel)

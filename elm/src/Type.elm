@@ -216,6 +216,7 @@ type Msg
     | ScheduleService String String
     | ScheduleHost String
     | ScheduleRule String
+    | TestedRule (Result (HD.Error String) (Http.Metadata, String))
     | PreSchedule
     | CancelPreSchedule
     | DeleteSched Int
