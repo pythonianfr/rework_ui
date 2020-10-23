@@ -114,8 +114,8 @@ matchActionResult status =
             [ Relaunch, Delete ]
 
 
-map12 :
-    (a -> b -> c -> d -> e -> f -> g -> h -> i -> j -> k -> l -> value)
+map13 :
+    (a -> b -> c -> d -> e -> f -> g -> h -> i -> j -> k -> l -> m -> value)
     -> D.Decoder a
     -> D.Decoder b
     -> D.Decoder c
@@ -128,14 +128,16 @@ map12 :
     -> D.Decoder j
     -> D.Decoder k
     -> D.Decoder l
+    -> D.Decoder m
     -> D.Decoder value
-map12 func da db dc dd de df dg dh di dj dk dl =
+map13 func da db dc dd de df dg dh di dj dk dl dm =
     let
-        map4 : (i -> j -> k -> l -> value) -> D.Decoder value
-        map4 funcIJKL =
-            D.map4 funcIJKL di dj dk dl
+        map5 : (i -> j -> k -> l -> m -> value) -> D.Decoder value
+        map5 funcIJKLM =
+            D.map5 funcIJKLM di dj dk dl dm
     in
-    D.map8 func da db dc dd de df dg dh |> D.andThen map4
+    D.map8 func da db dc dd de df dg dh |> D.andThen map5
+
 
 
 optionalAt : List String -> D.Decoder a -> D.Decoder (Maybe a)
@@ -145,7 +147,7 @@ optionalAt path da =
 
 decodeTask : Status -> D.Decoder Task
 decodeTask status =
-    map12
+    map13
         Task
         (D.field "tid" D.int)
         (D.succeed <| matchTaskResult status)
@@ -159,6 +161,7 @@ decodeTask status =
         (D.succeed status)
         (D.field "deathinfo" (D.nullable D.string))
         (D.succeed <| matchActionResult status)
+        (D.field "input" (D.nullable D.string))
 
 
 taskDecoder : D.Decoder Task

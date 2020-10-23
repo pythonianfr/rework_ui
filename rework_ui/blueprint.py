@@ -48,6 +48,31 @@ def getjob(engine, jobid):
     except:
         return None
 
+def formatinput(engine, tid):
+    task = Task.byid(engine, tid)
+    inp = task.input
+    if inp is None:
+        return ''
+    if isinstance(inp, dict):
+        newinp = {}
+        for key, val in inp.items():
+            if isinstance(val, bytes):
+                val = f'<{len(val)//1024} kb file>'
+            else:
+                try:
+                    if len(val) > 10:
+                        val = val[:10] + '...'
+                except:
+                    val = str(val)
+                    if len(val) > 10:
+                        val = val[:10] + '...'
+            newinp[key] = val
+        inp = newinp
+
+    if len(inp) > 50:
+        return str(inp)[:50] + '...'
+    return str(inp)
+
 
 class sliceargs(argsdict):
     types = {
@@ -432,7 +457,8 @@ def reworkui(engine,
                 't.id', 'op.name', 't.status', 'op.domain',
                 't.operation', 't.traceback', 't.abort',
                 't.queued', 't.started', 't.finished',
-                't.metadata', 't.worker', 'w.deathinfo'
+                't.metadata', 't.worker', 'w.deathinfo',
+                't.input'
             ).table('rework.task as t'
             ).join('rework.operation as op on (op.id = t.operation)'
             ).join('rework.worker as w on (w.id = t.worker)', jtype='left outer'
@@ -457,7 +483,8 @@ def reworkui(engine,
                  'metadata': row.metadata,
                  'worker': row.worker,
                  'deathinfo': row.deathinfo,
-                 'traceback': row.traceback
+                 'traceback': row.traceback,
+                 'input': formatinput(engine, row.id)
                 }
                 for row in q.do(cn).fetchall()
             ])

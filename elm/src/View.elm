@@ -173,6 +173,7 @@ view model =
                     [ "#"
                     , "service"
                     , "domain"
+                    , "input"
                     , "events"
                     , "user"
                     , "worker"
@@ -475,6 +476,7 @@ taskRenderRow task =
             [ H.text (String.fromInt task.id) ]
         , renderResult task.result
         , td task.domain
+        , td <| Maybe.withDefault "" task.input
         , H.td [ HA.class "text-monospace", HA.style "font-size" ".8em" ]
             [ H.span [ HA.style "color" "grey" ] [ H.text task.queued ]
             , H.br [] []

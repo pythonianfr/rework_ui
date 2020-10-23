@@ -23,6 +23,7 @@ type alias Task =
     , status : Status
     , deathInfo : Maybe String
     , actions : List Action
+    , input : Maybe String
     }
 
 
