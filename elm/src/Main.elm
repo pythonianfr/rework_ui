@@ -364,7 +364,7 @@ update msg model =
                 Nothing -> nocmd model  -- silly dead code
                 Just selectedservice ->
                     ( model
-                    , pre_schedule_task (Tuple.first selectedservice)
+                    , pre_schedule_task ()
                     )
 
         PreScheduleOk m ->
@@ -580,7 +580,7 @@ init jsonFlags =
 
 port schedule_task : String -> Cmd msg
 
-port pre_schedule_task : String -> Cmd msg
+port pre_schedule_task : () -> Cmd msg
 port pre_schedule_fail : (String -> msg) -> Sub msg
 port pre_schedule_ok : (String -> msg) -> Sub msg
 

@@ -334,7 +334,9 @@ findandrenderinput model service =
 scheduleaction model =
     let serviceoption service =
             H.option
-                [ HE.onClick (ScheduleService service.name service.domain) ]
+                [ HE.onClick (ScheduleService service.name service.domain)
+                , HA.value service.name
+                ]
                 [ H.text (service.name ++ " (" ++ service.domain ++ ")") ]
 
         serviceinput =

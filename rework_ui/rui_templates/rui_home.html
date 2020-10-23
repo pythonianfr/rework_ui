@@ -49,10 +49,10 @@
  )
 
  app.ports.pre_schedule_task.subscribe(
-     function(operation) {
+     function() {
          let form = document.getElementById('pre-schedule-form')
          fetch(
-             `prepare-schedule?user=WEBUI&operation=${operation}`,
+             `prepare-schedule?user=WEBUI`,
              {method: 'PUT', body: new FormData(form), credentials: 'same-origin'}
          ).catch(() => {
              app.ports.pre_schedule_fail.send(error)

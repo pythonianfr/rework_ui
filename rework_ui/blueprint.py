@@ -548,13 +548,12 @@ def reworkui(engine,
             argsdict(request.form)
         )
 
-        # this is bit a mess ... some sync with the elm side
-        # would be welcome
         meta = argsdict(request.args)
+
+        # separate regular _prepare_ args from task payload
         host = args.pop('host', None)
         domain = args.pop('domain', None)
-        operation = meta.pop('operation', None)
-        args.pop('service', None)
+        operation = args.pop('service', None)
         rule = args.pop('rule', None)
 
         try:
