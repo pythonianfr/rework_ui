@@ -363,16 +363,26 @@ update msg model =
             case model.selectedservice of
                 Nothing -> nocmd model  -- silly dead code
                 Just selectedservice ->
-                    ( { model
-                          | selectedservice = Nothing
-                          , selectedhost = Nothing
-                          , selectedrule = Nothing
-                          , lasterror = Nothing
-                      }
-                    , Cmd.batch [ pre_schedule_task (Tuple.first selectedservice)
-                                , Http.get (getschedulers model)
-                                ]
+                    ( model
+                    , pre_schedule_task (Tuple.first selectedservice)
                     )
+
+        PreScheduleOk m ->
+            let newmodel =
+                    { model
+                        | selectedservice = Nothing
+                        , selectedhost = Nothing
+                        , selectedrule = Nothing
+                        , lasterror = Nothing
+                    }
+                x=Debug.log "M" m
+            in
+            ( newmodel
+            , Http.get (getschedulers newmodel)
+            )
+
+        PreScheduleFailed err ->
+            nocmd <| log model ERROR err
 
         DeleteSched sid ->
             ( model
@@ -568,6 +578,13 @@ init jsonFlags =
     )
 
 
+port schedule_task : String -> Cmd msg
+
+port pre_schedule_task : String -> Cmd msg
+port pre_schedule_fail : (String -> msg) -> Sub msg
+port pre_schedule_ok : (String -> msg) -> Sub msg
+
+
 sub : Model -> Sub Msg
 sub model =
     let
@@ -590,6 +607,8 @@ sub model =
     in
     Sub.batch [ Time.every refreshTime (always OnRefresh)
               , onKeyDown (JD.map HandleKeyboardEvent decodeKeyboardEvent)
+              , pre_schedule_fail PreScheduleFailed
+              , pre_schedule_ok PreScheduleOk
               ]
 
 
@@ -601,6 +620,3 @@ main =
         , update = update
         , subscriptions = sub
         }
-
-port schedule_task : String -> Cmd msg
-port pre_schedule_task : String -> Cmd msg

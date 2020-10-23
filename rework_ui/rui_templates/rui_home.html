@@ -54,9 +54,16 @@
          fetch(
              `prepare-schedule?user=WEBUI&operation=${operation}`,
              {method: 'PUT', body: new FormData(form), credentials: 'same-origin'}
-         ).catch(
-             error => console.log(error)
-         )
+         ).catch(() => {
+             app.ports.pre_schedule_fail.send(error)
+         }).then(resp => {
+             if (resp.ok) {
+                 app.ports.pre_schedule_ok.send('done')
+             }
+             else {
+                 app.ports.pre_schedule_fail.send('failed')
+             }
+         })
      }
  )
 
