@@ -34,6 +34,7 @@ import Decoder
 import Type
     exposing
         ( Action(..)
+        , defaultrule
         , Flags
         , Model
         , Msg(..)
@@ -328,7 +329,7 @@ update msg model =
                     nocmd { model
                               | selectedservice = Nothing
                               , selectedhost = Nothing
-                              , selectedrule = Nothing }
+                              , selectedrule = defaultrule }
 
                 Nothing ->
                     let firstservice =
@@ -349,7 +350,7 @@ update msg model =
             nocmd { model | selectedhost = Just host }
 
         ScheduleRule rule ->
-            ( { model | selectedrule = Just rule }
+            ( { model | selectedrule = rule }
             , Http.get
                 { url = UB.crossOrigin model.baseurl
                       [ "test-cron-rule" ] [ UB.string "rule" rule ]
@@ -368,7 +369,7 @@ update msg model =
             nocmd { model
                       | selectedservice = Nothing
                       , selectedhost = Nothing
-                      , selectedrule = Nothing
+                      , selectedrule = defaultrule
                       , lasterror = Nothing
                   }
 
@@ -385,7 +386,7 @@ update msg model =
                     { model
                         | selectedservice = Nothing
                         , selectedhost = Nothing
-                        , selectedrule = Nothing
+                        , selectedrule = defaultrule
                         , lasterror = Nothing
                     }
             in
@@ -579,7 +580,7 @@ init jsonFlags =
                 AL.empty
                 Nothing
                 Nothing
-                Nothing
+                defaultrule
                 Nothing
     in
     ( model

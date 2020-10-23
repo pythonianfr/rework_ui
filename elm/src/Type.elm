@@ -42,6 +42,8 @@ type alias Service =
     }
 
 
+defaultrule = "* * * * * *"
+
 type alias Scheduler =
     { id : Int
     , service : String
@@ -154,7 +156,7 @@ type alias Model =
     , schedulers : SchedulerDict
     , selectedservice : Maybe (String, String)
     , selectedhost : Maybe String
-    , selectedrule : Maybe String
+    , selectedrule : String
     , lasterror : Maybe String
     }
 

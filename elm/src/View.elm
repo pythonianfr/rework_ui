@@ -300,11 +300,8 @@ th title =
 
 
 validrule model =
-    case model.selectedrule of
-        Nothing -> False
-        Just rule ->
-            let rules = String.split " " rule in
-            (List.length (List.filter (\x -> String.length x > 0) rules) == 6)
+    let rules = String.split " " model.selectedrule in
+    (List.length (List.filter (\x -> String.length x > 0) rules) == 6)
 
 
 findandrenderinput model service =
@@ -366,6 +363,7 @@ scheduleaction model =
                 , H.div [ HA.class "form-group" ] [
                        H.input [ HA.type_ "text"
                                , HA.name "rule"
+                               , HA.value model.selectedrule
                                , HE.onInput ScheduleRule
                                , HA.placeholder "rule" ] []
                       ]
