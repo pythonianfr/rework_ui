@@ -173,9 +173,7 @@ view model =
                     [ "#"
                     , "service"
                     , "domain"
-                    , "queued"
-                    , "started"
-                    , "finished"
+                    , "events"
                     , "user"
                     , "worker"
                     , "status"
@@ -477,9 +475,13 @@ taskRenderRow task =
             [ H.text (String.fromInt task.id) ]
         , renderResult task.result
         , td task.domain
-        , H.td [ HA.style "color" "grey" ] [ H.text task.queued ]
-        , td <| Maybe.withDefault "" task.started
-        , td <| Maybe.withDefault "" task.finished
+        , H.td [ HA.class "text-monospace", HA.style "font-size" ".8em" ]
+            [ H.span [ HA.style "color" "grey" ] [ H.text task.queued ]
+            , H.br [] []
+            , H.span [] [ H.text <| Maybe.withDefault "" task.started ]
+            , H.br [] []
+            , H.span [] [ H.text <| Maybe.withDefault "" task.finished ]
+            ]
         , H.td
             [ if user == unknownuser
               then HA.style "color" "grey"
