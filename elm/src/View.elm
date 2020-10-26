@@ -154,7 +154,7 @@ view model =
                 ]
 
         tabs =
-            [ TasksTab, ServicesTab, LauncherTab, MonitorsTab, SchedulerTab ]
+            [ TasksTab, MonitorsTab, LauncherTab, SchedulerTab, ServicesTab ]
                 |> LS.fromList
                 |> LS.select model.activetab
 
