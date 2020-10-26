@@ -625,11 +625,19 @@ launcherRenderRow : Maybe Int -> Launcher -> H.Html Msg
 launcherRenderRow launching launcher =
     let
         preform =
-            H.td [ HE.onClick (OpenForm launcher.id) ]
-                [ H.button [ HA.class "btn btn-primary"
-                           , HA.type_ "button"
-                           ] [ H.text "open form" ]
-                ]
+            case launcher.inputs of
+                [] ->
+                    H.td [ HE.onClick (DirectSchedule launcher) ]
+                        [ H.button [ HA.class "btn btn-success"
+                                   , HA.type_ "button"
+                                   ] [ H.text "launch now" ]
+                        ]
+                _ ->
+                    H.td [ HE.onClick (OpenForm launcher.id) ]
+                        [ H.button [ HA.class "btn btn-primary"
+                                   , HA.type_ "button"
+                                   ] [ H.text "open form" ]
+                        ]
     in
     H.tr []
         [ H.th [ HA.scope "row" ]

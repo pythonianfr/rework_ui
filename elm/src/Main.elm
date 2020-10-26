@@ -121,6 +121,9 @@ update msg model =
     case msg of
         -- general/ui
 
+        Noop _ ->
+            nocmd model
+
         Tab tab ->
             ( { model | activetab = tab }
             , refreshCmd model tab
@@ -313,6 +316,23 @@ update msg model =
         Schedule operation ->
             ( { model | launching = Nothing }
             , schedule_task operation
+            )
+
+        DirectSchedule launcher ->
+            ( model
+            , Http.request
+                { method = "PUT"
+                , headers = []
+                , url = UB.crossOrigin model.baseurl
+                        [ "schedule2" ++ "/" ++ launcher.operation ] []
+                , expect = Http.expectWhatever Noop
+                , body = Http.jsonBody <| JE.object
+                         [ ("domain" , JE.string launcher.domain)
+                         , ("host", JE.string launcher.host)
+                         ]
+                , timeout = Nothing
+                , tracker = Nothing
+                }
             )
 
         -- schedulers

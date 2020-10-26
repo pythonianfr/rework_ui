@@ -192,7 +192,8 @@ type Action
 
 
 type Msg
-    = OnDelete Int
+    = Noop (Result Http.Error ())
+    | OnDelete Int
     | OnAbort Int
     | OnRelaunch Int
     | GotTasks (Result Http.Error String)
@@ -213,6 +214,7 @@ type Msg
     | OpenForm Int
     | CloseForm
     | Schedule String
+    | DirectSchedule Launcher
     | NewScheduler
     -- scheduler
     | GotSchedulers (Result Http.Error (List Scheduler))
