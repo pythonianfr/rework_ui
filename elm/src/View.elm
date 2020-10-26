@@ -92,7 +92,7 @@ strtab tableLayout =
             "Services"
 
         LauncherTab ->
-            "Launch"
+            "Launchers"
 
         SchedulerTab ->
             "Schedulers"
