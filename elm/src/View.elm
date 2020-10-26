@@ -624,7 +624,7 @@ inputspecRenderRow launcher =
 launcherRenderRow : Maybe Int -> Launcher -> H.Html Msg
 launcherRenderRow launching launcher =
     let
-        preform id =
+        preform =
             H.td [ HE.onClick (OpenForm launcher.id) ]
                 [ H.button [ HA.class "btn btn-primary"
                            , HA.type_ "button"
@@ -638,12 +638,12 @@ launcherRenderRow launching launcher =
         , td launcher.domain
         , td launcher.host
         , case launching of
-              Nothing -> preform launcher.id
+              Nothing -> preform
               Just lid ->
                   if launcher.id == lid then
                       inputspecRenderRow launcher
                   else
-                      preform launcher.id
+                      preform
         ]
 
 
