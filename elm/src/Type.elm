@@ -235,5 +235,5 @@ type TabsLayout
     = TasksTab
     | MonitorsTab
     | ServicesTab
-    | LauncherTab
-    | SchedulerTab
+    | LaunchersTab
+    | SchedulersTab

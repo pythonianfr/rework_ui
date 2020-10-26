@@ -112,10 +112,10 @@ update msg model =
                 ServicesTab ->
                     mod
 
-                LauncherTab ->
+                LaunchersTab ->
                     mod
 
-                SchedulerTab ->
+                SchedulersTab ->
                     mod
     in
     case msg of
@@ -531,9 +531,9 @@ refreshCmd model tab =
                       }
                     ]
 
-                LauncherTab -> [ getlaunchers model ]
+                LaunchersTab -> [ getlaunchers model ]
 
-                SchedulerTab -> [ getlaunchers model, getschedulers model ]
+                SchedulersTab -> [ getlaunchers model, getschedulers model ]
 
     in
     Cmd.batch <| List.map Http.get query
@@ -609,10 +609,10 @@ sub model =
                 ServicesTab ->
                     10000
 
-                LauncherTab ->
+                LaunchersTab ->
                     1000000
 
-                SchedulerTab ->
+                SchedulersTab ->
                     1000000
 
                 MonitorsTab ->

@@ -91,10 +91,10 @@ strtab tableLayout =
         ServicesTab ->
             "Services"
 
-        LauncherTab ->
+        LaunchersTab ->
             "Launchers"
 
-        SchedulerTab ->
+        SchedulersTab ->
             "Schedulers"
 
 
@@ -154,7 +154,7 @@ view model =
                 ]
 
         tabs =
-            [ TasksTab, MonitorsTab, LauncherTab, SchedulerTab, ServicesTab ]
+            [ TasksTab, MonitorsTab, LaunchersTab, SchedulersTab, ServicesTab ]
                 |> LS.fromList
                 |> LS.select model.activetab
 
@@ -216,7 +216,7 @@ view model =
             in
             H.div [ topmargin ] [ select, title, head, table ]
 
-        LauncherTab ->
+        LaunchersTab ->
             let
                 head = header tabs
                 columnsName =
@@ -271,7 +271,7 @@ view model =
             in
             H.div [ topmargin ] [ select, title, head, tableDomain, tableWorker ]
 
-        SchedulerTab ->
+        SchedulersTab ->
             let
                 head =
                     header tabs
