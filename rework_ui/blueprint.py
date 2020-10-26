@@ -174,9 +174,9 @@ def reworkui(engine,
             argsdict(request.form)
         )
 
-        meta = argsdict(request.args)
         hostid = args.pop('host', None)
         domain = args.pop('domain', None)
+        meta = argsdict(request.args)
 
         try:
             task = api.schedule(
