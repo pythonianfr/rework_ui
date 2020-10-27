@@ -1,6 +1,7 @@
 import io
 import base64
 import json
+import pickle
 
 import tzlocal
 from flask import (
@@ -24,6 +25,7 @@ from rework import api
 from rework.helper import (
     BetterCronTrigger,
     inputspec,
+    unpack_inputs,
     utcnow
 )
 from rework.task import Task
@@ -48,11 +50,19 @@ def getjob(engine, jobid):
     except:
         return None
 
-def formatinput(engine, tid):
-    task = Task.byid(engine, tid)
-    inp = task.input
-    if inp is None:
+
+def task_formatinput(spec, input):
+    if input is None:
         return ''
+    if spec is None:
+        inp = pickle.loads(input)
+    else:
+        inp = unpack_inputs(spec, input)
+
+    return format_input(inp)
+
+
+def format_input(inp):
     if isinstance(inp, dict):
         newinp = {}
         for key, val in inp.items():
@@ -458,7 +468,7 @@ def reworkui(engine,
                 't.operation', 't.traceback', 't.abort',
                 't.queued', 't.started', 't.finished',
                 't.metadata', 't.worker', 'w.deathinfo',
-                't.input'
+                'op.inputs', 't.input'
             ).table('rework.task as t'
             ).join('rework.operation as op on (op.id = t.operation)'
             ).join('rework.worker as w on (w.id = t.worker)', jtype='left outer'
@@ -484,7 +494,7 @@ def reworkui(engine,
                  'worker': row.worker,
                  'deathinfo': row.deathinfo,
                  'traceback': row.traceback,
-                 'input': formatinput(engine, row.id)
+                 'input': task_formatinput(row.inputs, row.input)
                 }
                 for row in q.do(cn).fetchall()
             ]
