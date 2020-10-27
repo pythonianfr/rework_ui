@@ -74,6 +74,38 @@ def test_no_job(client):
     assert 'NO SUCH JOB' in res.text
 
 
+def test_services_table(client):
+    res = client.get('/services-table-json')
+
+    def transform(thing):
+        thing['host'] = scrub(thing['host'])
+        thing['path'] = Path(thing['path']).name
+        return thing
+
+    assert [transform(x) for x in res.json] == [
+        {'domain': 'default',
+         'host': '<X>.<X>.<X>.<X>',
+         'name': 'abortme',
+         'opid': 3,
+         'path': 'test_rui.py'},
+        {'domain': 'default',
+         'host': '<X>.<X>.<X>.<X>',
+         'name': 'bad_job',
+         'opid': 2,
+         'path': 'test_rui.py'},
+        {'domain': 'default',
+         'host': '<X>.<X>.<X>.<X>',
+         'name': 'good_job',
+         'opid': 1,
+         'path': 'test_rui.py'},
+        {'domain': 'default',
+         'host': '<X>.<X>.<X>.<X>',
+         'name': 'with_inputs',
+         'opid': 4,
+         'path': 'test_rui.py'}
+    ]
+
+
 def test_bad_request(engine, client):
     # bad hostid
     res = client.put('/schedule-task/good_job?user={}&hostid={}'.format('Babar', 'fancyhost'),

@@ -529,7 +529,11 @@ def reworkui(engine,
                 'path': path,
                 'domain': domain
             })
-        return json.dumps(out)
+        return make_response(
+            json.dumps(out),
+            200,
+            {'content-type': 'application/json'}
+        )
 
     @bp.route('/launchers-table-json')
     def launchers_table_json():
