@@ -564,7 +564,8 @@ def reworkui(engine,
 
         with engine.begin() as cn:
             sql = (
-                'select sched.id, op.name, sched.domain, sched.host, rule '
+                'select sched.id, op.name, sched.domain, sched.host, rule, '
+                '       op.inputs, inputdata '
                 'from rework.sched as sched, rework.operation as op '
                 'where sched.operation = op.id'
             )
@@ -573,7 +574,13 @@ def reworkui(engine,
         return make_response(
             json.dumps(
                 [
-                    none_as_empty_str(row)
+                    [row.id,
+                     row.name,
+                     row.domain,
+                     row.host or "",
+                     row.rule,
+                     task_formatinput(row.inputs, row.inputdata)
+                    ]
                     for row in res
                 ]
             ),
