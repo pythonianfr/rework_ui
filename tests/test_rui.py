@@ -130,6 +130,43 @@ def test_with_input(engine, client):
         'weight': 65
     }
 
+    res = client.get('/tasks-table-json')
+    def filterthings(thing):
+        thing.pop('queued')
+        return thing
+
+    assert [filterthings(x) for x in res.json] == [
+        {'abort': False,
+         'deathinfo': None,
+         'domain': 'default',
+         'finished': None,
+         'input': '',
+         'metadata': {'user': 'Babar'},
+         'name': 'good_job',
+         'operation': 1,
+         'started': None,
+         'status': 'queued',
+         'tid': 1,
+         'traceback': None,
+         'worker': None},
+        {'abort': False,
+         'deathinfo': None,
+         'domain': 'default',
+         'finished': None,
+         'input': ("{'babar.xlsx': '<0 kb file>', 'name': 'Babar', "
+                   "'weight': '65', 'celeste.xlsx': '<0 kb file>', "
+                   "'birthdate': '2020-01-01...'}"),
+         'metadata': {'user': 'Babar'},
+         'name': 'with_inputs',
+         'operation': 4,
+         'started': None,
+         'status': 'queued',
+         'tid': 2,
+         'traceback': None,
+         'worker': None
+        }
+    ]
+
 
 def test_abort(engine, client):
     with workers(engine) as mon:

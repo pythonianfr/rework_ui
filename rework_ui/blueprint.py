@@ -470,7 +470,7 @@ def reworkui(engine,
             if args.max:
                 q.where('t.id <= %(maxid)s', maxid=args.max)
 
-            return json.dumps([
+            out = [
                 {'tid': row.id,
                  'name' : row.name,
                  'status': row.status,
@@ -487,7 +487,14 @@ def reworkui(engine,
                  'input': formatinput(engine, row.id)
                 }
                 for row in q.do(cn).fetchall()
-            ])
+            ]
+
+        return make_response(
+            json.dumps(out),
+            200,
+            {'content-type': 'application/json'}
+        )
+
 
     @bp.route('/tasklogs/<int:taskid>')
     def tasklogs(taskid):
