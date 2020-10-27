@@ -211,12 +211,13 @@ decodeLauncher =
 
 decodeScheduler : D.Decoder Scheduler
 decodeScheduler =
-    D.map5 Scheduler
+    D.map6 Scheduler
         (D.index 0 D.int)
         (D.index 1 D.string)
         (D.index 2 D.string)
         (D.index 3 D.string)
         (D.index 4 D.string)
+        (D.index 5 (D.nullable D.string))
 
 
 decodeMonitor : D.Decoder Monitor

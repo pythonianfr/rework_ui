@@ -51,6 +51,7 @@ type alias Scheduler =
     , domain : String
     , host : String
     , rule : String
+    , input : Maybe String
     }
 
 

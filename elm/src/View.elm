@@ -282,6 +282,7 @@ view model =
                     , "domain"
                     , "host"
                     , "rule"
+                    , "input"
                     , "action"
                     ]
 
@@ -524,6 +525,7 @@ schedulerRenderRow sched =
         , td sched.domain
         , td sched.host
         , td sched.rule
+        , td (Maybe.withDefault "" sched.input)
         , H.td [] [
                H.button [ HA.class "btn btn-outline-danger"
                         , HA.type_ "button"
