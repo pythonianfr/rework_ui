@@ -135,6 +135,15 @@ update msg model =
         OnRefresh ->
             ( model, refreshCmd model model.activetab )
 
+        ActionResponse _ _ _ (Ok True) ->
+            nocmd model
+
+        ActionResponse table id action (Ok False) ->
+            nocmd <| disableactions model table id
+
+        ActionResponse table id action (Err _) ->
+            nocmd <| disableactions model table id
+
         -- tasks
 
         GotTasks (Ok rawtasks) ->
@@ -227,15 +236,6 @@ update msg model =
                 )
                 (Http.expectJson (RelaunchMsg taskid) JD.int)
             )
-
-        ActionResponse _ _ _ (Ok True) ->
-            nocmd model
-
-        ActionResponse table id action (Ok False) ->
-            nocmd <| disableactions model table id
-
-        ActionResponse table id action (Err _) ->
-            nocmd <| disableactions model table id
 
         RelaunchMsg taskid (Ok 0) ->
             nocmd <| disableactions model TasksTab taskid
