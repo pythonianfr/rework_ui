@@ -546,34 +546,39 @@ renderInput input =
                       , HA.required input.required
                       , HA.name input.name  ] []
                 ]
+
         Str ->
-            if List.isEmpty input.choices then
-                H.div [ HA.class "form-group" ]
-                    [ H.input
-                          [ HA.type_ "text"
-                          , HA.placeholder input.name
-                          , HA.required input.required
-                          , HA.name input.name  ] []
-                    ]
-            else
-                let
-                    makeoption choice =
-                        H.option [ HA.value choice ] [ H.text choice ]
-                    options =
-                        if input.required then
-                            List.map makeoption input.choices
-                        else
-                            [ H.option [] [] ] ++ (List.map makeoption input.choices)
-                in
-                H.div
-                    [ HA.class "form-group" ]
-                    [ H.label [ HA.for input.name
-                              , HA.class "control-label" ]
-                          [ H.text (SE.toTitleCase input.name) ]
-                    , H.select [ HA.name input.name
-                               , HA.class "form-control" ]
-                        options
-                    ]
+            case input.choices of
+                [] ->
+                    H.div [ HA.class "form-group" ]
+                        [ H.input
+                              [ HA.type_ "text"
+                              , HA.placeholder input.name
+                              , HA.required input.required
+                              , HA.name input.name  ] []
+                        ]
+                _ ->
+                    let
+                        makeoption choice =
+                            H.option [ HA.value choice ] [ H.text choice ]
+                        options =
+                            case input.required of
+                                True ->
+                                    List.map makeoption input.choices
+                                False ->
+                                    [ H.option [] [] ] ++
+                                        (List.map makeoption input.choices)
+                    in
+                    H.div
+                        [ HA.class "form-group" ]
+                        [ H.label [ HA.for input.name
+                                  , HA.class "control-label" ]
+                              [ H.text (SE.toTitleCase input.name) ]
+                        , H.select [ HA.name input.name
+                                   , HA.class "form-control" ]
+                            options
+                        ]
+
         Datetime ->
             H.div [ HA.class "form-group" ]
                 [ H.input
@@ -582,6 +587,7 @@ renderInput input =
                       , HA.required input.required
                       , HA.name input.name  ] []
                 ]
+
         Moment ->
             H.div [ HA.class "form-group" ]
                 [ H.input
@@ -590,6 +596,7 @@ renderInput input =
                       , HA.required input.required
                       , HA.name input.name  ] []
                 ]
+
         File ->
             H.div [ HA.class "form-group" ] [
                  H.label [ HA.for input.name
