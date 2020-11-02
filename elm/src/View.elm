@@ -582,6 +582,14 @@ renderInput input =
                       , HA.required input.required
                       , HA.name input.name  ] []
                 ]
+        Moment ->
+            H.div [ HA.class "form-group" ]
+                [ H.input
+                      [ HA.type_ "text"
+                      , HA.placeholder input.name
+                      , HA.required input.required
+                      , HA.name input.name  ] []
+                ]
         File ->
             H.div [ HA.class "form-group" ] [
                  H.label [ HA.for input.name

@@ -60,6 +60,7 @@ type SpecType
     | Str
     | File
     | Datetime
+    | Moment
 
 
 type alias InputSpec =
