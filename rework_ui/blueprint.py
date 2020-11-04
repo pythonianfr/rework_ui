@@ -609,7 +609,7 @@ def reworkui(engine,
         # separate regular _prepare_ args from task payload
         host = args.pop('host', None)
         domain = args.pop('domain', None)
-        operation = args.pop('service', None)
+        operation = args.pop('service').split(':')[0]
         rule = args.pop('rule', None)
 
         try:

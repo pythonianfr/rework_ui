@@ -322,23 +322,31 @@ findandrenderinput model service =
         maybelauncher = findfirst (AL.values model.launchers) matchservice
     in
     case maybelauncher of
-        Nothing -> H.span [] []
-        Just alauncher -> H.fieldset
-                          [ HA.class "form-group" ]
-                          <| List.map renderInput alauncher.inputs
+        Nothing ->
+            H.span [] []
+        Just alauncher ->
+            H.fieldset [ HA.class "form-group" ]
+                <| List.map renderInput alauncher.inputs
 
 
 scheduleaction model =
     let serviceoption service =
             H.option
-                [ HE.onClick (ScheduleService service.name service.domain)
-                , HA.value service.name
-                ]
+                [ HA.value (service.name ++ ":" ++ service.domain) ]
                 [ H.text (service.name ++ " (" ++ service.domain ++ ")") ]
+
+        unpackserviceoption nameplusdomain =
+            case String.split ":" nameplusdomain of
+                [name, domain] ->
+                    JD.succeed <| ScheduleService name domain
+                _ ->
+                    JD.fail "never there"
 
         serviceinput =
             H.div [ HA.class "form-group" ]
                 [ H.select [ HA.name "service"
+                           , HE.on "change" <|
+                               (JD.andThen unpackserviceoption HE.targetValue)
                            , HA.class "form-control" ]
                       <| List.map
                       serviceoption
