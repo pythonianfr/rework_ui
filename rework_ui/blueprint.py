@@ -505,7 +505,6 @@ def reworkui(engine,
             {'content-type': 'application/json'}
         )
 
-
     @bp.route('/tasklogs/<int:taskid>')
     def tasklogs(taskid):
         if not has_permission('read'):
@@ -526,7 +525,7 @@ def reworkui(engine,
         q = select(
             'id', 'host', 'name', 'path', 'domain'
         ).table('rework.operation'
-        ).order('domain, name')
+        ).order('domain, name', 'asc')
         if args.domain != 'all':
             q.where(domain=args.domain)
 
@@ -567,7 +566,8 @@ def reworkui(engine,
                 'select sched.id, op.name, sched.domain, sched.host, rule, '
                 '       op.inputs, inputdata '
                 'from rework.sched as sched, rework.operation as op '
-                'where sched.operation = op.id'
+                'where sched.operation = op.id '
+                'order by sched.domain, op.name asc'
             )
             res = cn.execute(sql).fetchall()
 
