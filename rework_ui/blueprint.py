@@ -588,14 +588,9 @@ def reworkui(engine,
             {'content-type': 'application/json'}
         )
 
-    class prepareargs(argsdict):
-        defaults = {
-            'domain': 'default'
-        }
-
     @bp.route('/prepare-schedule', methods=['PUT'])
     def prepare_schedule():
-        args = prepareargs({
+        args = argsdict({
             k: v.read()
             for k, v in argsdict(request.files).items()
             if v
@@ -608,8 +603,7 @@ def reworkui(engine,
 
         # separate regular _prepare_ args from task payload
         host = args.pop('host', None)
-        domain = args.pop('domain', None)
-        operation = args.pop('service').split(':')[0]
+        operation, domain = args.pop('service').split(':')
         rule = args.pop('rule', None)
 
         try:
