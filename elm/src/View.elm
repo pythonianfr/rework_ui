@@ -127,31 +127,32 @@ maketab active tab =
         ]
 
 
+viewdomainfilter model =
+    let
+        option selected x =
+            H.option (selected ++ [ HA.value x ]) [ H.text x ]
+
+    in H.div [ HA.id "filter", HA.style "float" "right" ]
+        [ H.select
+              [ HA.id "domain-filter"
+              , HA.name "domain-filter"
+              , HA.title "domain"
+              , HE.on "change" (JD.map SetDomain HE.targetValue)
+              ]
+              (LS.mapSelected
+                   { selected = option [ HA.selected True ]
+                   , rest = option []
+                   }
+                   model.domain |> LS.toList
+              )
+        ]
+
+
 view : Model -> H.Html Msg
 view model =
     let
         title =
             H.h1 [] [ H.text "Tasks Monitoring UI" ]
-
-        option selected x =
-            H.option (selected ++ [ HA.value x ]) [ H.text x ]
-
-        select =
-            H.div [ HA.id "filter", HA.style "float" "right" ]
-                [ H.select
-                    [ HA.id "domain-filter"
-                    , HA.name "domain-filter"
-                    , HA.title "domain"
-                    , HE.on "change" (JD.map SetDomain HE.targetValue)
-                    ]
-                    (LS.mapSelected
-                        { selected = option [ HA.selected True ]
-                        , rest = option []
-                        }
-                        model.domain
-                        |> LS.toList
-                    )
-                ]
 
         tabs =
             [ TasksTab, MonitorsTab, LaunchersTab, SchedulersTab, ServicesTab ]
@@ -195,7 +196,7 @@ view model =
                         )
 
             in
-            H.div [ topmargin ] [ select, title, head, table ]
+            H.div [ topmargin ] [ title, viewdomainfilter model, head, table ]
 
         ServicesTab ->
             let
@@ -214,7 +215,7 @@ view model =
                     body columnsName
                         (List.map serviceRenderRow (AL.values model.services))
             in
-            H.div [ topmargin ] [ select, title, head, table ]
+            H.div [ topmargin ] [ title, head, table ]
 
         LaunchersTab ->
             let
@@ -233,7 +234,7 @@ view model =
                              (AL.values model.launchers))
 
             in
-            H.div [ topmargin ] [ select, title, head, table ]
+            H.div [ topmargin ] [ title, head, table ]
 
         MonitorsTab ->
             let
@@ -269,7 +270,7 @@ view model =
                     body columnsNameWorker
                         (List.map workerRenderRow (AL.values model.workers))
             in
-            H.div [ topmargin ] [ select, title, head, tableDomain, tableWorker ]
+            H.div [ topmargin ] [ title, head, tableDomain, tableWorker ]
 
         SchedulersTab ->
             let
@@ -291,7 +292,7 @@ view model =
                         (List.map schedulerRenderRow (AL.values model.schedulers))
 
             in
-            H.div [ topmargin ] [ select, title, head, table, scheduleaction model ]
+            H.div [ topmargin ] [ title, head, table, scheduleaction model ]
 
 
 th : String -> H.Html msg
