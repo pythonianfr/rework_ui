@@ -62,25 +62,27 @@ def task_formatinput(spec, input):
     return format_input(inp)
 
 
+def cut(thing, limit):
+    if len(thing) > limit:
+        return thing[:limit] + '…'
+    return thing
+
+
 def format_input(inp):
     if isinstance(inp, dict):
         newinp = {}
         for key, val in inp.items():
             if isinstance(val, bytes):
-                val = f'<{len(val)//1024} kb file>'
+                val = f'<{round(len(val)/1024,2)} kb file>'
             else:
                 try:
-                    if len(val) > 10:
-                        val = val[:10] + '...'
+                    val = cut(val, 25)
                 except:
-                    val = str(val)
-                    if len(val) > 10:
-                        val = val[:10] + '...'
+                    val = cut(str(val), 25)
             newinp[key] = val
         inp = newinp
 
-    if len(inp) > 50:
-        return str(inp)[:50] + '...'
+    strinp = cut(str(inp), 400)
     return str(inp)
 
 

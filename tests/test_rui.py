@@ -185,9 +185,9 @@ def test_with_input(engine, client):
          'deathinfo': None,
          'domain': 'default',
          'finished': None,
-         'input': ("{'babar.xlsx': '<0 kb file>', 'name': 'Babar', "
-                   "'weight': '65', 'celeste.xlsx': '<0 kb file>', "
-                   "'birthdate': '2020-01-01...'}"),
+         'input': ("{'babar.xlsx': '<0.02 kb file>', 'name': 'Babar', "
+                   "'weight': '65', 'celeste.xlsx': '<0.02 kb file>', "
+                   "'birthdate': '2020-01-01 00:00:00'}"),
          'metadata': {'user': 'Babar'},
          'name': 'with_inputs',
          'operation': 4,
@@ -295,7 +295,7 @@ def test_schedulers(engine, client):
         [1, 'with_inputs', 'default', '', '* * * * * *', ''],
         [2, 'with_inputs', 'default', '', '1 2 * * * *', ''],
         [3, 'with_inputs', 'default', '', '0 9 * * * *',
-         "{'babar.xlsx': '<0 kb file>', 'name': 'Babar', 'weight': '65', 'birthdate': "
-         "'1973-05-20...'}"
+         "{'babar.xlsx': '<0.03 kb file>', 'name': 'Babar', 'weight': '65', 'birthdate': "
+         "'1973-05-20 09:00:00'}"
         ]
     ]
