@@ -287,12 +287,21 @@ view model =
                     , "action"
                     ]
 
+                domain = Maybe.withDefault "all" <| LS.selected model.domain
+                indomain sched =
+                    case domain of
+                        "all" -> True
+                        _ -> sched.domain == domain
+
                 table =
                     body columnsName
-                        (List.map schedulerRenderRow (AL.values model.schedulers))
+                        (List.map schedulerRenderRow
+                             (List.filter indomain (AL.values model.schedulers)))
 
             in
-            H.div [ topmargin ] [ title, head, table, scheduleaction model ]
+            H.div
+                [ topmargin ]
+                [ title, viewdomainfilter model, head, table, scheduleaction model ]
 
 
 th : String -> H.Html msg
