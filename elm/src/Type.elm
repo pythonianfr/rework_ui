@@ -43,7 +43,7 @@ type alias Service =
     }
 
 
-defaultrule = "* * * * * *"
+defaultrule = "0 * * * * *"
 
 type alias Scheduler =
     { id : Int
