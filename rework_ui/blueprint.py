@@ -24,8 +24,8 @@ from rework import api
 
 from rework.helper import (
     BetterCronTrigger,
-    inputspec,
-    unpack_inputs,
+    iospec,
+    unpack_io,
     utcnow
 )
 from rework.task import Task
@@ -57,7 +57,7 @@ def task_formatinput(spec, input):
     if spec is None:
         inp = pickle.loads(input)
     else:
-        inp = unpack_inputs(spec, input)
+        inp = unpack_io(spec, input)
 
     return format_input(inp)
 
@@ -551,7 +551,7 @@ def reworkui(engine,
         if not has_permission('read'):
             abort(403, 'Nothing to see there.')
 
-        spec = inputspec(engine)
+        spec = iospec(engine)
         return make_response(
             json.dumps(spec),
             200,
