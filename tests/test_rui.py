@@ -269,7 +269,8 @@ def test_task_life_cycle(engine, client, refresh):
 def test_schedulers(engine, client):
     api.prepare(
         engine,
-        'with_inputs'
+        'with_inputs',
+        rule='0 * * * * *'
     )
 
     api.prepare(
@@ -292,7 +293,7 @@ def test_schedulers(engine, client):
 
     res = client.get('/schedulers-table-json')
     assert res.json == [
-        [1, 'with_inputs', 'default', '', '* * * * * *', ''],
+        [1, 'with_inputs', 'default', '', '0 * * * * *', ''],
         [2, 'with_inputs', 'default', '', '1 2 * * * *', ''],
         [3, 'with_inputs', 'default', '', '0 9 * * * *',
          "{'babar.xlsx': '<0.03 kb file>', 'name': 'Babar', 'weight': '65', 'birthdate': "
