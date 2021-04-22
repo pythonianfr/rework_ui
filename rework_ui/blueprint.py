@@ -518,6 +518,17 @@ def reworkui(engine,
             homeurl=homeurl()
         )
 
+    @bp.route('/taskinfo/<int:taskid>')
+    def taskinfo(taskid):
+        if not has_permission('read'):
+            abort(403, 'Nothing to see there.')
+
+        return render_template(
+            'taskinfo.html',
+            taskid=taskid,
+            homeurl=homeurl()
+        )
+
     @bp.route('/services-table-json')
     def list_services_json():
         if not has_permission('read'):
