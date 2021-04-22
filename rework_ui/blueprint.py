@@ -28,7 +28,10 @@ from rework.helper import (
     unpack_io,
     utcnow
 )
-from rework.task import Task
+from rework.task import (
+    _task_state,
+    Task
+)
 
 from rework_ui.helper import argsdict
 
@@ -518,6 +521,8 @@ def reworkui(engine,
             homeurl=homeurl()
         )
 
+    # info
+
     @bp.route('/taskinfo/<int:taskid>')
     def taskinfo(taskid):
         if not has_permission('read'):
@@ -528,6 +533,30 @@ def reworkui(engine,
             taskid=taskid,
             homeurl=homeurl()
         )
+
+    @bp.route('/info-for/<int:taskid>')
+    def info_for(taskid):
+        res = select(
+            'status', 'abort', 'traceback',
+            'queued', 'started', 'finished'
+        ).table('rework.task'
+        ).where(id=taskid
+        ).do(engine).fetchone()
+
+        info = {
+            'state': _task_state(res.status, res.abort, res.traceback),
+            'queued': str(res.queued),
+            'started': str(res.started),
+            'finished': str(res.finished)
+        }
+
+        return make_response(
+            json.dumps(info),
+            200,
+            {'content-type': 'application/json'}
+        )
+
+    # services
 
     @bp.route('/services-table-json')
     def list_services_json():

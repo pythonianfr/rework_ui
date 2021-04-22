@@ -4,19 +4,37 @@ import Browser
 import Html as H
 import Http
 import Type exposing (Task)
+import Url.Builder as UB
 
 
 nocmd model = ( model, Cmd.none )
 
 
+type alias Info =
+    { state : String
+    , queued : String
+    , started : String
+    , finished : String
+    }
+
+
 type alias Model =
     { baseurl : String
-    , task : Maybe Task
+    , taskid : Int
+    , info : Maybe Info
     }
 
 
 type Msg
     = GotTaskinfo (Result Http.Error String)
+
+
+getinfo model =
+    Http.get
+        { url = UB.crossOrigin model.baseurl
+              [ "info-for", String.fromInt model.taskid ] []
+        , expect = Http.expectString GotTaskinfo
+        }
 
 
 
@@ -26,16 +44,23 @@ view model =
 
 
 update msg model =
-    ( model, Cmd.none )
+    case msg of
+        GotTaskinfo (Ok rawinfo) ->
+            let _ = Debug.log "taskinfo" rawinfo
+            in ( model, Cmd.none )
+
+        GotTaskinfo (Err e) ->
+            let _ = Debug.log "err" e
+            in ( model, Cmd.none )
 
 
 init : { baseurl : String, taskid : Int } -> ( Model, Cmd Msg )
 init flags =
     let
         model =
-            Model flags.baseurl Nothing
+            Model flags.baseurl flags.taskid Nothing
     in
-        ( model, Cmd.none )
+    ( model, getinfo model )
 
 
 subscriptions model = Sub.none
