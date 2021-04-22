@@ -1,0 +1,9 @@
+data/pgdb
+\.pyc$
+\.orig$
+.tox
+\.egg-info
+build
+dist
+.cache
+elm-stuff
