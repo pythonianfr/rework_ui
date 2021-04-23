@@ -2,7 +2,9 @@ module Info exposing (main)
 
 import Browser
 import Html as H
+import Html.Attributes as HA
 import Http
+import Json.Decode as D
 import Type exposing (Task)
 import Url.Builder as UB
 
@@ -29,6 +31,14 @@ type Msg
     = GotTaskinfo (Result Http.Error String)
 
 
+infodecoder =
+    D.map4 Info
+        (D.field "state" D.string)
+        (D.field "queued" D.string)
+        (D.field "started" D.string)
+        (D.field "finished" D.string)
+
+
 getinfo model =
     Http.get
         { url = UB.crossOrigin model.baseurl
@@ -40,14 +50,30 @@ getinfo model =
 
 view : Model -> H.Html Msg
 view model =
-    H.div [] []
-
+    let
+        taskstatus =
+            case model.info of
+                Just info -> info.state
+                Nothing -> "N/A"
+    in
+    H.div [ HA.style "margin" ".5em" ]
+        [ H.h2 []
+          [ H.span [] [ H.text ("Task #" ++ (String.fromInt model.taskid) ++ " ") ]
+          , H.small [ HA.class "badge badge-info" ] [ H.text taskstatus ]
+          ]
+        ]
 
 update msg model =
     case msg of
         GotTaskinfo (Ok rawinfo) ->
-            let _ = Debug.log "taskinfo" rawinfo
-            in ( model, Cmd.none )
+            case D.decodeString infodecoder rawinfo of
+                Ok info ->
+                    ( { model | info = Just info }
+                    , Cmd.none
+                    )
+                Err err ->
+                    let _ = Debug.log "error" err
+                    in ( model, Cmd.none )
 
         GotTaskinfo (Err e) ->
             let _ = Debug.log "err" e
