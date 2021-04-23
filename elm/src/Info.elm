@@ -61,7 +61,23 @@ view model =
           [ H.span [] [ H.text ("Task #" ++ (String.fromInt model.taskid) ++ " ") ]
           , H.small [ HA.class "badge badge-info" ] [ H.text taskstatus ]
           ]
+        , case model.info of
+              Just info -> viewinfo info
+              Nothing -> H.p [] []
         ]
+
+
+show label thing =
+    if String.length thing > 0 then label ++ " → " ++ thing else ""
+
+
+viewinfo info =
+    H.p []
+        [ H.text (show "queued" info.queued)
+        , H.text (show "started" info.started)
+        , H.text (show "finished" info.finished)
+        ]
+
 
 update msg model =
     case msg of

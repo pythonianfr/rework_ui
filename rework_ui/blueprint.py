@@ -545,9 +545,9 @@ def reworkui(engine,
 
         info = {
             'state': _task_state(res.status, res.abort, res.traceback),
-            'queued': str(res.queued),
-            'started': str(res.started),
-            'finished': str(res.finished)
+            'queued': str(res.queued or ''),
+            'started': str(res.started or ''),
+            'finished': str(res.finished or '')
         }
 
         return make_response(
