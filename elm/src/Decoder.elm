@@ -193,6 +193,7 @@ decodeInputspec =
                          "string" -> Str
                          "number" -> Num
                          "datetime" -> Datetime
+                         "moment" -> Moment
                          _ -> Str
         , name = name
         , required = required
