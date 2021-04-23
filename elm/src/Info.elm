@@ -7,7 +7,7 @@ import Html.Attributes as HA
 import Http
 import Json.Decode as D
 import String.Extra as SE
-import Type exposing (Task, InputSpec, SpecType(..))
+import Type exposing (Task, IOSpec, SpecType(..))
 import Url.Builder as UB
 
 
@@ -19,8 +19,8 @@ type alias Info =
     , queued : String
     , started : String
     , finished : String
-    , inputspec : List InputSpec
-    , outputspec : List InputSpec
+    , inputspec : List IOSpec
+    , outputspec : List IOSpec
     }
 
 

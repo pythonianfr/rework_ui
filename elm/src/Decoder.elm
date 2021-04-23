@@ -23,7 +23,7 @@ import Type
         , Monitor
         , Event
         , Flags
-        , InputSpec
+        , IOSpec
         , JsonMonitors
         , JsonStatus
         , Launcher
@@ -180,7 +180,7 @@ decodeService =
         (D.field "domain" D.string)
 
 
-decodeInputspec : D.Decoder InputSpec
+decodeInputspec : D.Decoder IOSpec
 decodeInputspec =
     F.require "type" D.string <| \stype ->
     F.require "name" D.string <| \name ->

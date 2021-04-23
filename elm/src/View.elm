@@ -17,7 +17,6 @@ import String.Extra as SE
 import Type
     exposing
         ( Action(..)
-        , InputSpec
         , Launcher
         , Monitor
         , Model

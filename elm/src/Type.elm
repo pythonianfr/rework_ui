@@ -63,7 +63,7 @@ type SpecType
     | Moment
 
 
-type alias InputSpec =
+type alias IOSpec =
     { spectype : SpecType
     , name : String
     , required : Bool
@@ -76,7 +76,7 @@ type alias Launcher =
     , operation : String
     , domain : String
     , host : String
-    , inputs : List InputSpec
+    , inputs : List IOSpec
     }
 
 
