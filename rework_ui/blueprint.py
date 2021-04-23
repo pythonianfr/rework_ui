@@ -538,16 +538,20 @@ def reworkui(engine,
     def info_for(taskid):
         res = select(
             'status', 'abort', 'traceback',
-            'queued', 'started', 'finished'
-        ).table('rework.task'
-        ).where(id=taskid
+            'queued', 'started', 'finished',
+            'inputs', 'outputs'
+        ).table('rework.task as t', 'rework.operation as o'
+        ).where('t.id = %(taskid)s', taskid=taskid
+        ).where('o.id = t.operation'
         ).do(engine).fetchone()
 
         info = {
             'state': _task_state(res.status, res.abort, res.traceback),
             'queued': str(res.queued or ''),
             'started': str(res.started or ''),
-            'finished': str(res.finished or '')
+            'finished': str(res.finished or ''),
+            'inputspec': res.inputs,
+            'outputspec': res.outputs
         }
 
         return make_response(

@@ -67,7 +67,7 @@ type alias InputSpec =
     { spectype : SpecType
     , name : String
     , required : Bool
-    , choices : List String
+    , choices : Maybe (List String)
     }
 
 

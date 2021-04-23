@@ -1,5 +1,6 @@
 module Decoder exposing
     ( decodeFlags
+    , decodeInputspec
     , decodeLauncher
     , decodeWorkers
     , decodeScheduler
@@ -184,7 +185,7 @@ decodeInputspec =
     F.require "type" D.string <| \stype ->
     F.require "name" D.string <| \name ->
     F.require "required" D.bool <| \required ->
-    F.require "choices" (D.list D.string) <| \choices ->
+    F.require "choices" (D.nullable (D.list D.string)) <| \choices ->
 
     D.succeed
         { spectype = case stype of

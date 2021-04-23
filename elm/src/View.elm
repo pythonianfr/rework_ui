@@ -567,7 +567,7 @@ renderInput input =
 
         Str ->
             case input.choices of
-                [] ->
+                Nothing ->
                     H.div [ HA.class "form-group" ]
                         [ H.input
                               [ HA.type_ "text"
@@ -575,17 +575,17 @@ renderInput input =
                               , HA.required input.required
                               , HA.name input.name  ] []
                         ]
-                _ ->
+                Just choices ->
                     let
                         makeoption choice =
                             H.option [ HA.value choice ] [ H.text choice ]
                         options =
                             case input.required of
                                 True ->
-                                    List.map makeoption input.choices
+                                    List.map makeoption choices
                                 False ->
                                     [ H.option [] [] ] ++
-                                        (List.map makeoption input.choices)
+                                        (List.map makeoption choices)
                     in
                     H.div
                         [ HA.class "form-group" ]
