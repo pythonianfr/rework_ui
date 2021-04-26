@@ -85,7 +85,6 @@ def format_input(inp):
             newinp[key] = val
         inp = newinp
 
-    strinp = cut(str(inp), 400)
     return str(inp)
 
 
@@ -223,12 +222,14 @@ def reworkui(engine,
             'task.id = %(tid)s', tid=t.tid
         ).do(engine).fetchone()
 
-        newtask = api.schedule(engine,
-                               op.name,
-                               rawinputdata=t.raw_input,
-                               domain=op.domain,
-                               hostid=op.host,
-                               metadata=t.metadata)
+        newtask = api.schedule(
+            engine,
+            op.name,
+            rawinputdata=t.raw_input,
+            domain=op.domain,
+            hostid=op.host,
+            metadata=t.metadata
+        )
         return json.dumps(newtask.tid)
 
     @bp.route('/job_input/<jobid>')
@@ -241,8 +242,10 @@ def reworkui(engine,
             abort(404, 'no such job')
 
         archive = job.raw_input
-        return send_file(io.BytesIO(archive),
-                         mimetype='application/octet-stream')
+        return send_file(
+            io.BytesIO(archive),
+            mimetype='application/octet-stream'
+        )
 
     @bp.route('/job_results/<jobid>')
     def job_results(jobid):
@@ -254,15 +257,21 @@ def reworkui(engine,
             abort(404, 'NO SUCH JOB')
 
         if job.status != 'done':
-            return make_response('job still in state: {}'.format(job.status), 204)
+            return make_response(
+                'job still in state: {}'.format(job.status), 204
+            )
 
         if job.traceback:
-            return send_file(io.BytesIO(job.traceback.encode('utf-8')),
-                             mimetype='text/plain')
+            return send_file(
+                io.BytesIO(job.traceback.encode('utf-8')),
+                mimetype='text/plain'
+            )
 
         archive = job.raw_output
-        return send_file(io.BytesIO(archive),
-                         mimetype='application/zip')
+        return send_file(
+            io.BytesIO(archive),
+            mimetype='application/zip'
+        )
 
     @bp.route('/job_status/<jobid>')
     def job_status(jobid):
@@ -288,7 +297,9 @@ def reworkui(engine,
 
         args = sliceargs(request.args)
         logs = job.logs(fromid=args.from_log_id)
-        return json.dumps([[lid, line] for lid, line in logs])
+        return json.dumps([
+            [lid, line] for lid, line in logs
+        ])
 
     @bp.route('/list_jobs')
     def list_jobs():
@@ -310,7 +321,9 @@ def reworkui(engine,
                     stat = 'failed'
                 elif job.aborted:
                     stat = 'aborted'
-            output.append((jid, ops[job.operation], stat))
+            output.append(
+                (jid, ops[job.operation], stat)
+            )
 
         return json.dumps(output)
 
@@ -385,23 +398,23 @@ def reworkui(engine,
         workers_list = []
         for wid, host, domain, pid, mem, cpu, shutdown, kill, debugport, started in workers:
             if started:
-                started = started.astimezone(TZ).strftime('%Y-%m-%d %H:%M:%S%z')
-            workers_list.append(
-                {
-                    'wid': wid,
-                    'host':host,
-                    'pid': pid,
-                    'domain': domain,
-                    'mem': mem,
-                    'cpu': cpu,
-                    'debugport': debugport,
-                    'started': started,
-                    'button': {
-                        'kill': kill,
-                        'shutdown': shutdown
-                    }
+                started = started.astimezone(TZ).strftime(
+                    '%Y-%m-%d %H:%M:%S%z'
+                )
+            workers_list.append({
+                'wid': wid,
+                'host':host,
+                'pid': pid,
+                'domain': domain,
+                'mem': mem,
+                'cpu': cpu,
+                'debugport': debugport,
+                'started': started,
+                'button': {
+                    'kill': kill,
+                    'shutdown': shutdown
                 }
-            )
+            })
         return json.dumps(
             {
                 'domains': domains_list,
@@ -415,15 +428,17 @@ def reworkui(engine,
             abort(403, 'You cannot do that.')
 
         with engine.begin() as cn:
-            cn.execute("delete from rework.task where id = %(tid)s and status != 'running'",
-                       tid=tid)
+            cn.execute(
+                "delete from rework.task "
+                "where id = %(tid)s and status != 'running'",
+                tid=tid
+            )
         return json.dumps(True)
 
     @bp.route('/abort-task/<tid>')
     def abort_task(tid):
         if not has_permission('abort'):
             abort(403, 'You cannoy do that.')
-            return
 
         t = Task.byid(engine, tid)
         if t is None:
@@ -546,7 +561,11 @@ def reworkui(engine,
         ).do(engine).fetchone()
 
         info = {
-            'state': _task_state(res.status, res.abort, res.traceback),
+            'state': _task_state(
+                res.status,
+                res.abort,
+                res.traceback
+            ),
             'queued': str(res.queued or ''),
             'started': str(res.started or ''),
             'finished': str(res.finished or ''),
@@ -737,8 +756,10 @@ def reworkui(engine,
         if not len(domains):
             return 'No operation registered: nothing to see here'
 
-        return render_template('rui_home.html',
-                               homeurl=homeurl(),
-                               domains=json.dumps(domains))
+        return render_template(
+            'rui_home.html',
+            homeurl=homeurl(),
+            domains=json.dumps(domains)
+        )
 
     return bp
