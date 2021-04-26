@@ -127,17 +127,18 @@ def test_bad_request(engine, client):
 
 
 def test_with_input(engine, client):
-    res = client.get('/launchers-table-json')
-    assert res.json == [
+    res = client.get('/launchers-table-json').json
+    res[0][3] = scrub(res[0][3])
+    assert res == [
         [4,
          'with_inputs',
          'default',
-         '10.211.55.3',
-         [{'choices': [], 'name': 'babar.xlsx', 'required': False, 'type': 'file'},
+         '<X>.<X>.<X>.<X>',
+         [{'choices': None, 'name': 'babar.xlsx', 'required': False, 'type': 'file'},
           {'choices': ['Babar', 'Celeste'], 'name': 'name', 'required': False, 'type': 'string'},
-          {'choices': [], 'name': 'weight', 'required': False, 'type': 'number'},
-          {'choices': [], 'name': 'celeste.xlsx', 'required': False, 'type': 'file'},
-          {'choices': [], 'name': 'birthdate', 'required': False, 'type': 'datetime'}
+          {'choices': None, 'name': 'weight', 'required': False, 'type': 'number'},
+          {'choices': None, 'name': 'celeste.xlsx', 'required': False, 'type': 'file'},
+          {'choices': None, 'name': 'birthdate', 'required': False, 'type': 'datetime'}
          ]]
     ]
 
