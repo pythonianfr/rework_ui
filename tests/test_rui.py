@@ -231,7 +231,7 @@ def test_task_life_cycle(engine, client, refresh):
             assert t1.raw_output == b'Well done !'
 
             res = client.get('/job_results/{}'.format(t1.tid))
-            assert res.headers['Content-Type'] == 'application/zip'
+            assert res.headers['Content-Type'] == 'application/octet-stream'
             assert res.body == b'Well done !'
 
             tasks.append(t1)

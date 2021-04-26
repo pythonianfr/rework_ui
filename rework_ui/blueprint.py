@@ -270,7 +270,7 @@ def reworkui(engine,
         archive = job.raw_output
         return send_file(
             io.BytesIO(archive),
-            mimetype='application/zip'
+            mimetype='application/octet-stream'
         )
 
     @bp.route('/job_status/<jobid>')
