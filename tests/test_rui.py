@@ -52,18 +52,27 @@ def abortme(task):
         time.sleep(1)
 
 
-@api.task(inputs=(
-    io.file('babar.xlsx'),
-    io.string('name', choices=('Babar', 'Celeste')),
-    io.number('weight'),
-    io.file('celeste.xlsx'),
-    io.datetime('birthdate')
-))
+@api.task(
+    inputs=(
+        io.file('babar.xlsx'),
+        io.string('name', choices=('Babar', 'Celeste')),
+        io.number('weight'),
+        io.file('celeste.xlsx'),
+        io.datetime('birthdate')
+    ),
+    outputs=(
+        io.number('babar_length'),
+        io.string('name'),
+        io.file('note.txt')
+    )
+)
 def with_inputs(task):
     inputs = task.input
-    task.save_output(
-        f'{len(inputs["babar.xlsx"])}, {inputs["name"]}'
-    )
+    task.save_output({
+        'babar_length': len(inputs['babar.xlsx']),
+        'name': inputs['name'],
+        'note.txt': b'Hello, World\n'
+    })
 
 
 # tests
@@ -292,3 +301,31 @@ def test_schedulers(engine, client):
          "'1973-05-20 09:00:00'}"
         ]
     ]
+
+
+def test_read_io(engine, client):
+    res = client.put(
+        '/schedule2/with_inputs?user=Babar',
+        {'name': 'Babar'},
+        upload_files=[
+            ('babar.xlsx', 'babar.xlsx', b'babar.xslx contents',
+             'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
+        ]
+    )
+
+    tid = int(res.body)
+    t = Task.byid(engine, tid)
+    assert t.input == {
+        'babar.xlsx': b'babar.xslx contents',
+        'name': 'Babar',
+    }
+
+    res = client.get(
+        f'/read_io/{tid}',
+        {'direction': 'input'}
+    )
+    assert res.json == {
+        'babar.xlsx': 19,
+        'name': 'Babar'
+    }
+

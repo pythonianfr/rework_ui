@@ -579,6 +579,37 @@ def reworkui(engine,
             {'content-type': 'application/json'}
         )
 
+    @bp.route('/read_io/<int:taskid>')
+    def read_io(taskid):
+        args = argsdict(request.args)
+        assert args.direction in ('input', 'output')
+        q = select(
+            args.direction
+        ).table(
+            'rework.task'
+        ).where(id=taskid)
+
+        payload = q.do(engine).scalar()
+
+        spec = select(
+            f'{args.direction}s'
+        ).table(
+            'rework.task as t', 'rework.operation as o'
+        ).where(
+            't.id = %(taskid)s', taskid=taskid
+        ).where(
+            'o.id = t.operation'
+        ).do(engine).scalar()
+
+        out = unpack_io(spec, payload, onlyfilelength=True)
+        return make_response(
+            json.dumps(
+                out
+            ),
+            200,
+            {'content-type': 'application/json'}
+        )
+
     # services
 
     @bp.route('/services-table-json')
