@@ -2,6 +2,7 @@ import io
 import base64
 import json
 import pickle
+import mimetypes
 
 import tzlocal
 from flask import (
@@ -601,7 +602,23 @@ def reworkui(engine,
             'o.id = t.operation'
         ).do(engine).scalar()
 
-        out = unpack_io(spec, payload, onlyfilelength=True)
+        fname = args['getfile']
+        out = unpack_io(
+            spec,
+            payload,
+            onlyfilelength=not fname,
+            filename=fname
+        )
+        if fname:
+            for name, contents in out.items():
+                # one turn loop there because this is a one-element dict
+                mimetype = mimetypes.guess_type(fname)[0]
+                return make_response(
+                    contents,
+                    200,
+                    {'content-type': mimetype}
+                )
+
         return make_response(
             json.dumps(
                 out

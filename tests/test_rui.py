@@ -329,3 +329,14 @@ def test_read_io(engine, client):
         'name': 'Babar'
     }
 
+
+    res = client.get(
+        f'/read_io/{tid}',
+        {
+            'direction': 'input',
+            'getfile': 'babar.xlsx'
+        }
+    )
+
+    assert res.body == b'babar.xslx contents'
+
