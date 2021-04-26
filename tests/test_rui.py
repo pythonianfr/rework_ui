@@ -6,7 +6,7 @@ import time
 
 from lxml import etree
 
-from rework import api, input
+from rework import api, io
 from rework.task import Task
 from rework.testutils import workers, scrub
 
@@ -53,12 +53,12 @@ def abortme(task):
 
 
 @api.task(inputs=(
-    input.file('babar.xlsx'),
-    input.string('name', choices=('Babar', 'Celeste')),
-    input.number('weight'),
-    input.file('celeste.xlsx'),
-    input.datetime('birthdate'))
-)
+    io.file('babar.xlsx'),
+    io.string('name', choices=('Babar', 'Celeste')),
+    io.number('weight'),
+    io.file('celeste.xlsx'),
+    io.datetime('birthdate')
+))
 def with_inputs(task):
     inputs = task.input
     task.save_output(
