@@ -127,6 +127,10 @@ def test_bad_request(engine, client):
 
 
 def test_with_input(engine, client):
+    with engine.begin() as cn:
+        # cleanup
+        cn.execute('delete from rework.task')
+
     res = client.get('/launchers-table-json').json
     res[0][3] = scrub(res[0][3])
     assert res == [
@@ -166,22 +170,10 @@ def test_with_input(engine, client):
     res = client.get('/tasks-table-json')
     def filterthings(thing):
         thing.pop('queued')
+        thing.pop('tid')
         return thing
 
     assert [filterthings(x) for x in res.json] == [
-        {'abort': False,
-         'deathinfo': None,
-         'domain': 'default',
-         'finished': None,
-         'input': '',
-         'metadata': {'user': 'Babar'},
-         'name': 'good_job',
-         'operation': 1,
-         'started': None,
-         'status': 'queued',
-         'tid': 1,
-         'traceback': None,
-         'worker': None},
         {'abort': False,
          'deathinfo': None,
          'domain': 'default',
@@ -194,7 +186,6 @@ def test_with_input(engine, client):
          'operation': 4,
          'started': None,
          'status': 'queued',
-         'tid': 2,
          'traceback': None,
          'worker': None
         }
