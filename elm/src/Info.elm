@@ -2,10 +2,12 @@ module Info exposing (main)
 
 import Browser
 import Decoder exposing (decodeInputspec)
+import Dict
 import Html as H
 import Html.Attributes as HA
 import Http
 import Json.Decode as D
+import Metadata exposing (decodemeta, Metadata, MetaVal(..))
 import String.Extra as SE
 import Type exposing (Task, IOSpec, SpecType(..))
 import Url.Builder as UB
@@ -28,8 +30,8 @@ type alias Model =
     { baseurl : String
     , taskid : Int
     , info : Maybe Info
-    , inputs : Maybe String
-    , outputs : Maybe String
+    , inputs : Maybe Metadata
+    , outputs : Maybe Metadata
     }
 
 
@@ -95,7 +97,7 @@ view model =
                   H.div []
                       [ H.text "inputs → "
                       , H.div [ HA.style "margin-left" "5em" ]
-                          [ H.text inputs ]
+                          [ viewio inputs ]
                       ]
 
               Nothing -> H.span [] [ H.text "no input" ]
@@ -105,11 +107,28 @@ view model =
                   H.div []
                       [ H.text "outputs → "
                       , H.div [ HA.style "margin-left" "5em" ]
-                          [ H.text outputs ]
+                          [ viewio outputs ]
                       ]
 
               Nothing -> H.span [] [ H.text "no output" ]
         ]
+
+
+viewio meta =
+    let
+        formatmeta m =
+            case m of
+                MString s -> s
+                MInt i -> String.fromInt i
+                MFloat f -> String.fromFloat f
+                MBool b -> if b then "true" else "false"
+                MList l -> "nope"
+        viewmeta (k, m) =
+            H.span [] [ H.text <| k ++ " → " ++ (formatmeta m)
+                      , H.br [][]
+                      ]
+    in
+    H.span [] (List.map viewmeta (Dict.toList meta))
 
 
 show label thing =
@@ -185,23 +204,28 @@ update msg model =
             in ( model, Cmd.none )
 
         GotInputs (Ok rawinputs) ->
-            if rawinputs /= "null" then
-                ( { model | inputs = Just rawinputs }
-                , Cmd.none
-                )
-            else nocmd model
+            case D.decodeString decodemeta rawinputs of
+                Ok parsedio ->
+                    ( { model | inputs = Just parsedio }
+                    , Cmd.none
+                    )
+                Err error ->
+                    let x=Debug.log "cannot parse" rawinputs in
+                    nocmd model
 
         GotInputs (Err e) ->
             let _ = Debug.log "err" e
             in nocmd model
 
         GotOutputs (Ok rawoutputs) ->
-            if rawoutputs /= "null" then
-                ( { model | outputs = Just rawoutputs }
-                , Cmd.none
-                )
-            else
-                nocmd model
+            case D.decodeString decodemeta rawoutputs of
+                Ok parsedio ->
+                    ( { model | outputs = Just parsedio }
+                    , Cmd.none
+                    )
+                Err error ->
+                    let x=Debug.log "cannot parse" rawoutputs in
+                    nocmd model
 
         GotOutputs (Err e) ->
             let _ = Debug.log "err" e
