@@ -591,6 +591,12 @@ def reworkui(engine,
         ).where(id=taskid)
 
         payload = q.do(engine).scalar()
+        if payload is None:
+            return make_response(
+                json.dumps(None),
+                200,
+                {'content-type': 'application/json'}
+            )
 
         spec = select(
             f'{args.direction}s'

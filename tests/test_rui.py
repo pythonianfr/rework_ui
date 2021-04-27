@@ -340,3 +340,8 @@ def test_read_io(engine, client):
 
     assert res.body == b'babar.xslx contents'
 
+    res = client.get(
+        f'/read_io/{tid}',
+        {'direction': 'output'}
+    )
+    assert res.json is None
