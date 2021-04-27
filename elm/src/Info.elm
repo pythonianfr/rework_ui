@@ -28,11 +28,15 @@ type alias Model =
     { baseurl : String
     , taskid : Int
     , info : Maybe Info
+    , inputs : Maybe String
+    , outputs : Maybe String
     }
 
 
 type Msg
     = GotTaskinfo (Result Http.Error String)
+    | GotInputs (Result Http.Error String)
+    | GotOutputs (Result Http.Error String)
 
 
 infodecoder =
@@ -53,6 +57,22 @@ getinfo model =
         }
 
 
+getinputs model =
+    Http.get
+        { url = UB.crossOrigin model.baseurl
+              [ "read_io", String.fromInt model.taskid ]
+              [ UB.string "direction" "input" ]
+        , expect = Http.expectString GotInputs
+        }
+
+getoutputs model =
+    Http.get
+        { url = UB.crossOrigin model.baseurl
+              [ "read_io", String.fromInt model.taskid ]
+              [ UB.string "direction" "output" ]
+        , expect = Http.expectString GotOutputs
+        }
+
 
 view : Model -> H.Html Msg
 view model =
@@ -70,6 +90,25 @@ view model =
         , case model.info of
               Just info -> viewinfo info
               Nothing -> H.p [] []
+        , case model.inputs of
+              Just inputs ->
+                  H.div []
+                      [ H.text "inputs → "
+                      , H.div [ HA.style "margin-left" "5em" ]
+                          [ H.text inputs ]
+                      ]
+
+              Nothing -> H.span [] [ H.text "no input" ]
+
+        , case model.outputs of
+              Just outputs ->
+                  H.div []
+                      [ H.text "outputs → "
+                      , H.div [ HA.style "margin-left" "5em" ]
+                          [ H.text outputs ]
+                      ]
+
+              Nothing -> H.span [] [ H.text "no output" ]
         ]
 
 
@@ -133,7 +172,9 @@ update msg model =
             case D.decodeString infodecoder rawinfo of
                 Ok info ->
                     ( { model | info = Just info }
-                    , Cmd.none
+                    , Cmd.batch [ getinputs model
+                                , getoutputs model
+                                ]
                     )
                 Err err ->
                     let _ = Debug.log "error" err
@@ -143,12 +184,35 @@ update msg model =
             let _ = Debug.log "err" e
             in ( model, Cmd.none )
 
+        GotInputs (Ok rawinputs) ->
+            if rawinputs /= "null" then
+                ( { model | inputs = Just rawinputs }
+                , Cmd.none
+                )
+            else nocmd model
+
+        GotInputs (Err e) ->
+            let _ = Debug.log "err" e
+            in nocmd model
+
+        GotOutputs (Ok rawoutputs) ->
+            if rawoutputs /= "null" then
+                ( { model | outputs = Just rawoutputs }
+                , Cmd.none
+                )
+            else
+                nocmd model
+
+        GotOutputs (Err e) ->
+            let _ = Debug.log "err" e
+            in nocmd model
+
 
 init : { baseurl : String, taskid : Int } -> ( Model, Cmd Msg )
 init flags =
     let
         model =
-            Model flags.baseurl flags.taskid Nothing
+            Model flags.baseurl flags.taskid Nothing Nothing Nothing
     in
     ( model, getinfo model )
 
