@@ -443,11 +443,18 @@ taskRenderRow task =
         span =
             H.span []
                 [ H.a
-                    [ HA.title "show the tasks log (if any)"
+                    [ HA.title "show the task log (if any)"
                     , HA.target "_blank"
                     , HA.href ("tasklogs/" ++ String.fromInt task.id)
                     ]
                     [ H.text task.name ]
+                , H.text <| String.fromChar (Char.fromCode 160) -- nbsp
+                , H.a
+                    [ HA.title "show task informations"
+                    , HA.target "_blank"
+                    , HA.href ("taskinfo/" ++ String.fromInt task.id)
+                    ]
+                    [ H.text "\u{1F441}" ]
                 ]
 
         renderResult : TaskResult -> H.Html msg
