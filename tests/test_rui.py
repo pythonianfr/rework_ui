@@ -325,13 +325,20 @@ def test_read_io(engine, client):
         {'direction': 'input'}
     )
     assert res.json == {
-        'babar.xlsx': 19,
         'name': 'Babar'
     }
 
+    res = client.get(
+        f'/getiofile_lengths/{tid}',
+        {'direction': 'input'}
+    )
+
+    assert res.json == {
+        'babar.xlsx': 19
+    }
 
     res = client.get(
-        f'/read_io/{tid}',
+        f'/getiofile/{tid}',
         {
             'direction': 'input',
             'getfile': 'babar.xlsx'
@@ -341,7 +348,7 @@ def test_read_io(engine, client):
     assert res.body == b'babar.xslx contents'
 
     res = client.get(
-        f'/read_io/{tid}',
+        f'/getiofile/{tid}',
         {'direction': 'output'}
     )
     assert res.json is None

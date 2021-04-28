@@ -27,6 +27,8 @@ from rework.helper import (
     BetterCronTrigger,
     iospec,
     unpack_io,
+    unpack_iofiles_length,
+    unpack_iofile,
     utcnow
 )
 from rework.task import (
@@ -580,26 +582,18 @@ def reworkui(engine,
             {'content-type': 'application/json'}
         )
 
-    @bp.route('/read_io/<int:taskid>')
-    def read_io(taskid):
-        args = argsdict(request.args)
-        assert args.direction in ('input', 'output')
+    def _io_payload(taskid, direction):
         q = select(
-            args.direction
+            direction
         ).table(
             'rework.task'
         ).where(id=taskid)
 
-        payload = q.do(engine).scalar()
-        if payload is None:
-            return make_response(
-                json.dumps(None),
-                200,
-                {'content-type': 'application/json'}
-            )
+        return q.do(engine).scalar()
 
-        spec = select(
-            f'{args.direction}s'
+    def _io_spec(taskid, direction):
+        return select(
+            f'{direction}s'
         ).table(
             'rework.task as t', 'rework.operation as o'
         ).where(
@@ -608,29 +602,78 @@ def reworkui(engine,
             'o.id = t.operation'
         ).do(engine).scalar()
 
+
+    @bp.route('/read_io/<int:taskid>')
+    def read_io(taskid):
+        args = argsdict(request.args)
+        assert args.direction in ('input', 'output')
+
+        payload = _io_payload(taskid, args.direction)
+        if payload is None:
+            return make_response(
+                json.dumps(None),
+                200,
+                {'content-type': 'application/json'}
+            )
+
+        spec = _io_spec(taskid, args.direction)
+
         fname = args['getfile']
         out = unpack_io(
             spec,
             payload,
-            onlyfilelength=not fname,
-            filename=fname
+            nofiles=True
         )
-        if fname:
-            for name, contents in out.items():
-                # one turn loop there because this is a one-element dict
-                mimetype = mimetypes.guess_type(fname)[0]
-                return make_response(
-                    contents,
-                    200,
-                    {'content-type': mimetype}
-                )
-
         return make_response(
             json.dumps(
                 out
             ),
             200,
             {'content-type': 'application/json'}
+        )
+
+    @bp.route('/getiofile_lengths/<int:taskid>')
+    def getiofile_lengths(taskid):
+        args = argsdict(request.args)
+        assert args.direction in ('input', 'output')
+        fname = args['getfile']
+        payload = _io_payload(taskid, args.direction)
+        if payload is None:
+            return make_response(
+                json.dumps(None),
+                200,
+                {'content-type': 'application/json'}
+            )
+
+        spec = _io_spec(taskid, args.direction)
+        out = unpack_iofiles_length(spec, payload)
+        return make_response(
+            out,
+            200,
+            {'content-type': 'application/json'}
+        )
+
+
+    @bp.route('/getiofile/<int:taskid>')
+    def getiofile(taskid):
+        args = argsdict(request.args)
+        assert args.direction in ('input', 'output')
+        fname = args['getfile']
+        payload = _io_payload(taskid, args.direction)
+        if payload is None:
+            return make_response(
+                json.dumps(None),
+                200,
+                {'content-type': 'application/json'}
+            )
+
+        spec = _io_spec(taskid, args.direction)
+        contents = unpack_iofile(spec, payload, fname)
+        mimetype = mimetypes.guess_type(fname)[0]
+        return make_response(
+            contents,
+            200,
+            {'content-type': mimetype}
         )
 
     # services
