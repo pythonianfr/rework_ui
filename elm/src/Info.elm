@@ -98,15 +98,17 @@ view model =
           [ H.span [] [ H.text ("Task #" ++ (String.fromInt model.taskid) ++ " ") ]
           , H.small [ HA.class "badge badge-info" ] [ H.text taskstatus ]
           ]
+
         , case model.info of
               Just info -> viewinfo info
               Nothing -> H.p [] []
+
         , case model.inputs of
               Just inputs ->
                   H.div []
                       [ H.text "inputs → "
                       , H.div [ HA.style "margin-left" "5em" ]
-                          [ viewio inputs ]
+                          ([ viewio inputs ] ++ viewfiles model "input")
                       ]
 
               Nothing -> H.span [] [ H.text "no input" ]
@@ -116,11 +118,39 @@ view model =
                   H.div []
                       [ H.text "outputs → "
                       , H.div [ HA.style "margin-left" "5em" ]
-                          [ viewio outputs ]
+                          ([ viewio outputs ] ++ viewfiles model "output")
                       ]
 
               Nothing -> H.span [] [ H.text "no output" ]
         ]
+
+
+viewfiles model direction =
+    let data =
+            if direction == "input" then
+                model.inputfilelengths
+            else
+                model.outputfilelengths
+
+        downloadlink (filename, filesize) =
+            if filesize > 0 then
+                H.a [ HA.download filename
+                    , HA.href
+                          <| model.baseurl
+                          ++ "/getiofile/"
+                          ++ (String.fromInt model.taskid)
+                          ++ "?getfile="
+                          ++ filename
+                          ++ "&direction="
+                          ++ direction
+                    ]
+                    [ H.text filename ]
+            else
+                H.span [] []
+    in
+    List.map downloadlink
+        <| List.filter (\(k, v) -> v > 0)
+        <| Dict.toList data
 
 
 viewio meta =
