@@ -2,7 +2,7 @@ module Info exposing (main)
 
 import Browser
 import Decoder exposing (decodeInputspec)
-import Dict
+import Dict exposing (Dict)
 import Html as H
 import Html.Attributes as HA
 import Http
@@ -32,6 +32,8 @@ type alias Model =
     , info : Maybe Info
     , inputs : Maybe Metadata
     , outputs : Maybe Metadata
+    , inputfilelengths : Dict String Int
+    , outputfilelengths : Dict String Int
     }
 
 
@@ -39,6 +41,8 @@ type Msg
     = GotTaskinfo (Result Http.Error String)
     | GotInputs (Result Http.Error String)
     | GotOutputs (Result Http.Error String)
+    | GotInputFileLengths (Result Http.Error String)
+    | GotOutputFileLengths (Result Http.Error String)
 
 
 infodecoder =
@@ -49,6 +53,10 @@ infodecoder =
         (D.field "finished" D.string)
         (D.field "inputspec" (D.list decodeInputspec))
         (D.field "outputspec" (D.list decodeInputspec))
+
+
+filelengthsdecoder =
+    D.dict D.int
 
 
 getinfo model =
@@ -67,6 +75,14 @@ getio model direction event =
         , expect = Http.expectString event
         }
 
+
+getfilelengths model direction event =
+    Http.get
+        { url = UB.crossOrigin model.baseurl
+              [ "getiofile_lengths", String.fromInt model.taskid ]
+              [ UB.string "direction" direction ]
+        , expect = Http.expectString event
+        }
 
 
 view : Model -> H.Html Msg
@@ -186,6 +202,8 @@ update msg model =
                     ( { model | info = Just info }
                     , Cmd.batch [ getio model "input" GotInputs
                                 , getio model "output" GotOutputs
+                                , getfilelengths model "input" GotInputFileLengths
+                                , getfilelengths model "output" GotOutputFileLengths
                                 ]
                     )
                 Err err ->
@@ -224,12 +242,43 @@ update msg model =
             let _ = Debug.log "err" e
             in nocmd model
 
+        GotInputFileLengths (Ok raw) ->
+            case D.decodeString filelengthsdecoder raw of
+                Ok flengths ->
+                    nocmd { model | inputfilelengths = flengths }
+                Err error ->
+                    let x=Debug.log "cannot parse" raw in
+                    nocmd model
+
+        GotInputFileLengths (Err e) ->
+            let _ = Debug.log "err" e
+            in nocmd model
+
+        GotOutputFileLengths (Ok raw) ->
+            case D.decodeString filelengthsdecoder raw of
+                Ok flengths ->
+                    nocmd { model | outputfilelengths = flengths }
+                Err error ->
+                    let x=Debug.log "cannot parse" raw in
+                    nocmd model
+
+        GotOutputFileLengths (Err e) ->
+            let _ = Debug.log "err" e
+            in nocmd model
+
 
 init : { baseurl : String, taskid : Int } -> ( Model, Cmd Msg )
 init flags =
     let
         model =
-            Model flags.baseurl flags.taskid Nothing Nothing Nothing
+            Model
+                flags.baseurl
+                flags.taskid
+                Nothing
+                Nothing
+                Nothing
+                Dict.empty
+                Dict.empty
     in
     ( model, getinfo model )
 
