@@ -59,21 +59,14 @@ getinfo model =
         }
 
 
-getinputs model =
+getio model direction event =
     Http.get
         { url = UB.crossOrigin model.baseurl
               [ "read_io", String.fromInt model.taskid ]
-              [ UB.string "direction" "input" ]
-        , expect = Http.expectString GotInputs
+              [ UB.string "direction" direction ]
+        , expect = Http.expectString event
         }
 
-getoutputs model =
-    Http.get
-        { url = UB.crossOrigin model.baseurl
-              [ "read_io", String.fromInt model.taskid ]
-              [ UB.string "direction" "output" ]
-        , expect = Http.expectString GotOutputs
-        }
 
 
 view : Model -> H.Html Msg
@@ -191,8 +184,8 @@ update msg model =
             case D.decodeString infodecoder rawinfo of
                 Ok info ->
                     ( { model | info = Just info }
-                    , Cmd.batch [ getinputs model
-                                , getoutputs model
+                    , Cmd.batch [ getio model "input" GotInputs
+                                , getio model "output" GotOutputs
                                 ]
                     )
                 Err err ->
