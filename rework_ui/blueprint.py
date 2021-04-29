@@ -676,6 +676,33 @@ def reworkui(engine,
             {'content-type': mimetype}
         )
 
+    class hintargs(argsdict):
+        types = {
+            'taskid': list
+        }
+
+    @bp.route('/getinputfilehint')
+    def getinputfilehint():
+        args = hintargs(request.args)
+
+        out = {}
+        for tid in args.taskid:
+            payload = _io_payload(tid, 'input')
+            if payload is None:
+                continue
+            spec = _io_spec(tid, 'input')
+            flenths = unpack_iofiles_length(spec, payload)
+            if len(flenths) == 1:
+                # more than one: we won't provide the button
+                # instead, all files can be found in the Info page
+                out[tid] = list(flenths.keys())[0]
+
+        return make_response(
+            json.dumps(out),
+            200,
+            {'content-type': 'application/json'}
+        )
+
     # services
 
     @bp.route('/services-table-json')

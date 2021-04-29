@@ -352,3 +352,11 @@ def test_read_io(engine, client):
         {'direction': 'output'}
     )
     assert res.json is None
+
+    res = client.get(
+        f'/getinputfilehint?taskid={tid}',
+    )
+    assert res.json == {
+        f'{tid}': 'babar.xlsx'
+    }
+

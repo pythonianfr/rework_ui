@@ -1,6 +1,7 @@
 module Type exposing (..)
 
 import AssocList as AL
+import Dict exposing (Dict)
 import Http
 import Http.Detailed as HD
 import Keyboard.Event exposing (KeyboardEvent)
@@ -150,6 +151,9 @@ type alias Model =
     , activetab : TabsLayout
     , domain : LS.Selection String
     , lasteventid : Int
+    -- single input/output files
+    , inputfilehints : Dict String String
+    , outputfilehints : Dict String String
     -- logging
     , loglevel : Level
     , logdisplaylevel : Level
@@ -199,6 +203,7 @@ type Msg
     | OnAbort Int
     | OnRelaunch Int
     | GotTasks (Result Http.Error String)
+    | GotInputFileHint (Result Http.Error String)
     | UpdatedTasks (Result Http.Error String)
     | GotEvents (Result Http.Error String)
     | GotLastEvent (Result Http.Error String)

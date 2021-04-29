@@ -5,6 +5,7 @@ import AssocList.Extra as ALE
 import Browser
 import Browser.Events exposing (onKeyDown)
 import Cmd.Extra exposing (withNoCmd)
+import Dict exposing (Dict)
 import Http
 import Http.Detailed as HD
 import Json.Decode as JD
@@ -149,10 +150,23 @@ update msg model =
         GotTasks (Ok rawtasks) ->
             let mod = log model INFO ("TASKS (all):" ++ rawtasks) in
             case  JD.decodeString (JD.list taskDecoder) rawtasks of
-                Ok tasks -> nocmd { model | tasks = AL.fromList (groupbyid tasks) }
+                Ok tasks ->
+                    ( { model | tasks = AL.fromList (groupbyid tasks) }
+                    , getinputfilehint model tasks
+                    )
                 Err err -> nocmd <| log model ERROR <| JD.errorToString err
 
         GotTasks (Err err) ->
+            nocmd <| log model ERROR <| unwraperror err
+
+        GotInputFileHint (Ok rawhints) ->
+            case JD.decodeString (JD.dict JD.string) rawhints of
+                Ok hints ->
+                    nocmd { model | inputfilehints = hints }
+
+                Err err -> nocmd <| log model ERROR <| JD.errorToString err
+
+        GotInputFileHint (Err err) ->
             nocmd <| log model ERROR <| unwraperror err
 
         UpdatedTasks (Ok rawtasks) ->
@@ -507,6 +521,16 @@ tasksquery model msg min max =
     }
 
 
+getinputfilehint model tasks =
+    let taskids = List.map .id tasks in
+    Http.get
+    { url = UB.crossOrigin model.baseurl
+          [ "getinputfilehint" ]
+          (List.map (\tid -> UB.string "taskid" <| String.fromInt tid) taskids)
+    , expect = Http.expectString GotInputFileHint
+    }
+
+
 getservices model =
     { url = UB.crossOrigin model.baseurl
           [ "services-table-json" ] [ ]
@@ -593,6 +617,8 @@ init jsonFlags =
                 TasksTab
                 domain
                 0
+                Dict.empty
+                Dict.empty
                 DEBUG
                 DEBUG
                 []
