@@ -152,7 +152,9 @@ update msg model =
             case  JD.decodeString (JD.list taskDecoder) rawtasks of
                 Ok tasks ->
                     ( { model | tasks = AL.fromList (groupbyid tasks) }
-                    , getinputfilehint model tasks
+                    , Cmd.batch [ getiofilehint model tasks "input" GotInputFileHint
+                                , getiofilehint model tasks "output" GotOutputFileHint
+                                ]
                     )
                 Err err -> nocmd <| log model ERROR <| JD.errorToString err
 
@@ -169,6 +171,16 @@ update msg model =
         GotInputFileHint (Err err) ->
             nocmd <| log model ERROR <| unwraperror err
 
+        GotOutputFileHint (Ok rawhints) ->
+            case JD.decodeString (JD.dict JD.string) rawhints of
+                Ok hints ->
+                    nocmd { model | outputfilehints = hints }
+
+                Err err -> nocmd <| log model ERROR <| JD.errorToString err
+
+        GotOutputFileHint (Err err) ->
+            nocmd <| log model ERROR <| unwraperror err
+
         UpdatedTasks (Ok rawtasks) ->
             let mod = log model INFO ("TASKS (subset):" ++ rawtasks) in
             case JD.decodeString (JD.list taskDecoder) rawtasks of
@@ -178,7 +190,9 @@ update msg model =
                             (AL.fromList (groupbyid tasks))
                             model.tasks
                       }
-                    , getinputfilehint model tasks
+                    , Cmd.batch [ getiofilehint model tasks "input" GotInputFileHint
+                                , getiofilehint model tasks "output" GotOutputFileHint
+                                ]
                     )
                 Err err -> nocmd <| log model ERROR <| JD.errorToString err
 
@@ -524,13 +538,14 @@ tasksquery model msg min max =
     }
 
 
-getinputfilehint model tasks =
+getiofilehint model tasks direction event =
     let taskids = List.map .id tasks in
     Http.get
     { url = UB.crossOrigin model.baseurl
-          [ "getinputfilehint" ]
+          [ "getiofilehint" ] <| (++)
+          [ UB.string "direction" direction ]
           (List.map (\tid -> UB.string "taskid" <| String.fromInt tid) taskids)
-    , expect = Http.expectString GotInputFileHint
+    , expect = Http.expectString event
     }
 
 

@@ -460,10 +460,36 @@ rendertaskactions model task =
 
                 Nothing -> Nothing
 
+        outputaction =
+            case Dict.get (String.fromInt task.id) model.outputfilehints of
+                Just filename ->
+                    Just <| H.a
+                        [ HA.class "btn btn-success btn-sm"
+                        , HA.type_ "button"
+                        , HA.title filename
+                        , HA.download filename
+                        , HA.href
+                          <| model.baseurl
+                          ++ "/getiofile/"
+                          ++ (String.fromInt task.id)
+                          ++ "?getfile="
+                          ++ filename
+                          ++ "&direction=output"
+                        ]
+                    [ H.text "result" ]
+
+                Nothing -> Nothing
+
     in
-    case inputaction of
-        Nothing -> actions
-        Just moreaction -> actions ++ [ moreaction ]
+    actions
+        ++ (case inputaction of
+                Nothing -> []
+                Just moreaction -> [ moreaction ]
+           )
+        ++ (case outputaction of
+                Nothing -> []
+                Just moreaction -> [ moreaction ]
+           )
 
 
 taskRenderRow model task =

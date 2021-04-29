@@ -204,6 +204,7 @@ type Msg
     | OnRelaunch Int
     | GotTasks (Result Http.Error String)
     | GotInputFileHint (Result Http.Error String)
+    | GotOutputFileHint (Result Http.Error String)
     | UpdatedTasks (Result Http.Error String)
     | GotEvents (Result Http.Error String)
     | GotLastEvent (Result Http.Error String)

@@ -678,19 +678,21 @@ def reworkui(engine,
 
     class hintargs(argsdict):
         types = {
-            'taskid': list
+            'taskid': list,
+            'direction': str
         }
 
-    @bp.route('/getinputfilehint')
-    def getinputfilehint():
+    @bp.route('/getiofilehint')
+    def getiofilehint():
         args = hintargs(request.args)
+        assert args.direction in ('input', 'output'), args
 
         out = {}
         for tid in args.taskid:
-            payload = _io_payload(tid, 'input')
+            payload = _io_payload(tid, args.direction)
             if payload is None:
                 continue
-            spec = _io_spec(tid, 'input')
+            spec = _io_spec(tid, args.direction)
             flenths = unpack_iofiles_length(spec, payload)
             if len(flenths) == 1:
                 # more than one: we won't provide the button
