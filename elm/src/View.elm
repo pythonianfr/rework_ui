@@ -190,7 +190,7 @@ view model =
 
                 table =
                     body columnsName
-                        (List.map taskRenderRow
+                        (List.map (taskRenderRow model)
                              <| List.filter filtertask (AL.values model.tasks)
                         )
 
@@ -436,8 +436,37 @@ Each one specifies a part of the rule.
 """
 
 
-taskRenderRow : Task -> H.Html Msg
-taskRenderRow task =
+rendertaskactions model task =
+    let actions =
+            List.map (renderAction task.id) task.actions
+
+        inputaction =
+            case Dict.get (String.fromInt task.id) model.inputfilehints of
+                Just filename ->
+                    Just <| H.a
+                        [ HA.class "btn btn-info btn-sm"
+                        , HA.type_ "button"
+                        , HA.title filename
+                        , HA.download filename
+                        , HA.href
+                          <| model.baseurl
+                          ++ "/getiofile/"
+                          ++ (String.fromInt task.id)
+                          ++ "?getfile="
+                          ++ filename
+                          ++ "&direction=input"
+                        ]
+                    [ H.text "input" ]
+
+                Nothing -> Nothing
+
+    in
+    case inputaction of
+        Nothing -> actions
+        Just moreaction -> actions ++ [ moreaction ]
+
+
+taskRenderRow model task =
     let
         span : H.Html msg
         span =
@@ -519,7 +548,7 @@ taskRenderRow task =
                     Nothing -> "#"
                     Just worker -> "#" ++ String.fromInt worker
         , renderStatus
-        , H.td [] (List.map (renderAction task.id) task.actions)
+        , H.td [] <| rendertaskactions model task
         ]
 
 
