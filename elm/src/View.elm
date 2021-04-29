@@ -468,6 +468,7 @@ rendertaskactions model task =
                         , HA.type_ "button"
                         , HA.title filename
                         , HA.download filename
+                        , HA.style "margin-left" ".25em"
                         , HA.href
                           <| model.baseurl
                           ++ "/getiofile/"
