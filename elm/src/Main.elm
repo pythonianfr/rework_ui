@@ -172,11 +172,14 @@ update msg model =
         UpdatedTasks (Ok rawtasks) ->
             let mod = log model INFO ("TASKS (subset):" ++ rawtasks) in
             case JD.decodeString (JD.list taskDecoder) rawtasks of
-                Ok tasks -> nocmd { model
-                                      | tasks = AL.union
-                                        (AL.fromList (groupbyid tasks))
-                                        model.tasks
-                                  }
+                Ok tasks ->
+                    ( { model
+                          | tasks = AL.union
+                            (AL.fromList (groupbyid tasks))
+                            model.tasks
+                      }
+                    , getinputfilehint model tasks
+                    )
                 Err err -> nocmd <| log model ERROR <| JD.errorToString err
 
         UpdatedTasks (Err err) ->
