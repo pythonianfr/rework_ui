@@ -237,12 +237,10 @@ update msg model =
                                 ]
                     )
                 Err err ->
-                    let _ = Debug.log "error" err
-                    in ( model, Cmd.none )
+                    ( model, Cmd.none )
 
         GotTaskinfo (Err e) ->
-            let _ = Debug.log "err" e
-            in ( model, Cmd.none )
+            ( model, Cmd.none )
 
         GotInputs (Ok rawinputs) ->
             case D.decodeString decodemeta rawinputs of
@@ -251,12 +249,10 @@ update msg model =
                     , Cmd.none
                     )
                 Err error ->
-                    let x=Debug.log "cannot parse" rawinputs in
                     nocmd model
 
         GotInputs (Err e) ->
-            let _ = Debug.log "err" e
-            in nocmd model
+            nocmd model
 
         GotOutputs (Ok rawoutputs) ->
             case D.decodeString decodemeta rawoutputs of
@@ -265,36 +261,30 @@ update msg model =
                     , Cmd.none
                     )
                 Err error ->
-                    let x=Debug.log "cannot parse" rawoutputs in
                     nocmd model
 
         GotOutputs (Err e) ->
-            let _ = Debug.log "err" e
-            in nocmd model
+            nocmd model
 
         GotInputFileLengths (Ok raw) ->
             case D.decodeString filelengthsdecoder raw of
                 Ok flengths ->
                     nocmd { model | inputfilelengths = flengths }
                 Err error ->
-                    let x=Debug.log "cannot parse" raw in
                     nocmd model
 
         GotInputFileLengths (Err e) ->
-            let _ = Debug.log "err" e
-            in nocmd model
+            nocmd model
 
         GotOutputFileLengths (Ok raw) ->
             case D.decodeString filelengthsdecoder raw of
                 Ok flengths ->
                     nocmd { model | outputfilelengths = flengths }
                 Err error ->
-                    let x=Debug.log "cannot parse" raw in
                     nocmd model
 
         GotOutputFileLengths (Err e) ->
-            let _ = Debug.log "err" e
-            in nocmd model
+            nocmd model
 
 
 init : { baseurl : String, taskid : Int } -> ( Model, Cmd Msg )
