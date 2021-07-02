@@ -111,7 +111,7 @@ view model =
                           ([ viewio inputs ] ++ viewfiles model "input")
                       ]
 
-              Nothing -> H.span [] [ H.text "no input" ]
+              Nothing -> H.div [] [ H.text "no input" ]
 
         , case model.outputs of
               Just outputs ->
@@ -121,7 +121,7 @@ view model =
                           ([ viewio outputs ] ++ viewfiles model "output")
                       ]
 
-              Nothing -> H.span [] [ H.text "no output" ]
+              Nothing -> H.div [] [ H.text "no output" ]
         ]
 
 
