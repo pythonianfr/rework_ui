@@ -208,9 +208,9 @@ viewiospec input =
 
 viewinfo info =
     H.div []
-        [ H.text (show "queued" info.queued)
-        , H.text (show "started" info.started)
-        , H.text (show "finished" info.finished)
+        [ H.div [] [ H.text (show "queued" info.queued) ]
+        , H.div [] [ H.text (show "started" info.started) ]
+        , H.div [] [ H.text (show "finished" info.finished) ]
         , H.div []
             [ H.text "input spec → "
             , H.div [ HA.style "margin-left" "5em" ]
