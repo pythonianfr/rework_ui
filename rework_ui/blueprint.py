@@ -572,8 +572,8 @@ def reworkui(engine,
             'queued': str(res.queued or ''),
             'started': str(res.started or ''),
             'finished': str(res.finished or ''),
-            'inputspec': res.inputs,
-            'outputspec': res.outputs
+            'inputspec': res.inputs or [],
+            'outputspec': res.outputs or []
         }
 
         return make_response(
