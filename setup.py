@@ -31,7 +31,7 @@ doc = Path(__file__).parent / 'README.md'
 
 
 setup(name='rework_ui',
-      version='0.10.1',
+      version='0.11.0',
       author='Aurelien Campeas',
       author_email='aurelien.campeas@pythonian.fr',
       description='A web ui for the rework distributed task dispatcher',
