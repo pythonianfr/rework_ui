@@ -25,6 +25,8 @@ from rework import api
 
 from rework.helper import (
     BetterCronTrigger,
+    convert_io,
+    filterio,
     iospec,
     unpack_io,
     unpack_iofiles_length,
@@ -195,9 +197,15 @@ def reworkui(engine,
         domain = args.pop('domain', None)
         meta = argsdict(request.args)
 
+        specs = iospec(engine)
+        spec = filterio(specs, service, domain, hostid)
+        typed_args = convert_io(spec, args)
+
         try:
             task = api.schedule(
-                engine, service, args,
+                engine,
+                service,
+                typed_args,
                 hostid=hostid,
                 domain=domain,
                 metadata=meta
