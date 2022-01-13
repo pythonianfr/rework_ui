@@ -46,6 +46,7 @@ setup(name='rework_ui',
           'flask',
           'pygments',
           'werkzeug >= 1.0.0',
+          'lxml',
           'sqlalchemy',
       ],
       package_data={'rework_ui': [
