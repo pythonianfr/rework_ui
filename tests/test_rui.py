@@ -280,7 +280,7 @@ def test_schedulers(engine, client):
         rule='1 2 * * * *'
     )
 
-    api.prepare(
+    sid = api.prepare(
         engine,
         'with_inputs',
         rule='0 9 * * * *',
@@ -301,6 +301,12 @@ def test_schedulers(engine, client):
          "'1973-05-20 09:00:00'}"
         ]
     ]
+
+    res = client.put(f'/launch-scheduled/{sid}')
+    assert 'tid' in res.json
+    tid = res.json['tid']
+    task = Task.byid(engine, tid)
+    assert task.state == 'queued'
 
 
 def test_read_io(engine, client):

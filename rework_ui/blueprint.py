@@ -8,6 +8,7 @@ import tzlocal
 from flask import (
     abort,
     Blueprint,
+    jsonify,
     make_response,
     request,
     render_template,
@@ -242,6 +243,29 @@ def reworkui(engine,
             metadata=t.metadata
         )
         return json.dumps(newtask.tid)
+
+    @bp.route('/launch-scheduled/<int:sid>', methods=['PUT'])
+    def launch_scheduled(sid):
+        if not has_permission('launch'):
+            return json.dumps(0)
+
+        q = select(
+            'op.name', 's.domain', 's.inputdata', 's.host', 's.metadata',
+        ).table('rework.sched as s', 'rework.operation as op'
+        ).where('s.operation = op.id'
+        ).where('s.id = %(sid)s', sid=sid)
+        sched = q.do(engine).fetchone()
+
+        t = api.schedule(
+            engine,
+            sched[0],
+            rawinputdata=sched[2] if sched[2] else None,
+            hostid=sched[3],
+            domain=sched[1],
+            metadata=sched[4]
+        )
+
+        return jsonify({'tid': t.tid})
 
     @bp.route('/job_input/<jobid>')
     def job_input(jobid):

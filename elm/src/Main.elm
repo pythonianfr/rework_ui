@@ -449,6 +449,11 @@ update msg model =
             nocmd <| log model ERROR err
 
         LaunchNow sid ->
+            ( model
+            , launchnow model sid
+            )
+
+        InstantLaunchFromSchedule _ ->
             nocmd model
 
         DeleteSched sid ->
@@ -570,6 +575,19 @@ getlaunchers model =
     { url = UB.crossOrigin model.baseurl
           [ "launchers-table-json" ] [ ]
     , expect = Http.expectJson GotLaunchers (JD.list decodeLauncher)
+    }
+
+
+launchnow model sid =
+    Http.request
+    { url = UB.crossOrigin model.baseurl
+          [ "launch-scheduled/" ++ String.fromInt sid ] [ ]
+    , method = "PUT"
+    , headers = []
+    , body = Http.emptyBody
+    , expect = Http.expectWhatever InstantLaunchFromSchedule
+    , timeout = Nothing
+    , tracker = Nothing
     }
 
 

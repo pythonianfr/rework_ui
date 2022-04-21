@@ -237,6 +237,7 @@ type Msg
     | PreScheduleFailed String
     | PreScheduleOk String
     | LaunchNow Int
+    | InstantLaunchFromSchedule (Result Http.Error ())
     -- events
     | HandleKeyboardEvent KeyboardEvent
     | SelectDisplayLevel Level
