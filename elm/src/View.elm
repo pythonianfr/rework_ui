@@ -607,10 +607,15 @@ schedulerRenderRow sched =
         , td sched.rule
         , td (Maybe.withDefault "" sched.input)
         , H.td [] [
-               H.button [ HA.class "btn btn-outline-danger"
+               H.button [ HA.class "btn btn-primary"
                         , HA.type_ "button"
-                        , HE.onClick (DeleteSched sched.id)
+                        , HE.onClick (LaunchNow sched.id)
                         ]
+                   [ H.text "launch" ]
+              , H.button [ HA.class "btn btn-outline-danger"
+                         , HA.type_ "button"
+                         , HE.onClick (DeleteSched sched.id)
+                         ]
                    [ H.text "delete" ]
               ]
         ]

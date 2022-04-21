@@ -236,6 +236,7 @@ type Msg
     | DeletedSched (Result Http.Error String)
     | PreScheduleFailed String
     | PreScheduleOk String
+    | LaunchNow Int
     -- events
     | HandleKeyboardEvent KeyboardEvent
     | SelectDisplayLevel Level

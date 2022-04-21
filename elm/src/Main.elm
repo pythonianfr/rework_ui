@@ -448,6 +448,9 @@ update msg model =
         PreScheduleFailed err ->
             nocmd <| log model ERROR err
 
+        LaunchNow sid ->
+            nocmd model
+
         DeleteSched sid ->
             ( model
             , deletescheduler model sid
