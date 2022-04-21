@@ -696,7 +696,7 @@ def reworkui(engine,
         assert args.direction in ('input', 'output'), args
 
         out = {}
-        for tid in args.taskid:
+        for tid in args.taskid or ():
             payload = _io_payload(tid, args.direction)
             if payload is None:
                 continue
