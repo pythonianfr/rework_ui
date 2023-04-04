@@ -526,33 +526,47 @@ def reworkui(engine,
                 'op.inputs', 't.input'
             ).table('rework.task as t'
             ).join('rework.operation as op on (op.id = t.operation)'
-            ).join('rework.worker as w on (w.id = t.worker)', jtype='left outer'
-            ).order('t.id')
+            ).join('rework.worker as w on (w.id = t.worker)', jtype='left outer')
             if args.domain != 'all':
                 q.where('op.domain = %(domain)s', domain=args.domain)
-            if args.min:
+            # update
+            if args.min and args.max:
+                transform = lambda x: x
                 q.where('t.id >= %(minid)s', minid=args.min)
-            if args.max:
                 q.where('t.id <= %(maxid)s', maxid=args.max)
+                q.order('t.id')
+            # complete initial batch: the next highest 1000
+            elif args.min:
+                transform = lambda x: list(reversed(x))
+                q.where('t.id < %(minid)s', minid=args.min)
+                q.order('t.id', direction='desc')
+                q.limit(1000)
+            else:
+                # initial batch: the first highest 1000
+                transform = lambda x: list(reversed(x))
+                q.limit(1000)
+                q.order('t.id', direction='desc')
 
-            out = [
-                {'tid': row.id,
-                 'name' : row.name,
-                 'status': row.status,
-                 'abort': row.abort,
-                 'domain': row.domain,
-                 'operation': row.operation,
-                 'queued': maybetz(row.queued),
-                 'started': maybetz(row.started),
-                 'finished': maybetz(row.finished),
-                 'metadata': row.metadata,
-                 'worker': row.worker,
-                 'deathinfo': row.deathinfo,
-                 'traceback': row.traceback,
-                 'input': task_formatinput(row.inputs, row.input)
-                }
-                for row in q.do(cn).fetchall()
-            ]
+            out = transform(
+                [
+                    {'tid': row.id,
+                     'name' : row.name,
+                     'status': row.status,
+                     'abort': row.abort,
+                     'domain': row.domain,
+                     'operation': row.operation,
+                     'queued': maybetz(row.queued),
+                     'started': maybetz(row.started),
+                     'finished': maybetz(row.finished),
+                     'metadata': row.metadata,
+                     'worker': row.worker,
+                     'deathinfo': row.deathinfo,
+                     'traceback': row.traceback,
+                     'input': task_formatinput(row.inputs, row.input)
+                     }
+                    for row in q.do(cn).fetchall()
+                ]
+            )
 
         return make_response(
             json.dumps(out),

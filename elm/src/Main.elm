@@ -149,12 +149,34 @@ update msg model =
 
         GotTasks (Ok rawtasks) ->
             let mod = log model INFO ("TASKS (all):" ++ rawtasks) in
-            case  JD.decodeString (JD.list taskDecoder) rawtasks of
+            case JD.decodeString (JD.list taskDecoder) rawtasks of
                 Ok tasks ->
-                    ( { model | tasks = AL.fromList (groupbyid tasks) }
-                    , Cmd.batch [ getiofilehint model tasks "input" GotInputFileHint
-                                , getiofilehint model tasks "output" GotOutputFileHint
-                                ]
+                    let
+                        newtasks =
+                            AL.fromList <| groupbyid tasks
+                        loading =
+                            model.initialload && (List.length tasks > 0)
+                        filehintcmd =
+                            [ getiofilehint model tasks "input" GotInputFileHint
+                            , getiofilehint model tasks "output" GotOutputFileHint
+                            ]
+                        nextcmd =
+                            List.append filehintcmd <|
+                                if List.length tasks > 0
+                                -- complete the initial batch with missing
+                                then [ Http.get <|
+                                           tasksquery model
+                                           GotTasks
+                                           (List.minimum <| List.map .id tasks)
+                                           Nothing
+                                     ]
+                                else []
+                    in
+                    ( { model
+                          | tasks = AL.union model.tasks newtasks
+                          , initialload = loading
+                      }
+                    , Cmd.batch nextcmd
                     )
                 Err err -> nocmd <| log model ERROR <| JD.errorToString err
 
@@ -655,6 +677,7 @@ init jsonFlags =
                 Nothing
                 TasksTab
                 domain
+                True
                 0
                 Dict.empty
                 Dict.empty

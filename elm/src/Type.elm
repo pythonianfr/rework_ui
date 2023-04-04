@@ -150,6 +150,7 @@ type alias Model =
     , launching : Maybe Int
     , activetab : TabsLayout
     , domain : LS.Selection String
+    , initialload : Bool
     , lasteventid : Int
     -- single input/output files
     , inputfilehints : Dict String String

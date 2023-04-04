@@ -5,6 +5,7 @@ import Bool.Extra as BE
 import Dict exposing (Dict)
 import Html as H
 import Html.Attributes as HA
+import Html.Attributes.Aria as ARIA
 import Html.Events as HE
 import Json.Decode as JD
 import List.Selection as LS
@@ -66,15 +67,15 @@ body namesColumns htmlTable =
         ]
 
 
-header tabs =
+header model tabs =
     H.ul [ HA.id "tabs"
          , HA.class "nav nav-tabs"
          , HA.attribute "role" "tablist"
          ]
         <| LS.toList
         <| LS.mapSelected
-            { selected = maketab True
-            , rest = maketab False
+            { selected = maketab model True
+            , rest = maketab model False
             }
             tabs
 
@@ -107,7 +108,7 @@ strstatus task =
         Aborted -> "aborted"
 
 
-maketab active tab =
+maketab model active tab =
     let
         tabname = strtab tab
     in
@@ -122,7 +123,20 @@ maketab active tab =
                , HA.id tabname
                ] ++ if active then [ HA.class "active" ] else []
               )
-            [ H.text tabname ]
+            [ H.div []
+                  ([ H.text <| tabname ++ " " ]
+                  ++ if model.initialload && (tabname == "Tasks") then
+                         [ H.div
+                               [ HA.class "spinner-border spinner-border-sm text-info"
+                               , ARIA.role "status"
+                               ]
+                               [ H.span
+                                     [ HA.class "sr-only" ]
+                                     [ H.text " ... loading" ] ]
+                         ]
+                      else []
+                  )
+            ]
         ]
 
 
@@ -167,7 +181,7 @@ view model =
         TasksTab ->
             let
                 head =
-                    header tabs
+                    header model tabs
 
                 columnsName =
                     [ "#"
@@ -200,7 +214,7 @@ view model =
         ServicesTab ->
             let
                 head =
-                    header tabs
+                    header model tabs
 
                 columnsName =
                     [ "#"
@@ -218,7 +232,7 @@ view model =
 
         LaunchersTab ->
             let
-                head = header tabs
+                head = header model tabs
                 columnsName =
                     [ "#"
                     , "operation"
@@ -238,7 +252,7 @@ view model =
         MonitorsTab ->
             let
                 head =
-                    header tabs
+                    header model tabs
 
                 columnsNameMonitor =
                     [ "#"
@@ -274,7 +288,7 @@ view model =
         SchedulersTab ->
             let
                 head =
-                    header tabs
+                    header model tabs
 
                 columnsName =
                     [ "#"
