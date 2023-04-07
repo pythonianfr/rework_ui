@@ -4,6 +4,7 @@ import AssocList as AL
 import Dict exposing (Dict)
 import Http
 import Http.Detailed as HD
+import InfiniteScroll as IS
 import Keyboard.Event exposing (KeyboardEvent)
 import List.Selection as LS
 import Log exposing (LogEntry, Level)
@@ -150,7 +151,9 @@ type alias Model =
     , launching : Maybe Int
     , activetab : TabsLayout
     , domain : LS.Selection String
-    , initialload : Bool
+    , loading : Bool
+    , toload : Bool
+    , scroller : IS.Model Msg
     , lasteventid : Int
     -- single input/output files
     , inputfilehints : Dict String String
@@ -242,6 +245,8 @@ type Msg
     -- events
     | HandleKeyboardEvent KeyboardEvent
     | SelectDisplayLevel Level
+    | LoadMore
+    | ScrollMore IS.Msg
 
 
 type TabsLayout

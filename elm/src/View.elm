@@ -7,6 +7,7 @@ import Html as H
 import Html.Attributes as HA
 import Html.Attributes.Aria as ARIA
 import Html.Events as HE
+import InfiniteScroll as IS
 import Json.Decode as JD
 import List.Selection as LS
 import Log exposing
@@ -125,7 +126,7 @@ maketab model active tab =
               )
             [ H.div []
                   ([ H.text <| tabname ++ " " ]
-                  ++ if model.initialload && (tabname == "Tasks") then
+                  ++ if model.loading && (tabname == "Tasks") then
                          [ H.div
                                [ HA.class "spinner-border spinner-border-sm text-info"
                                , ARIA.role "status"
@@ -202,6 +203,16 @@ view model =
                         "all" -> True
                         _ -> domain == task.domain
 
+                scroller =
+                    if model.toload && not model.loading
+                    then
+                        [ HA.style "height" "100%"
+                        , HA.style "overflow" "auto"
+                        , IS.infiniteScroll ScrollMore
+                        ]
+                    else
+                        []
+
                 table =
                     body columnsName
                         (List.map (taskRenderRow model)
@@ -209,7 +220,8 @@ view model =
                         )
 
             in
-            H.div [ topmargin ] [ title, viewdomainfilter model, head, table ]
+            H.div ([ topmargin ] ++ scroller)
+                [ title, viewdomainfilter model, head, table ]
 
         ServicesTab ->
             let

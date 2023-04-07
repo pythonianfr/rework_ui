@@ -8,6 +8,8 @@ import Cmd.Extra exposing (withNoCmd)
 import Dict exposing (Dict)
 import Http
 import Http.Detailed as HD
+import InfiniteScroll as IS
+import InfiniteScroll as IS exposing (Msg(..))
 import Json.Decode as JD
 import Json.Encode as JE
 import Keyboard.Event exposing
@@ -145,6 +147,34 @@ update msg model =
         ActionResponse table id action (Err _) ->
             nocmd <| disableactions model table id
 
+        -- scroll
+
+        LoadMore ->
+            nocmd model
+
+        ScrollMore dir ->
+            let
+                remain =
+                    case dir of
+                        Scroll st ->
+                            (st.contentHeight - (round st.scrollTop))
+                        _ -> 9999
+
+                (newmodel, nextcmd) = if remain > 1000 && not model.loading
+                          then (model, Cmd.none)
+                          else
+                              ( { model | loading = True }
+                              , Http.get <|
+                                  (tasksquery model)
+                                  GotTasks
+                                  (List.minimum <| List.map .id (AL.values model.tasks))
+                                  Nothing
+                              )
+            in
+                ( newmodel
+                , nextcmd
+                )
+
         -- tasks
 
         GotTasks (Ok rawtasks) ->
@@ -154,29 +184,17 @@ update msg model =
                     let
                         newtasks =
                             AL.fromList <| groupbyid tasks
-                        loading =
-                            model.initialload && (List.length tasks > 0)
                         filehintcmd =
                             [ getiofilehint model tasks "input" GotInputFileHint
                             , getiofilehint model tasks "output" GotOutputFileHint
                             ]
-                        nextcmd =
-                            List.append filehintcmd <|
-                                if List.length tasks > 0
-                                -- complete the initial batch with missing
-                                then [ Http.get <|
-                                           tasksquery model
-                                           GotTasks
-                                           (List.minimum <| List.map .id tasks)
-                                           Nothing
-                                     ]
-                                else []
                     in
                     ( { model
                           | tasks = AL.union model.tasks newtasks
-                          , initialload = loading
+                          , loading = False
+                          , toload = List.length tasks > 0
                       }
-                    , Cmd.batch nextcmd
+                    , Cmd.batch filehintcmd
                     )
                 Err err -> nocmd <| log model ERROR <| JD.errorToString err
 
@@ -644,6 +662,10 @@ refreshCmd model tab =
     Cmd.batch <| List.map Http.get query
 
 
+loadmore direction =
+    Cmd.none
+
+
 init : JD.Value -> ( Model, Cmd Msg )
 init jsonFlags =
     let
@@ -678,6 +700,8 @@ init jsonFlags =
                 TasksTab
                 domain
                 True
+                True
+                (IS.init loadmore)
                 0
                 Dict.empty
                 Dict.empty

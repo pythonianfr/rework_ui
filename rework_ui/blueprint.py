@@ -535,16 +535,16 @@ def reworkui(engine,
                 q.where('t.id >= %(minid)s', minid=args.min)
                 q.where('t.id <= %(maxid)s', maxid=args.max)
                 q.order('t.id')
-            # complete initial batch: the next highest 1000
+            # complete initial batch: the next highest 250
             elif args.min:
                 transform = lambda x: list(reversed(x))
                 q.where('t.id < %(minid)s', minid=args.min)
                 q.order('t.id', direction='desc')
-                q.limit(1000)
+                q.limit(250)
             else:
-                # initial batch: the first highest 1000
+                # initial batch: the first highest 250
                 transform = lambda x: list(reversed(x))
-                q.limit(1000)
+                q.limit(250)
                 q.order('t.id', direction='desc')
 
             out = transform(
