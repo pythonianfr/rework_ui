@@ -50,7 +50,7 @@ user2String metadata =
 
 
 body : List String -> List (H.Html Msg) -> H.Html Msg
-body namesColumns htmlTable =
+body columns htmlbody =
     H.div [ HA.class "tab-content" ]
         [ H.div
               [ HA.id "tasks"
@@ -61,8 +61,8 @@ body namesColumns htmlTable =
               , H.table
                   [ HA.class "table table-sm table-bordered table-striped table-hover" ]
                   [ H.thead [ ]
-                        [ H.tr [] (List.map th namesColumns) ]
-                  , H.tbody [] htmlTable
+                        [ H.tr [] (List.map th columns) ]
+                  , H.tbody [] htmlbody
                   ]
               ]
         ]
@@ -81,8 +81,8 @@ header model tabs =
             tabs
 
 
-strtab tableLayout =
-    case tableLayout of
+strtab tablelayout =
+    case tablelayout of
         TasksTab ->
             "Tasks"
 
@@ -184,7 +184,7 @@ view model =
                 head =
                     header model tabs
 
-                columnsName =
+                columns =
                     [ "#"
                     , "service"
                     , "domain"
@@ -214,8 +214,8 @@ view model =
                         []
 
                 table =
-                    body columnsName
-                        (List.map (taskRenderRow model)
+                    body columns
+                        (List.map (taskrenderrow model)
                              <| List.filter filtertask (AL.values model.tasks)
                         )
 
@@ -228,7 +228,7 @@ view model =
                 head =
                     header model tabs
 
-                columnsName =
+                columns =
                     [ "#"
                     , "host"
                     , "name"
@@ -237,15 +237,15 @@ view model =
                     ]
 
                 table =
-                    body columnsName
-                        (List.map serviceRenderRow (AL.values model.services))
+                    body columns
+                        (List.map servicerenderrow (AL.values model.services))
             in
             H.div [ topmargin ] [ title, head, table ]
 
         LaunchersTab ->
             let
                 head = header model tabs
-                columnsName =
+                columns =
                     [ "#"
                     , "operation"
                     , "domain"
@@ -253,9 +253,9 @@ view model =
                     , "form"
                     ]
                 table =
-                    body columnsName
+                    body columns
                         (List.map
-                             (launcherRenderRow model.launching)
+                             (launcherrenderrow model.launching)
                              (AL.values model.launchers))
 
             in
@@ -266,14 +266,14 @@ view model =
                 head =
                     header model tabs
 
-                columnsNameMonitor =
+                monitorcolumns =
                     [ "#"
                     , "domain"
                     , "seen last"
                     , "options"
                     ]
 
-                columnsNameWorker =
+                workercolumns =
                     [ "#"
                     , "pid@host"
                     , "domain"
@@ -284,25 +284,25 @@ view model =
                     , "action"
                     ]
 
-                tableDomain =
-                    body columnsNameMonitor
+                domaintable =
+                    body monitorcolumns
                         (List.map
-                            monitorRenderRow
+                            monitorrenderrow
                             (AL.values model.monitors)
                         )
 
-                tableWorker =
-                    body columnsNameWorker
-                        (List.map workerRenderRow (AL.values model.workers))
+                    body workercolumns
+                workertable =
+                        (List.map workerrendertow (AL.values model.workers))
             in
-            H.div [ topmargin ] [ title, head, tableDomain, tableWorker ]
+            H.div [ topmargin ] [ title, head, domaintable, workertable ]
 
         SchedulersTab ->
             let
                 head =
                     header model tabs
 
-                columnsName =
+                columns =
                     [ "#"
                     , "service"
                     , "domain"
@@ -319,8 +319,8 @@ view model =
                         _ -> sched.domain == domain
 
                 table =
-                    body columnsName
-                        (List.map schedulerRenderRow
+                    body columns
+                        (List.map schedulerrenderrow
                              (List.filter indomain (AL.values model.schedulers)))
 
             in
@@ -361,7 +361,7 @@ findandrenderinput model service =
             H.span [] []
         Just alauncher ->
             H.fieldset [ HA.class "form-group" ]
-                <| List.map renderInput alauncher.inputs
+                <| List.map renderinput alauncher.inputs
 
 
 scheduleaction model =
@@ -464,7 +464,7 @@ Each one specifies a part of the rule.
 
 rendertaskactions model task =
     let actions =
-            List.map (renderAction task.id) task.actions
+            List.map (renderaction task.id) task.actions
 
         inputaction =
             case Dict.get (String.fromInt task.id) model.inputfilehints of
@@ -519,10 +519,13 @@ rendertaskactions model task =
            )
 
 
-taskRenderRow model task =
+nbsp =
+    String.fromChar (Char.fromCode 160)
+
+
+taskrenderrow model task =
     let
-        span : H.Html msg
-        span =
+        result =
             H.span []
                 [ H.a
                     [ HA.title "show the task log (if any)"
@@ -530,7 +533,7 @@ taskRenderRow model task =
                     , HA.href ("tasklogs/" ++ String.fromInt task.id)
                     ]
                     [ H.text task.name ]
-                , H.text <| String.fromChar (Char.fromCode 160) -- nbsp
+                , H.text nbsp
                 , H.a
                     [ HA.title "show task informations"
                     , HA.target "_blank"
@@ -539,17 +542,14 @@ taskRenderRow model task =
                     [ H.text "\u{1F441}" ]
                 ]
 
-        renderResult : TaskResult -> H.Html msg
-        renderResult taskResult =
-            case taskResult of
+        renderresult taskresult =
+            case taskresult of
                 Success ->
-                    H.td []
-                        [ span
-                        ]
+                    H.td [] [ result ]
 
                 Failure ->
                     H.td []
-                        [ span
+                        [ result
                         , H.span []
                             [ H.span [] [ H.text " " ]
                             , H.a
@@ -562,26 +562,24 @@ taskRenderRow model task =
                             ]
                         ]
 
-        tdStatus : String -> String -> H.Html msg
-        tdStatus status info =
+        tsstatus status info =
             H.td [ HA.class status, HA.title info ]
                 [ H.text status ]
 
-        renderStatus : H.Html msg
-        renderStatus =
+        renderstatus =
             let
                 info =
                     Maybe.withDefault "" task.deathInfo
                 status = strstatus task
             in
-            tdStatus status info
+            tsstatus status info
 
         user = user2String task.metadata
     in
     H.tr []
         [ H.th [ HA.scope "row" ]
             [ H.text (String.fromInt task.id) ]
-        , renderResult task.result
+        , renderresult task.result
         , td task.domain
         , td <| Maybe.withDefault "" task.input
         , H.td [ HA.class "text-monospace", HA.style "font-size" ".8em" ]
@@ -600,7 +598,7 @@ taskRenderRow model task =
         , td <| case task.worker of
                     Nothing -> "#"
                     Just worker -> "#" ++ String.fromInt worker
-        , renderStatus
+        , renderstatus
         , H.td [] <| rendertaskactions model task
         ]
 
@@ -610,8 +608,8 @@ td x =
     H.td [] [ H.text x ]
 
 
-serviceRenderRow : Service -> H.Html Msg
-serviceRenderRow service =
+servicerenderrow : Service -> H.Html Msg
+servicerenderrow service =
     H.tr []
         [ H.th [ HA.scope "row" ]
             [ H.text (String.fromInt service.id) ]
@@ -622,8 +620,8 @@ serviceRenderRow service =
         ]
 
 
-schedulerRenderRow : Scheduler -> H.Html Msg
-schedulerRenderRow sched =
+schedulerrenderrow : Scheduler -> H.Html Msg
+schedulerrenderrow sched =
     H.tr []
         [ H.th [ HA.scope "row" ]
             [ H.text (String.fromInt sched.id) ]
@@ -647,7 +645,7 @@ schedulerRenderRow sched =
         ]
 
 
-renderInput input =
+renderinput input =
     case input.spectype of
         Num ->
             H.div [ HA.class "form-group" ]
@@ -721,8 +719,8 @@ renderInput input =
                 ]
 
 
-inputspecRenderRow : Launcher -> H.Html Msg
-inputspecRenderRow launcher =
+inputsrenderrow : Launcher -> H.Html Msg
+inputsrenderrow launcher =
     let
         renderTop rest =
             H.form [ HA.id "run-form", HA.class "was-validated" ]
@@ -746,11 +744,11 @@ inputspecRenderRow launcher =
                 )
 
     in
-    H.td [] [ renderTop (List.map renderInput launcher.inputs) ]
+    H.td [] [ renderTop (List.map renderinput launcher.inputs) ]
 
 
-launcherRenderRow : Maybe Int -> Launcher -> H.Html Msg
-launcherRenderRow launching launcher =
+launcherrenderrow : Maybe Int -> Launcher -> H.Html Msg
+launcherrenderrow launching launcher =
     let
         preform =
             case launcher.inputs of
@@ -777,26 +775,26 @@ launcherRenderRow launching launcher =
               Nothing -> preform
               Just lid ->
                   if launcher.id == lid then
-                      inputspecRenderRow launcher
+                      inputsrenderrow launcher
                   else
                       preform
         ]
 
 
-monitorRenderRow : Monitor -> H.Html Msg
-monitorRenderRow monitor =
+monitorrenderrow : Monitor -> H.Html Msg
+monitorrenderrow monitor =
     H.tr []
         [ H.th [ HA.scope "row" ]
             [ H.text (String.fromInt monitor.id) ]
         , td monitor.domain
-        , formatdateColor monitor.lastSeen monitor.delta
+        , formatdatecolor monitor.lastSeen monitor.delta
         , H.th []
-            [ H.text (String.join ", " (List.map equalTuple monitor.options)) ]
+            [ H.text (String.join ", " (List.map equaltuple monitor.options)) ]
         ]
 
 
-formatdateColor : String -> Float -> H.Html Msg
-formatdateColor stringDate delta =
+formatdatecolor : String -> Float -> H.Html Msg
+formatdatecolor stringDate delta =
     let
         color =
             if delta > 60 then
@@ -811,15 +809,15 @@ formatdateColor stringDate delta =
     H.td [ HA.style "color" color ] [ H.text stringDate ]
 
 
-equalTuple : ( String, Int ) -> String
-equalTuple tuple =
+equaltuple : ( String, Int ) -> String
+equaltuple tuple =
     Tuple.first tuple
         ++ "="
         ++ String.fromInt (Tuple.second tuple)
 
 
-workerRenderRow : Worker -> H.Html Msg
-workerRenderRow worker =
+workerrendertow : Worker -> H.Html Msg
+workerrendertow worker =
     H.tr []
         [ H.th [ HA.scope "row" ]
             [ H.text (String.fromInt worker.id) ]
@@ -829,19 +827,19 @@ workerRenderRow worker =
         , td (String.fromFloat (worker.cpu / 100))
         , td (Maybe.map String.fromInt worker.debugPort |> Maybe.withDefault "")
         , td worker.started
-        , H.td [] (List.map (renderAction worker.id) worker.actions)
+        , H.td [] (List.map (renderaction worker.id) worker.actions)
         ]
 
 
-renderAction : Int -> Action -> H.Html Msg
-renderAction id action =
+renderaction : Int -> Action -> H.Html Msg
+renderaction id action =
     let
         disabled =
             case action of
                 Disabled act -> True
                 _ -> False
 
-        buttonAction class title msg =
+        buttonaction class title msg =
             if not disabled then
                 H.span
                     []
@@ -857,31 +855,31 @@ renderAction id action =
     in
     case action of
         Abort ->
-            buttonAction
+            buttonaction
                 "btn btn-danger btn-sm"
                 "abort"
                 OnAbort
 
         Delete ->
-            buttonAction
+            buttonaction
                 "btn btn-warning btn-sm"
                 "delete"
                 OnDelete
 
         Relaunch ->
-            buttonAction
+            buttonaction
                 "btn btn-primary btn-sm"
                 "relaunch"
                 OnRelaunch
 
         Kill ->
-            buttonAction
+            buttonaction
                 "btn btn-warning btn-sm"
                 "kill"
                 OnKill
 
         Shutdown ->
-            buttonAction
+            buttonaction
                 "btn btn-danger btn-sm"
                 "shutdown"
                 OnShutdown
