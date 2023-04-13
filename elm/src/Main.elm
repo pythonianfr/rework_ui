@@ -41,6 +41,7 @@ import Type
         , Flags
         , Model
         , Msg(..)
+        , Status(..)
         , TabsLayout(..)
         )
 import View exposing (view)
@@ -520,6 +521,38 @@ update msg model =
         SelectDisplayLevel level ->
             nocmd { model | logdisplaylevel = level }
 
+        -- filters (tasks)
+
+        ServiceFilter name ->
+            let
+                filter = model.tasksfilter
+                newfilter =
+                    case name of
+                        "" -> { filter | service = Nothing }
+                        _ -> { filter | service = Just name }
+            in
+            nocmd { model | tasksfilter = newfilter }
+
+        InputsFilter name ->
+            let
+                filter = model.tasksfilter
+                newfilter =
+                    case name of
+                        "" -> { filter | inputs = Nothing }
+                        _ -> { filter | inputs = Just name }
+            in
+            nocmd { model | tasksfilter = newfilter }
+
+        StatusFilter name ->
+            let
+                filter = model.tasksfilter
+                newfilter =
+                    case name of
+                        "" -> { filter | status = Nothing }
+                        _ -> { filter | status = Just name }
+            in
+            nocmd { model | tasksfilter = newfilter }
+
 
 deletescheduler model sid =
     Http.request
@@ -692,6 +725,10 @@ init jsonFlags =
         model = Model
                 baseurl
                 AL.empty
+                { service = Nothing
+                , inputs = Nothing
+                , status = Nothing
+                }
                 AL.empty
                 AL.empty
                 AL.empty

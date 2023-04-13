@@ -49,8 +49,8 @@ user2String metadata =
                     M.metavaltostring item
 
 
-body : List String -> List (H.Html Msg) -> H.Html Msg
-body columns htmlbody =
+body : List String -> List (H.Html Msg) -> List (H.Html Msg) -> H.Html Msg
+body columns filter htmlbody =
     H.div [ HA.class "tab-content" ]
         [ H.div
               [ HA.id "tasks"
@@ -61,7 +61,7 @@ body columns htmlbody =
               , H.table
                   [ HA.class "table table-sm table-bordered table-striped table-hover" ]
                   [ H.thead [ ]
-                        [ H.tr [] (List.map th columns) ]
+                        ([ H.tr [] (List.map th columns) ] ++ filter)
                   , H.tbody [] htmlbody
                   ]
               ]
@@ -196,12 +196,100 @@ view model =
                     , "action"
                     ]
 
+
+                statuses =
+                    [ ""
+                    , "queued"
+                    , "running"
+                    , "done"
+                    , "failed"
+                    , "aborting"
+                    , "aborted"
+                    ]
+
+                makestatusfilteroption opt =
+                    H.option
+                        [ HA.value opt ]
+                        [ H.text opt ]
+
+                filter =
+                    [ H.tr []
+                          [ H.th [] []
+                          , H.th []
+                              [ H.input
+                                    [ HA.placeholder "service filter"
+                                    , HA.name "servicefilter"
+                                    , HE.onInput ServiceFilter
+                                    ] []
+                              ]
+                          , H.th [] []
+                          , H.th []
+                              [ H.input
+                                    [ HA.placeholder "inputs filter"
+                                    , HA.name "inputsfilter"
+                                    , HE.onInput InputsFilter
+                                    ] []
+                              ]
+                          , H.th [] []
+                          , H.th [] []
+                          , H.th [] []
+                          , H.th []
+                              [ H.select
+                                    [ HA.name "task-status"
+                                    , HA.id "task-status"
+                                    , HE.on "change" <| JD.map StatusFilter HE.targetValue
+                                    ]
+                                    (List.map makestatusfilteroption statuses)
+                              ]
+                          , H.th [] []
+                          ]
+                    ]
+
                 domain = Maybe.withDefault "all" <| LS.selected model.domain
 
-                filtertask task  =
+                filterdomain task  =
                     case domain of
                         "all" -> True
                         _ -> domain == task.domain
+
+                filterservice task =
+                    case model.tasksfilter.service of
+                        Nothing -> True
+                        Just servicepart ->
+                            String.contains servicepart task.name
+
+                filterinput task =
+                    let
+                        taskinput =
+                            case task.input of
+                                Nothing -> ""
+                                Just aninput -> aninput
+                    in
+                    case model.tasksfilter.inputs of
+                        Nothing -> True
+                        Just inputpart ->
+                            String.contains inputpart taskinput
+
+                filterstatus task =
+                    let
+                        taskstatus =
+                            case task.status of
+                                Queued -> "queued"
+                                Running -> "running"
+                                Done -> "done"
+                                Failed _ -> "failed"
+                                Aborting -> "aborting"
+                                Aborted -> "aborted"
+                    in
+                    case model.tasksfilter.status of
+                        Nothing -> True
+                        Just fstatus -> fstatus == taskstatus
+                        
+                filtertask task =
+                    (filterdomain task) &&
+                    (filterservice task) &&
+                    (filterinput task) &&
+                    (filterstatus task)
 
                 scroller =
                     if model.toload && not model.loading
@@ -214,7 +302,7 @@ view model =
                         []
 
                 table =
-                    body columns
+                    body columns filter
                         (List.map (taskrenderrow model)
                              <| List.filter filtertask (AL.values model.tasks)
                         )
@@ -237,7 +325,7 @@ view model =
                     ]
 
                 table =
-                    body columns
+                    body columns []
                         (List.map servicerenderrow (AL.values model.services))
             in
             H.div [ topmargin ] [ title, head, table ]
@@ -253,7 +341,7 @@ view model =
                     , "form"
                     ]
                 table =
-                    body columns
+                    body columns []
                         (List.map
                              (launcherrenderrow model.launching)
                              (AL.values model.launchers))
@@ -285,14 +373,14 @@ view model =
                     ]
 
                 domaintable =
-                    body monitorcolumns
+                    body monitorcolumns []
                         (List.map
                             monitorrenderrow
                             (AL.values model.monitors)
                         )
 
-                    body workercolumns
                 workertable =
+                    body workercolumns []
                         (List.map workerrendertow (AL.values model.workers))
             in
             H.div [ topmargin ] [ title, head, domaintable, workertable ]
@@ -319,7 +407,7 @@ view model =
                         _ -> sched.domain == domain
 
                 table =
-                    body columns
+                    body columns []
                         (List.map schedulerrenderrow
                              (List.filter indomain (AL.values model.schedulers)))
 

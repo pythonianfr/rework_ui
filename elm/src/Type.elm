@@ -141,9 +141,17 @@ type alias SchedulerDict =
     AL.Dict Int Scheduler
 
 
+type alias TasksFilter =
+    { service : Maybe String
+    , inputs : Maybe String
+    , status : Maybe String
+    }
+
+
 type alias Model =
     { baseurl : String
     , tasks : TaskDict
+    , tasksfilter : TasksFilter
     , workers : WorkerDict
     , monitors : MonitorDict
     , services : ServiceDict
@@ -247,6 +255,10 @@ type Msg
     | SelectDisplayLevel Level
     | LoadMore
     | ScrollMore IS.Msg
+    -- filters
+    | ServiceFilter String
+    | InputsFilter String
+    | StatusFilter String
 
 
 type TabsLayout
