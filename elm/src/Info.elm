@@ -1,7 +1,7 @@
 module Info exposing (main)
 
 import Browser
-import Decoder exposing (decodeInputspec)
+import Decoder exposing (decodeinputspec)
 import Dict exposing (Dict)
 import Html as H
 import Html.Attributes as HA
@@ -51,8 +51,8 @@ infodecoder =
         (D.field "queued" D.string)
         (D.field "started" D.string)
         (D.field "finished" D.string)
-        (D.field "inputspec" (D.list decodeInputspec))
-        (D.field "outputspec" (D.list decodeInputspec))
+        (D.field "inputspec" (D.list decodeinputspec))
+        (D.field "outputspec" (D.list decodeinputspec))
 
 
 filelengthsdecoder =

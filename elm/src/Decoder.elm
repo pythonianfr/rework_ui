@@ -1,17 +1,14 @@
 module Decoder exposing
-    ( decodeFlags
-    , decodeInputspec
-    , decodeLauncher
-    , decodeWorkers
-    , decodeScheduler
-    , decodeService
-    , decodeWorker
-    , eventsdecoder
-    , matchActionResult
-    , matchTaskResult
-    , statusDecoder
-    , taskDecoder
-    , workerActionsDecoder
+    ( decodeflags
+    , decodeinputspec
+    , decodelauncher
+    , decodeworkers
+    , decodescheduler
+    , decodeservice
+    , decodeevents
+    , matchactionresult
+    , decodetask
+    , decodeworkeraction
     )
 
 import Json.Decode as D
@@ -38,29 +35,29 @@ import Type
         )
 
 
-eventdecoder =
+decodeevent =
     D.map3 Event
         (D.field "id" D.int)
         (D.field "action" D.string)
         (D.field "taskid" D.int)
 
 
-eventsdecoder =
-    D.nullable (D.list eventdecoder)
+decodeevents =
+    D.nullable (D.list decodeevent)
 
 
-statusDecoder : D.Decoder Status
-statusDecoder =
+decodestatus : D.Decoder Status
+decodestatus =
     let
-        jsonStatusDecoder : D.Decoder JsonStatus
-        jsonStatusDecoder =
+        decodejsonstatus : D.Decoder JsonStatus
+        decodejsonstatus =
             D.map3 JsonStatus
                 (D.field "status" D.string)
                 (D.field "abort" D.bool)
                 (D.field "traceback" (D.nullable D.string))
 
-        matchStatus : JsonStatus -> D.Decoder Status
-        matchStatus x =
+        matchstatus : JsonStatus -> D.Decoder Status
+        matchstatus x =
             case ( x.status, x.abort, x.traceback ) of
                 ( "queued", False, _ ) ->
                     D.succeed Queued
@@ -86,11 +83,11 @@ statusDecoder =
                 ( status, _, _ ) ->
                     D.fail <| "Unknown status : " ++ status
     in
-    jsonStatusDecoder |> D.andThen matchStatus
+    decodejsonstatus |> D.andThen matchstatus
 
 
-matchTaskResult : Status -> TaskResult
-matchTaskResult status =
+matchtaskresult : Status -> TaskResult
+matchtaskresult status =
     case status of
         Failed _ ->
             Failure
@@ -99,8 +96,8 @@ matchTaskResult status =
             Success
 
 
-matchActionResult : Status -> List Action
-matchActionResult status =
+matchactionresult : Status -> List Action
+matchactionresult status =
     case status of
         Running ->
             [ Abort ]
@@ -140,18 +137,12 @@ map13 func da db dc dd de df dg dh di dj dk dl dm =
     D.map8 func da db dc dd de df dg dh |> D.andThen map5
 
 
-
-optionalAt : List String -> D.Decoder a -> D.Decoder (Maybe a)
-optionalAt path da =
-    D.oneOf [ D.at path (D.nullable da), D.succeed Nothing ]
-
-
-decodeTask : Status -> D.Decoder Task
-decodeTask status =
+decodetaskfromstatus : Status -> D.Decoder Task
+decodetaskfromstatus status =
     map13
         Task
         (D.field "tid" D.int)
-        (D.succeed <| matchTaskResult status)
+        (D.succeed <| matchtaskresult status)
         (D.field "name" D.string)
         (D.field "domain" D.string)
         (D.field "queued" D.string)
@@ -161,17 +152,17 @@ decodeTask status =
         (D.field "worker" (D.maybe D.int))
         (D.succeed status)
         (D.field "deathinfo" (D.nullable D.string))
-        (D.succeed <| matchActionResult status)
+        (D.succeed <| matchactionresult status)
         (D.field "input" (D.nullable D.string))
 
 
-taskDecoder : D.Decoder Task
-taskDecoder =
-    statusDecoder |> D.andThen decodeTask
+decodetask : D.Decoder Task
+decodetask =
+    decodestatus |> D.andThen decodetaskfromstatus
 
 
-decodeService : D.Decoder Service
-decodeService =
+decodeservice : D.Decoder Service
+decodeservice =
     D.map5 Service
         (D.field "opid" D.int)
         (D.field "host" D.string)
@@ -180,8 +171,8 @@ decodeService =
         (D.field "domain" D.string)
 
 
-decodeInputspec : D.Decoder IOSpec
-decodeInputspec =
+decodeinputspec : D.Decoder IOSpec
+decodeinputspec =
     F.require "type" D.string <| \stype ->
     F.require "name" D.string <| \name ->
     F.require "required" D.bool <| \required ->
@@ -201,18 +192,18 @@ decodeInputspec =
         }
 
 
-decodeLauncher : D.Decoder Launcher
-decodeLauncher =
+decodelauncher : D.Decoder Launcher
+decodelauncher =
     D.map5 Launcher
         (D.index 0 D.int)
         (D.index 1 D.string)
         (D.index 2 D.string)
         (D.index 3 D.string)
-        (D.index 4 (D.list decodeInputspec))
+        (D.index 4 (D.list decodeinputspec))
 
 
-decodeScheduler : D.Decoder Scheduler
-decodeScheduler =
+decodescheduler : D.Decoder Scheduler
+decodescheduler =
     D.map6 Scheduler
         (D.index 0 D.int)
         (D.index 1 D.string)
@@ -222,18 +213,18 @@ decodeScheduler =
         (D.index 5 (D.nullable D.string))
 
 
-decodeMonitor : D.Decoder Monitor
-decodeMonitor =
+decodemonitor : D.Decoder Monitor
+decodemonitor =
     D.map5 Monitor
         (D.field "id" D.int)
         (D.field "domain" D.string)
         (D.field "delta" D.float)
         (D.field "lastseen" D.string)
-        (D.field "options" (D.list decodeOption))
+        (D.field "options" (D.list decodeoption))
 
 
-decodeOption : D.Decoder ( String, Int )
-decodeOption =
+decodeoption : D.Decoder ( String, Int )
+decodeoption =
     D.map2 Tuple.pair
         (D.index 0 D.string)
         (D.index 1 D.int)
@@ -260,8 +251,8 @@ map9 func da db dc dd de df dg dh di =
     D.map8 func da db dc dd de df dg dh |> D.andThen map
 
 
-decodeWorker : D.Decoder Worker
-decodeWorker =
+decodeworker : D.Decoder Worker
+decodeworker =
     map9 Worker
         (D.field "wid" D.int)
         (D.field "host" D.string)
@@ -271,14 +262,14 @@ decodeWorker =
         (D.field "cpu" D.float)
         (D.field "debugport" (D.nullable D.int))
         (D.field "started" D.string)
-        (D.field "button" workerActionsDecoder)
+        (D.field "button" decodeworkeraction)
 
 
-decodeWorkers : D.Decoder JsonMonitors
-decodeWorkers =
+decodeworkers : D.Decoder JsonMonitors
+decodeworkers =
     D.map2 JsonMonitors
-        (D.field "domains" (D.list decodeMonitor))
-        (D.field "workers" (D.list decodeWorker))
+        (D.field "domains" (D.list decodemonitor))
+        (D.field "workers" (D.list decodeworker))
 
 
 type alias JsonButton =
@@ -287,15 +278,15 @@ type alias JsonButton =
     }
 
 
-decodeJsonButton : D.Decoder JsonButton
-decodeJsonButton =
+decodejsonbutton : D.Decoder JsonButton
+decodejsonbutton =
     D.map2 JsonButton
         (D.field "kill" D.bool)
         (D.field "shutdown" D.bool)
 
 
-workerActionsDecoder : D.Decoder (List Action)
-workerActionsDecoder =
+decodeworkeraction : D.Decoder (List Action)
+decodeworkeraction =
     let
         checkPending : ( Bool, Action ) -> Action
         checkPending ( asked, action ) =
@@ -309,11 +300,11 @@ workerActionsDecoder =
         toWorkerActions { kill, shutdown } =
             List.map checkPending [ ( kill, Kill ), ( shutdown, Shutdown ) ]
     in
-    decodeJsonButton |> D.andThen (toWorkerActions >> D.succeed)
+    decodejsonbutton |> D.andThen (toWorkerActions >> D.succeed)
 
 
-decodeFlags : D.Decoder Flags
-decodeFlags =
+decodeflags : D.Decoder Flags
+decodeflags =
     D.map2 Flags
         (D.field "baseurl" D.string)
         (D.field "domains" (D.list D.string))

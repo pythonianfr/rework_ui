@@ -9,7 +9,7 @@ import List.Extra as LE
 import Main exposing (tasksquery)
 import Maybe.Extra as Maybe
 import Regex as RE
-import Decoder exposing (taskDecoder)
+import Decoder exposing (decodetask)
 import Type exposing (Task, Status(..))
 import View exposing (strstatus)
 import Time
@@ -101,7 +101,7 @@ rawlogstologentries rawlogs =
 update msg model =
     case msg of
         GotTask (Ok rawtask) ->
-            case D.decodeString (D.list taskDecoder) rawtask of
+            case D.decodeString (D.list decodetask) rawtask of
                 Ok decoded ->
                     let
                         newmodel = { model | task = List.head decoded }

@@ -25,14 +25,14 @@ import Log exposing
 import Maybe.Extra as Maybe
 import Decoder
     exposing
-        ( eventsdecoder
-        , decodeFlags
-        , decodeLauncher
-        , decodeScheduler
-        , decodeWorkers
-        , decodeService
-        , matchActionResult
-        , taskDecoder
+        ( decodeevents
+        , decodeflags
+        , decodelauncher
+        , decodescheduler
+        , decodeworkers
+        , decodeservice
+        , matchactionresult
+        , decodetask
         )
 import Type
     exposing
@@ -180,7 +180,7 @@ update msg model =
 
         GotTasks (Ok rawtasks) ->
             let mod = log model INFO ("TASKS (all):" ++ rawtasks) in
-            case JD.decodeString (JD.list taskDecoder) rawtasks of
+            case JD.decodeString (JD.list decodetask) rawtasks of
                 Ok tasks ->
                     let
                         newtasks =
@@ -224,7 +224,7 @@ update msg model =
 
         UpdatedTasks (Ok rawtasks) ->
             let mod = log model INFO ("TASKS (subset):" ++ rawtasks) in
-            case JD.decodeString (JD.list taskDecoder) rawtasks of
+            case JD.decodeString (JD.list decodetask) rawtasks of
                 Ok tasks ->
                     ( { model
                           | tasks = AL.union
@@ -246,7 +246,7 @@ update msg model =
                     then log model INFO ("EVENTS: " ++ rawevents)
                     else model
             in
-            case JD.decodeString eventsdecoder rawevents of
+            case JD.decodeString decodeevents rawevents of
                 Err err -> nocmd <| log model ERROR <| JD.errorToString err
                 Ok maybeevents ->
                     case maybeevents of
@@ -321,7 +321,7 @@ update msg model =
                         Just task ->
                             let
                                 newtask id =
-                                    Just { task | actions = matchActionResult task.status }
+                                    Just { task | actions = matchactionresult task.status }
                             in { model | tasks = AL.update task.id newtask model.tasks }
             in
             nocmd <| newmodel
@@ -633,21 +633,21 @@ getiofilehint model tasks direction event =
 getservices model =
     { url = UB.crossOrigin model.baseurl
           [ "services-table-json" ] [ ]
-    , expect = Http.expectJson GotServices (JD.list decodeService)
+    , expect = Http.expectJson GotServices (JD.list decodeservice)
     }
 
 
 getschedulers model =
     { url = UB.crossOrigin model.baseurl
           [ "schedulers-table-json" ] [ ]
-    , expect = Http.expectJson GotSchedulers (JD.list decodeScheduler)
+    , expect = Http.expectJson GotSchedulers (JD.list decodescheduler)
     }
 
 
 getlaunchers model =
     { url = UB.crossOrigin model.baseurl
           [ "launchers-table-json" ] [ ]
-    , expect = Http.expectJson GotLaunchers (JD.list decodeLauncher)
+    , expect = Http.expectJson GotLaunchers (JD.list decodelauncher)
     }
 
 
@@ -683,7 +683,7 @@ refreshCmd model tab =
                 MonitorsTab ->
                     [ { url = UB.crossOrigin model.baseurl
                             [ "workers-table-json" ] [ ]
-                      , expect = Http.expectJson GotWorkers decodeWorkers
+                      , expect = Http.expectJson GotWorkers decodeworkers
                       }
                     ]
 
@@ -703,7 +703,7 @@ init : JD.Value -> ( Model, Cmd Msg )
 init jsonFlags =
     let
         { baseurl, domains } =
-            case JD.decodeValue decodeFlags jsonFlags of
+            case JD.decodeValue decodeflags jsonFlags of
                 Ok val ->
                     let
                         dom =
