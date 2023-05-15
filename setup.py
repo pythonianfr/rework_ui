@@ -3,6 +3,8 @@ from pathlib import Path
 from setuptools import setup
 from setuptools.command.build_ext import build_ext
 
+from rework_ui import __version__
+
 
 WORKING_DIR = Path(__file__).resolve().parent
 STATIC_DIR = WORKING_DIR / 'rework_ui' / 'rui_static'
@@ -31,7 +33,7 @@ doc = Path(__file__).parent / 'README.md'
 
 
 setup(name='rework_ui',
-      version='0.13.0',
+      version=__version__,
       author='Aurelien Campeas',
       author_email='aurelien.campeas@pythonian.fr',
       description='A web ui for the rework distributed task dispatcher',
