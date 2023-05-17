@@ -184,6 +184,9 @@ viewiospec input =
              Num ->
                  H.text (input.name ++ " [number]" ++ (viewrequired input))
 
+             Bool ->
+                 H.text (input.name ++ " [bool]" ++ (viewrequired input))
+
              Str ->
                  H.text <| String.join ""
                      [
@@ -320,4 +323,3 @@ main =
         , update = update
         , subscriptions = subscriptions
         }
-

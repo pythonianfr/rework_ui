@@ -183,6 +183,7 @@ decodeinputspec =
                          "file" -> File
                          "string" -> Str
                          "number" -> Num
+                         "boolean" -> Bool
                          "datetime" -> Datetime
                          "moment" -> Moment
                          _ -> Str

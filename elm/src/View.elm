@@ -284,7 +284,7 @@ view model =
                     case model.tasksfilter.status of
                         Nothing -> True
                         Just fstatus -> fstatus == taskstatus
-                        
+
                 filtertask task =
                     (filterdomain task) &&
                     (filterservice task) &&
@@ -742,6 +742,41 @@ renderinput input =
                       , HA.placeholder input.name
                       , HA.required input.required
                       , HA.name input.name  ] []
+                ]
+
+        Bool ->
+            let
+                radios =
+                    [ H.label
+                          [ HA.for (input.name ++ "true")
+                          , HA.style "margin" ".5em"
+                          ]
+                          [ H.text "true" ]
+                    , H.input
+                          [ HA.type_ "radio"
+                          , HA.id (input.name ++ "true")
+                          , HA.checked input.required
+                          , HA.name input.name
+                          , HA.value "true"
+                          ] []
+                    , H.label
+                        [ HA.for (input.name ++ "false")
+                        , HA.style "margin" ".5em"
+                        ]
+                        [ H.text "false" ]
+                    ,  H.input
+                        [ HA.type_ "radio"
+                        , HA.id (input.name ++ "false")
+                        , HA.name input.name
+                        , HA.value "false"
+                        ] []
+                    ]
+            in
+            H.div [ HA.class "form-group" ]
+                [ H.fieldset
+                      []
+                      [ H.span [ ]
+                            ([ H.text (input.name ++ ": ") ] ++ radios) ]
                 ]
 
         Str ->

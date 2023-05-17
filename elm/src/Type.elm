@@ -59,6 +59,7 @@ type alias Scheduler =
 
 type SpecType
     = Num
+    | Bool
     | Str
     | File
     | Datetime
