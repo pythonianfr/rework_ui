@@ -147,11 +147,16 @@ def test_with_input(engine, client):
          'with_inputs',
          'default',
          '<X>.<X>.<X>.<X>',
-         [{'choices': None, 'name': 'babar.xlsx', 'required': False, 'type': 'file'},
-          {'choices': ['Babar', 'Celeste'], 'name': 'name', 'required': False, 'type': 'string'},
-          {'choices': None, 'name': 'weight', 'required': False, 'type': 'number'},
-          {'choices': None, 'name': 'celeste.xlsx', 'required': False, 'type': 'file'},
-          {'choices': None, 'name': 'birthdate', 'required': False, 'type': 'datetime'}
+         [{'choices': None, 'default': None, 'name': 'babar.xlsx',
+           'required': False, 'type': 'file'},
+          {'choices': ['Babar', 'Celeste'], 'default': None, 'name': 'name',
+           'required': False, 'type': 'string'},
+          {'choices': None, 'default': None, 'name': 'weight',
+           'required': False, 'type': 'number'},
+          {'choices': None, 'default': None, 'name': 'celeste.xlsx',
+           'required': False, 'type': 'file'},
+          {'choices': None, 'default': None, 'name': 'birthdate',
+           'required': False, 'type': 'datetime'}
          ]]
     ]
 
