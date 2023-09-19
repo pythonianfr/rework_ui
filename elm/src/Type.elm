@@ -70,6 +70,7 @@ type alias IOSpec =
     { spectype : SpecType
     , name : String
     , required : Bool
+    , default : Maybe String
     , choices : Maybe (List String)
     }
 

@@ -176,6 +176,7 @@ decodeinputspec =
     F.require "type" D.string <| \stype ->
     F.require "name" D.string <| \name ->
     F.require "required" D.bool <| \required ->
+    F.require "default" (D.nullable D.string) <| \default ->
     F.require "choices" (D.nullable (D.list D.string)) <| \choices ->
 
     D.succeed
@@ -189,6 +190,7 @@ decodeinputspec =
                          _ -> Str
         , name = name
         , required = required
+        , default = default
         , choices = choices
         }
 
