@@ -755,7 +755,6 @@ renderinput input =
                     , H.input
                           [ HA.type_ "radio"
                           , HA.id (input.name ++ "true")
-                          , HA.checked input.required
                           , HA.name input.name
                           , HA.value "true"
                           ] []
