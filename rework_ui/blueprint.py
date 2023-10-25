@@ -23,9 +23,9 @@ from pygments.formatters import HtmlFormatter
 
 from sqlhelp import select, update
 from rework import api
+from croniter import croniter
 
 from rework.helper import (
-    BetterCronTrigger,
     convert_io,
     filterio,
     iospec,
@@ -905,9 +905,9 @@ def reworkui(engine,
     def test_cron_rule():
         args = argsdict(request.args)
         try:
-            BetterCronTrigger.from_extended_crontab(args.rule)
+            assert croniter.is_valud(args.rule)
             return make_response('', 200)
-        except Exception as err:
+        except AssertionError as err:
             return make_response(str(err), 200)
 
     @bp.route('/')
