@@ -23,7 +23,7 @@ from pygments.formatters import HtmlFormatter
 
 from sqlhelp import select, update
 from rework import api
-from croniter import croniter
+from icron import croniter
 
 from rework.helper import (
     convert_io,
