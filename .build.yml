@@ -1,0 +1,20 @@
+image: debian/bookworm
+packages:
+  - mercurial
+  - python3-pip
+  - postgresql
+sources:
+  - hg+https://hg.sr.ht/~pythonian/rework
+  - hg+https://hg.sr.ht/~pythonian/rework_ui
+tasks:
+  - install: |
+      export PIP_BREAK_SYSTEM_PACKAGES=1
+      pip install pytest wheel setuptools --quiet
+      pip install -e rework --prefer-binary
+      pip install -e rework_ui --prefer-binary
+  - run-tests: |
+      export PATH=$PATH:~/.local/bin:/usr/lib/postgresql/15/bin
+      export PIP_BREAK_SYSTEM_PACKAGES=1
+      pip install pytest pytest_sa_pg pystuck webtest
+      cd rework_ui
+      pytest
