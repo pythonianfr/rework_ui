@@ -1,7 +1,5 @@
 import datetime
-import re
 from pathlib import Path
-import json
 import time
 
 from lxml import etree
@@ -219,7 +217,7 @@ def test_abort(engine, client):
 
 
 def test_relaunch(engine, client):
-    with workers(engine) as mon:
+    with workers(engine):
         res = client.put('/schedule-task/good_job?user=Babar',
                          upload_files=[('input_file', 'input.xml', b'the file', 'text/xml')])
         tid = int(res.body)

@@ -1,5 +1,4 @@
 import io
-import base64
 import json
 import pickle
 import mimetypes
@@ -12,7 +11,6 @@ from flask import (
     make_response,
     request,
     render_template,
-    render_template_string,
     send_file,
     url_for
 )
@@ -56,7 +54,7 @@ def homeurl():
 def getjob(engine, jobid):
     try:
         return Task.byid(engine, int(jobid))
-    except:
+    except:  # noqa
         return None
 
 
@@ -522,19 +520,19 @@ def reworkui(engine,
                 q.where('op.domain = %(domain)s', domain=args.domain)
             # update
             if args.min and args.max:
-                transform = lambda x: x
+                transform = lambda x: x  # noqa
                 q.where('t.id >= %(minid)s', minid=args.min)
                 q.where('t.id <= %(maxid)s', maxid=args.max)
                 q.order('t.id')
             # complete initial batch: the next highest 250
             elif args.min:
-                transform = lambda x: list(reversed(x))
+                transform = lambda x: list(reversed(x))  # noqa
                 q.where('t.id < %(minid)s', minid=args.min)
                 q.order('t.id', direction='desc')
                 q.limit(250)
             else:
                 # initial batch: the first highest 250
-                transform = lambda x: list(reversed(x))
+                transform = lambda x: list(reversed(x))  # noqa
                 q.limit(250)
                 q.order('t.id', direction='desc')
 
@@ -655,7 +653,6 @@ def reworkui(engine,
 
         spec = _io_spec(taskid, args.direction)
 
-        fname = args['getfile']
         out = unpack_io(
             spec,
             payload,
@@ -673,7 +670,6 @@ def reworkui(engine,
     def getiofile_lengths(taskid):
         args = argsdict(request.args)
         assert args.direction in ('input', 'output')
-        fname = args['getfile']
         payload = _io_payload(taskid, args.direction)
         if payload is None:
             return make_response(

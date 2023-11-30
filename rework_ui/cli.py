@@ -1,5 +1,4 @@
 from threading import Thread
-import socket
 import webbrowser
 
 import click
