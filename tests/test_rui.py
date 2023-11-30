@@ -299,8 +299,8 @@ def test_schedulers(engine, client):
 
     res = client.get('/schedulers-table-json')
     assert res.json == [
-        [1, 'with_inputs', 'default', '', '0 * * * * *', ''],
-        [2, 'with_inputs', 'default', '', '1 2 * * * *', ''],
+        [1, 'with_inputs', 'default', '', '0 * * * * *', '{}'],
+        [2, 'with_inputs', 'default', '', '1 2 * * * *', '{}'],
         [3, 'with_inputs', 'default', '', '0 9 * * * *',
          "{'babar.xlsx': '<0.03 kb file>', 'name': 'Babar', 'weight': '65', 'birthdate': "
          "'1973-05-20 09:00:00'}"
