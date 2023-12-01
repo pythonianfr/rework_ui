@@ -311,6 +311,15 @@ def test_schedulers(engine, client):
     task = Task.byid(engine, tid)
     assert task.state == 'queued'
 
+    res = client.delete(f'/unprepare/{sid}')
+    assert res.status_code == 204
+
+    res = client.get('/schedulers-table-json')
+    assert res.json == [
+        [1, 'with_inputs', 'default', '', '0 * * * * *', '{}'],
+        [2, 'with_inputs', 'default', '', '1 2 * * * *', '{}']
+    ]
+
 
 def test_read_io(engine, client):
     res = client.put(

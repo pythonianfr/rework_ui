@@ -559,9 +559,9 @@ deletescheduler model sid =
         { method = "DELETE"
         , headers = []
         , url = UB.crossOrigin model.baseurl
-                [ "delete-schedule" ] []
+                [ "unprepare/" ++ String.fromInt sid ] []
         , expect = Http.expectString DeletedSched
-        , body = Http.jsonBody (JE.string <| String.fromInt sid)
+        , body = Http.emptyBody
         , timeout = Nothing
         , tracker = Nothing
         }
