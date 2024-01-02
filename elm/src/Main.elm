@@ -3,7 +3,8 @@ port module Main exposing (..)
 import AssocList as AL
 import AssocList.Extra as ALE
 import Browser
-import Browser.Events exposing (onKeyDown)
+import Browser.Dom exposing (getViewport)
+import Browser.Events exposing (onKeyDown, onResize)
 import Cmd.Extra exposing (withNoCmd)
 import Dict exposing (Dict)
 import Http
@@ -46,6 +47,7 @@ import Type
         )
 import View exposing (view)
 import AssocSet as AS
+import Task
 import Time
 import Url.Builder as UB
 
@@ -125,7 +127,9 @@ update msg model =
     case msg of
         -- general/ui
 
-        Noop _ ->
+        Noop -> nocmd model
+
+        HttpNoop _ ->
             nocmd model
 
         Tab tab ->
@@ -150,6 +154,12 @@ update msg model =
 
         -- scroll
 
+        GotInitialViewport vp ->
+            nocmd { model | height = vp.scene.height }
+
+        Resize (_, h) ->
+            nocmd { model | height = h }
+
         LoadMore ->
             nocmd model
 
@@ -161,16 +171,17 @@ update msg model =
                             (st.contentHeight - (round st.scrollTop))
                         _ -> 9999
 
-                (newmodel, nextcmd) = if remain > 1000 && not model.loading
-                          then (model, Cmd.none)
-                          else
-                              ( { model | loading = True }
-                              , Http.get <|
-                                  (tasksquery model)
-                                  GotTasks
-                                  (List.minimum <| List.map .id (AL.values model.tasks))
-                                  Nothing
-                              )
+                (newmodel, nextcmd) =
+                    if remain > 1200 && not model.loading
+                    then (model, Cmd.none)
+                    else
+                        ( { model | loading = True }
+                        , Http.get <|
+                            (tasksquery model)
+                            GotTasks
+                            (List.minimum <| List.map .id (AL.values model.tasks))
+                            Nothing
+                        )
             in
                 ( newmodel
                 , nextcmd
@@ -397,7 +408,7 @@ update msg model =
                 , headers = []
                 , url = UB.crossOrigin model.baseurl
                         [ "schedule2" ++ "/" ++ launcher.operation ] []
-                , expect = Http.expectWhatever Noop
+                , expect = Http.expectWhatever HttpNoop
                 , body = Http.jsonBody <| JE.object
                          [ ("domain" , JE.string launcher.domain)
                          , ("host", JE.string launcher.host)
@@ -722,6 +733,15 @@ init jsonFlags =
                 (\x -> LS.select x (LS.fromList domains))
                 (List.head domains)
 
+
+        initialvp v =
+            case v of
+                Err err ->
+                    Noop
+
+                Ok vp ->
+                    GotInitialViewport vp
+
         model = Model
                 baseurl
                 AL.empty
@@ -739,6 +759,7 @@ init jsonFlags =
                 True
                 True
                 (IS.init loadmore)
+                500
                 0
                 Dict.empty
                 Dict.empty
@@ -756,6 +777,7 @@ init jsonFlags =
     , Cmd.batch [ Http.get <| tasksquery model GotTasks Nothing Nothing
                 , Http.get <| lasteventquery model
                 , Http.get <| getservices model
+                , Task.attempt initialvp getViewport
                 ]
     )
 
@@ -791,6 +813,7 @@ sub model =
               , onKeyDown (JD.map HandleKeyboardEvent decodeKeyboardEvent)
               , pre_schedule_fail PreScheduleFailed
               , pre_schedule_ok PreScheduleOk
+              , onResize (\w h -> Resize ( toFloat w, toFloat h ))
               ]
 
 

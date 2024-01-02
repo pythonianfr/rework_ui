@@ -1,6 +1,7 @@
 module Type exposing (..)
 
 import AssocList as AL
+import Browser.Dom exposing (Viewport)
 import Dict exposing (Dict)
 import Http
 import Http.Detailed as HD
@@ -164,6 +165,7 @@ type alias Model =
     , loading : Bool
     , toload : Bool
     , scroller : IS.Model Msg
+    , height : Float
     , lasteventid : Int
     -- single input/output files
     , inputfilehints : Dict String String
@@ -212,7 +214,8 @@ type Action
 
 
 type Msg
-    = Noop (Result Http.Error ())
+    = HttpNoop (Result Http.Error ())
+    | Noop
     | OnDelete Int
     | OnAbort Int
     | OnRelaunch Int
@@ -257,6 +260,8 @@ type Msg
     | SelectDisplayLevel Level
     | LoadMore
     | ScrollMore IS.Msg
+    | GotInitialViewport Viewport
+    | Resize (Float, Float)
     -- filters
     | ServiceFilter String
     | InputsFilter String

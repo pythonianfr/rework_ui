@@ -291,11 +291,14 @@ view model =
                     (filterinput task) &&
                     (filterstatus task)
 
+                height =
+                    (String.fromInt <| ceiling model.height) ++ "px"
+
                 scroller =
                     if model.toload && not model.loading
                     then
-                        [ HA.style "height" "100%"
-                        , HA.style "overflow" "auto"
+                        [ HA.style "height" height
+                        , HA.style "overflow" "scroll"
                         , IS.infiniteScroll ScrollMore
                         ]
                     else
