@@ -742,36 +742,38 @@ init jsonFlags =
                 Ok vp ->
                     GotInitialViewport vp
 
-        model = Model
-                baseurl
-                AL.empty
-                { service = Nothing
-                , inputs = Nothing
-                , status = Nothing
-                }
-                AL.empty
-                AL.empty
-                AL.empty
-                AL.empty
-                Nothing
-                TasksTab
-                domain
-                True
-                True
-                (IS.init loadmore)
-                500
-                0
-                Dict.empty
-                Dict.empty
-                DEBUG
-                DEBUG
-                []
-                False
-                AL.empty
-                Nothing
-                Nothing
-                defaultrule
-                Nothing
+        model =
+            { baseurl = baseurl
+            , tasks = AL.empty
+            , tasksfilter =
+                  { service = Nothing
+                  , inputs = Nothing
+                  , status = Nothing
+                  }
+            , workers = AL.empty
+            , monitors = AL.empty
+            , services = AL.empty
+            , launchers = AL.empty
+            , launching = Nothing
+            , activetab = TasksTab
+            , domain = domain
+            , loading = True
+            , toload = True
+            , scroller = IS.init loadmore
+            , height = 500
+            , lasteventid = 0
+            , inputfilehints = Dict.empty
+            , outputfilehints = Dict.empty
+            , loglevel = DEBUG
+            , logdisplaylevel = DEBUG
+            , log = []
+            , logview = False
+            , schedulers = AL.empty
+            , selectedservice = Nothing
+            , selectedhost = Nothing
+            , selectedrule = defaultrule
+            , lasterror = Nothing
+            }
     in
     ( model
     , Cmd.batch [ Http.get <| tasksquery model GotTasks Nothing Nothing
