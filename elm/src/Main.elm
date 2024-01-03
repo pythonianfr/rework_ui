@@ -189,6 +189,18 @@ update msg model =
 
         -- tasks
 
+        ForceLoad ->
+            ( { model
+                  | loading = True
+                  , forceload = True
+              }
+            , Http.get <|
+                (tasksquery model)
+                GotTasks
+                (Just 1)
+                (List.minimum <| List.map .id (AL.values model.tasks))
+            )
+
         GotTasks (Ok rawtasks) ->
             let mod = log model INFO ("TASKS (all):" ++ rawtasks) in
             case JD.decodeString (JD.list decodetask) rawtasks of
@@ -757,17 +769,22 @@ init jsonFlags =
             , launching = Nothing
             , activetab = TasksTab
             , domain = domain
+            -- loading
             , loading = True
             , toload = True
+            , forceload = False
             , scroller = IS.init loadmore
             , height = 500
             , lasteventid = 0
+            -- single input/output files
             , inputfilehints = Dict.empty
             , outputfilehints = Dict.empty
+            -- logging
             , loglevel = DEBUG
             , logdisplaylevel = DEBUG
             , log = []
             , logview = False
+            -- scheduler
             , schedulers = AL.empty
             , selectedservice = Nothing
             , selectedhost = Nothing

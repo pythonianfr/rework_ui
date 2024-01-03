@@ -1,4 +1,4 @@
-FLAGS ?= --optimize
+FLAGS ?=# --optimize
 
 all: ui_elm
 

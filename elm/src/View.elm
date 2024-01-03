@@ -112,6 +112,25 @@ strstatus task =
 maketab model active tab =
     let
         tabname = strtab tab
+        taskextra =
+            if (not model.forceload) then
+                [ H.span
+                      [ HA.title "Force loading all the tasks."
+                      , HE.onClick ForceLoad ]
+                      [ H.text "⟳" ]
+                ]
+            else
+                if model.loading then
+                    [ H.div
+                          [ HA.class "spinner-border spinner-border-sm text-info"
+                          , ARIA.role "status"
+                          ]
+                          [ H.span
+                                [ HA.class "sr-only" ]
+                                [ H.text " ... loading" ]
+                          ]
+                    ]
+                else [ ]
     in
     H.li
         [HA.class "nav-item" ]
@@ -126,16 +145,9 @@ maketab model active tab =
               )
             [ H.div []
                   ([ H.text <| tabname ++ " " ]
-                  ++ if model.loading && (tabname == "Tasks") then
-                         [ H.div
-                               [ HA.class "spinner-border spinner-border-sm text-info"
-                               , ARIA.role "status"
-                               ]
-                               [ H.span
-                                     [ HA.class "sr-only" ]
-                                     [ H.text " ... loading" ] ]
-                         ]
-                      else []
+                   ++ case tabname of
+                          "Tasks" -> taskextra
+                          _ -> []
                   )
             ]
         ]

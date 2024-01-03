@@ -162,8 +162,10 @@ type alias Model =
     , launching : Maybe Int
     , activetab : TabsLayout
     , domain : LS.Selection String
+    -- loading
     , loading : Bool
     , toload : Bool
+    , forceload : Bool
     , scroller : IS.Model Msg
     , height : Float
     , lasteventid : Int
@@ -219,6 +221,7 @@ type Msg
     | OnDelete Int
     | OnAbort Int
     | OnRelaunch Int
+    | ForceLoad
     | GotTasks (Result Http.Error String)
     | GotInputFileHint (Result Http.Error String)
     | GotOutputFileHint (Result Http.Error String)
