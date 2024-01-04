@@ -709,15 +709,11 @@ def reworkui(engine,
             {'content-type': mimetype}
         )
 
-    class hintargs(argsdict):
-        types = {
-            'taskid': list,
-            'direction': str
-        }
-
-    @bp.route('/getiofilehint')
+    @bp.route('/getiofilehint', methods=['POST'])
     def getiofilehint():
-        args = hintargs(request.args)
+        args = argsdict(
+            json.loads(request.data)
+        )
         assert args.direction in ('input', 'output'), args
 
         out = {}

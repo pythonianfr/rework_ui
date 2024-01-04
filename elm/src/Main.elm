@@ -643,12 +643,17 @@ tasksquery model msg min max =
 
 
 getiofilehint model tasks direction event =
-    let taskids = List.map .id tasks in
-    Http.get
-    { url = UB.crossOrigin model.baseurl
-          [ "getiofilehint" ] <| (++)
-          [ UB.string "direction" direction ]
-          (List.map (\tid -> UB.string "taskid" <| String.fromInt tid) taskids)
+    let
+        taskids =
+            List.map (\tid -> String.fromInt tid) <| List.map .id tasks
+        payload =
+            [ ("direction" , JE.string direction)
+            , ("taskid", JE.list JE.string taskids)
+            ]
+    in
+    Http.post
+    { url = UB.crossOrigin model.baseurl [ "getiofilehint" ] []
+    , body = Http.jsonBody <| JE.object payload
     , expect = Http.expectString event
     }
 
