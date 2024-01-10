@@ -2,6 +2,7 @@ import io
 import json
 import pickle
 import mimetypes
+from datetime import timedelta
 
 import tzlocal
 from flask import (
@@ -27,6 +28,7 @@ from rework.helper import (
     convert_io,
     filterio,
     iospec,
+    schedule_plan,
     unpack_io,
     unpack_iofiles_length,
     unpack_iofile,
@@ -772,6 +774,27 @@ def reworkui(engine,
         spec = iospec(engine)
         return make_response(
             json.dumps(spec),
+            200,
+            {'content-type': 'application/json'}
+        )
+
+    @bp.route('/plans-table-json')
+    def plans_table_json():
+        if not has_permission('read'):
+            abort(403, 'Nothing to see there.')
+
+        plan = [
+            (id, stamp.isoformat(), op, domain)
+            for id, (stamp, op, domain) in
+            enumerate(
+                schedule_plan(
+                    engine,
+                    timedelta(hours=1)
+                )
+            )
+        ]
+        return make_response(
+            json.dumps(plan),
             200,
             {'content-type': 'application/json'}
         )

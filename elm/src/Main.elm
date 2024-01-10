@@ -29,6 +29,7 @@ import Decoder
         ( decodeevents
         , decodeflags
         , decodelauncher
+        , decodeplan
         , decodescheduler
         , decodeworkers
         , decodeservice
@@ -122,6 +123,9 @@ update msg model =
                     mod
 
                 SchedulersTab ->
+                    mod
+
+                PlansTab ->
                     mod
     in
     case msg of
@@ -576,6 +580,14 @@ update msg model =
             in
             nocmd { model | tasksfilter = newfilter }
 
+        GotPlans (Ok plan) ->
+            let
+                x=Debug.log "PLAN" plan in
+            nocmd { model | events = plan }
+
+        GotPlans (Err err) ->
+            nocmd <| log model ERROR <| unwraperror err
+
 
 deletescheduler model sid =
     Http.request
@@ -679,6 +691,13 @@ getlaunchers model =
     }
 
 
+getplans model =
+    { url = UB.crossOrigin model.baseurl
+          [ "plans-table-json" ] [ UB.int "hours" model.hours ]
+    , expect = Http.expectJson GotPlans (JD.list decodeplan)
+    }
+
+
 launchnow model sid =
     Http.request
     { url = UB.crossOrigin model.baseurl
@@ -718,6 +737,8 @@ refreshCmd model tab =
                 LaunchersTab -> [ getlaunchers model ]
 
                 SchedulersTab -> [ getlaunchers model, getschedulers model ]
+
+                PlansTab -> [ getplans model ]
 
     in
     Cmd.batch <| List.map Http.get query
@@ -795,6 +816,9 @@ init jsonFlags =
             , selectedhost = Nothing
             , selectedrule = defaultrule
             , lasterror = Nothing
+            -- plan
+            , hours = 1
+            , events = []
             }
     in
     ( model
@@ -832,6 +856,9 @@ sub model =
 
                 MonitorsTab ->
                     2000
+
+                PlansTab ->
+                    10000
     in
     Sub.batch [ Time.every refreshTime (always OnRefresh)
               , onKeyDown (JD.map HandleKeyboardEvent decodeKeyboardEvent)

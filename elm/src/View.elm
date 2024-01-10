@@ -98,6 +98,9 @@ strtab tablelayout =
         SchedulersTab ->
             "Schedulers"
 
+        PlansTab ->
+            "Plan"
+
 
 strstatus task =
     case task.status of
@@ -181,7 +184,7 @@ view model =
             H.h1 [] [ H.text "Tasks Monitoring UI" ]
 
         tabs =
-            [ TasksTab, MonitorsTab, LaunchersTab, SchedulersTab, ServicesTab ]
+            [ TasksTab, MonitorsTab, LaunchersTab, SchedulersTab, PlansTab, ServicesTab ]
                 |> LS.fromList
                 |> LS.select model.activetab
 
@@ -430,6 +433,35 @@ view model =
             H.div
                 [ topmargin ]
                 [ title, viewdomainfilter model, head, table, scheduleaction model ]
+
+        PlansTab ->
+            let
+                head =
+                    header model tabs
+
+                columns =
+                    [ "#"
+                    , "timestamp"
+                    , "operation"
+                    , "domain"
+                    ]
+
+                domain = Maybe.withDefault "all" <| LS.selected model.domain
+                filterdomain item =
+                    case domain of
+                        "all" -> True
+                        dom -> item.domain == dom
+
+                events = List.filter filterdomain model.events
+
+                table =
+                    body columns []
+                        (List.map planrenderrow events)
+
+            in
+            H.div
+                [ topmargin ]
+                [ title, viewdomainfilter model, head, table ]
 
 
 th : String -> H.Html msg
@@ -745,6 +777,16 @@ schedulerrenderrow sched =
                          ]
                    [ H.text "delete" ]
               ]
+        ]
+
+
+planrenderrow row =
+    H.tr [ ]
+        [ H.th [ HA.scope "row" ]
+              [ H.text (String.fromInt row.id) ]
+        , td row.timestamp
+        , td row.operation
+        , td row.domain
         ]
 
 

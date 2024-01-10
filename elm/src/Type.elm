@@ -46,6 +46,14 @@ type alias Service =
     }
 
 
+type alias Plan =
+    { id : Int
+    , timestamp : String
+    , operation : String
+    , domain : String
+    }
+
+
 defaultrule = "0 * * * * *"
 
 type alias Scheduler =
@@ -183,6 +191,9 @@ type alias Model =
     , selectedhost : Maybe String
     , selectedrule : String
     , lasterror : Maybe String
+    -- plan
+    , hours : Int
+    , events : List Plan
     }
 
 
@@ -269,6 +280,8 @@ type Msg
     | ServiceFilter String
     | InputsFilter String
     | StatusFilter String
+    -- plans
+    | GotPlans (Result Http.Error (List Plan))
 
 
 type TabsLayout
@@ -277,3 +290,4 @@ type TabsLayout
     | ServicesTab
     | LaunchersTab
     | SchedulersTab
+    | PlansTab
