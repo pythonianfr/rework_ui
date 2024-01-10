@@ -189,6 +189,10 @@ view model =
                 |> LS.select model.activetab
 
         topmargin = HA.style "margin" ".5em"
+
+        domain =
+            Maybe.withDefault "all" <| LS.selected model.domain
+
     in
     if model.logview then
         H.div [ HA.style "margin" ".5em" ] [ viewlog model SelectDisplayLevel ]
@@ -259,8 +263,6 @@ view model =
                           , H.th [] []
                           ]
                     ]
-
-                domain = Maybe.withDefault "all" <| LS.selected model.domain
 
                 filterdomain task  =
                     case domain of
@@ -418,7 +420,6 @@ view model =
                     , "action"
                     ]
 
-                domain = Maybe.withDefault "all" <| LS.selected model.domain
                 indomain sched =
                     case domain of
                         "all" -> True
@@ -446,7 +447,6 @@ view model =
                     , "domain"
                     ]
 
-                domain = Maybe.withDefault "all" <| LS.selected model.domain
                 filterdomain item =
                     case domain of
                         "all" -> True
