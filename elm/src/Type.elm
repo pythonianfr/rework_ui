@@ -282,6 +282,7 @@ type Msg
     | StatusFilter String
     -- plans
     | GotPlans (Result Http.Error (List Plan))
+    | Hours String
 
 
 type TabsLayout

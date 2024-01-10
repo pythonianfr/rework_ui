@@ -581,12 +581,15 @@ update msg model =
             nocmd { model | tasksfilter = newfilter }
 
         GotPlans (Ok plan) ->
-            let
-                x=Debug.log "PLAN" plan in
             nocmd { model | events = plan }
 
         GotPlans (Err err) ->
             nocmd <| log model ERROR <| unwraperror err
+
+        Hours hours ->
+            ( { model | hours = Maybe.withDefault 1 <| String.toInt hours }
+            , Http.get <| getplans model
+            )
 
 
 deletescheduler model sid =

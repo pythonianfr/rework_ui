@@ -783,13 +783,18 @@ def reworkui(engine,
         if not has_permission('read'):
             abort(403, 'Nothing to see there.')
 
+        args = argsdict(request.args)
+        hours = int(
+            args.get('hours', 1)
+        )
+
         plan = [
             (id, stamp.isoformat(), op, domain)
             for id, (stamp, op, domain) in
             enumerate(
                 schedule_plan(
                     engine,
-                    timedelta(hours=1)
+                    timedelta(hours=hours)
                 )
             )
         ]

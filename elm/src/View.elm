@@ -441,10 +441,26 @@ view model =
                     header model tabs
 
                 hours =
-                     (String.fromInt model.hours) ++
-                     case model.hours of
-                         1 -> " hour"
-                         _ -> " hours"
+                    let
+                        h =
+                            case model.hours of
+                                1 -> " hour."
+                                _ -> " hours."
+
+                        makehouroption opt =
+                            H.option
+                                [ HA.value opt ]
+                                [ H.text opt ]
+                    in
+                        [ H.select
+                              [ HA.name "hours"
+                              , HA.id "hours"
+                              , HE.on "change" <| JD.map Hours HE.targetValue
+                              ]
+                              (List.map makehouroption ["1", "2", "4", "8", "16", "24"])
+                        , H.text h
+                        ]
+
 
                 fordomain =
                     case domain of
@@ -455,7 +471,8 @@ view model =
                     H.span [ ]
                         [ H.br [ ] [ ]
                         , H.text <|
-                              "Plan for " ++ fordomain ++ " in the next " ++ hours ++ "."
+                              "Plan for " ++ fordomain ++ " in the next "
+                        , H.span [ ] hours
                         ]
 
                 columns =
