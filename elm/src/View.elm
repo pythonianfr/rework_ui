@@ -440,6 +440,24 @@ view model =
                 head =
                     header model tabs
 
+                hours =
+                     (String.fromInt model.hours) ++
+                     case model.hours of
+                         1 -> " hour"
+                         _ -> " hours"
+
+                fordomain =
+                    case domain of
+                        "all" -> "all domains"
+                        d -> "domain " ++ d
+
+                text =
+                    H.span [ ]
+                        [ H.br [ ] [ ]
+                        , H.text <|
+                              "Plan for " ++ fordomain ++ " in the next " ++ hours ++ "."
+                        ]
+
                 columns =
                     [ "#"
                     , "timestamp"
@@ -452,16 +470,14 @@ view model =
                         "all" -> True
                         dom -> item.domain == dom
 
-                events = List.filter filterdomain model.events
-
                 table =
                     body columns []
-                        (List.map planrenderrow events)
+                        (List.map planrenderrow <| List.filter filterdomain model.events)
 
             in
             H.div
                 [ topmargin ]
-                [ title, viewdomainfilter model, head, table ]
+                [ title, viewdomainfilter model, head, text, table ]
 
 
 th : String -> H.Html msg
