@@ -50,6 +50,7 @@ type alias Plan =
     { id : Int
     , timestamp : String
     , operation : String
+    , input : String
     , domain : String
     }
 

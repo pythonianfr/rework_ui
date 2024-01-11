@@ -220,11 +220,12 @@ decodescheduler =
 
 decodeplan : D.Decoder Plan
 decodeplan =
-    D.map4 Plan
+    D.map5 Plan
         (D.index 0 D.int)
         (D.index 1 D.string)
         (D.index 2 D.string)
         (D.index 3 D.string)
+        (D.index 4 D.string)
 
 
 decodemonitor : D.Decoder Monitor

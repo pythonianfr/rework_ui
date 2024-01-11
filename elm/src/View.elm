@@ -479,6 +479,7 @@ view model =
                     [ "#"
                     , "timestamp"
                     , "operation"
+                    , "input"
                     , "domain"
                     ]
 
@@ -819,6 +820,7 @@ planrenderrow row =
               [ H.text (String.fromInt row.id) ]
         , td row.timestamp
         , td row.operation
+        , td row.input
         , td row.domain
         ]
 

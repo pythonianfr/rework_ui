@@ -2,7 +2,10 @@ import io
 import json
 import pickle
 import mimetypes
-from datetime import timedelta
+from datetime import (
+    datetime,
+    timedelta
+)
 
 import tzlocal
 from flask import (
@@ -15,6 +18,7 @@ from flask import (
     send_file,
     url_for
 )
+from icron import croniter_range
 
 from pygments import highlight
 from pygments.lexers import PythonTracebackLexer
@@ -28,7 +32,6 @@ from rework.helper import (
     convert_io,
     filterio,
     iospec,
-    schedule_plan,
     unpack_io,
     unpack_iofiles_length,
     unpack_iofile,
@@ -83,6 +86,35 @@ def format_input(inp):
         inp = newinp
 
     return str(inp)
+
+
+def iter_stamps_from_cronrules(rulemap, start, stop):
+    for rule, *stuff in rulemap:
+        for stamp in croniter_range(start, stop, rule):
+            yield stamp, *stuff
+
+
+def schedule_plan(engine, delta, domain=None):
+    tz = tzlocal.get_localzone()
+    q = select(
+        's.rule', 'op.name', 'op.inputs', 's.inputdata', 's.domain'
+    ).table('rework.sched as s', 'rework.operation as op'
+    ).where('s.operation = op.id')
+    if domain:
+        q.where('s.domain = %(domain)s', domain=domain)
+    out = q.do(engine).fetchall()
+    now = datetime.now(tz)
+
+    for stamp, op, spec, inputdata, domain in sorted(
+            iter_stamps_from_cronrules(
+                out,
+                now,
+                now + delta
+            ),
+            key=lambda item: item[0]
+    ):
+        yield stamp, op, task_formatinput(spec, inputdata), domain
+
 
 
 class sliceargs(argsdict):
@@ -789,8 +821,8 @@ def reworkui(engine,
         )
 
         plan = [
-            (id, stamp.isoformat(), op, domain)
-            for id, (stamp, op, domain) in
+            (id, stamp.isoformat(), op, inputdata, domain)
+            for id, (stamp, op, inputdata, domain) in
             enumerate(
                 schedule_plan(
                     engine,
