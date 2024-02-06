@@ -183,8 +183,14 @@ view model =
         title =
             H.h1 [] [ H.text "Tasks Monitoring UI" ]
 
+        tablist =
+            if model.canwrite then
+                [ TasksTab, MonitorsTab, LaunchersTab, SchedulersTab, PlansTab, ServicesTab ]
+            else
+                [ TasksTab, MonitorsTab, SchedulersTab, PlansTab, ServicesTab ]
+
         tabs =
-            [ TasksTab, MonitorsTab, LaunchersTab, SchedulersTab, PlansTab, ServicesTab ]
+            tablist
                 |> LS.fromList
                 |> LS.select model.activetab
 
@@ -204,17 +210,21 @@ view model =
                     header model tabs
 
                 columns =
-                    [ "#"
-                    , "service"
-                    , "domain"
-                    , "input"
-                    , "events"
-                    , "user"
-                    , "worker"
-                    , "status"
-                    , "action"
-                    ]
-
+                    let cols =
+                            [ "#"
+                            , "service"
+                            , "domain"
+                            , "input"
+                            , "events"
+                            , "user"
+                            , "worker"
+                            , "status"
+                            ]
+                    in
+                    if model.canwrite then
+                        cols ++ [ "action" ]
+                    else
+                        cols
 
                 statuses =
                     [ ""
@@ -401,7 +411,7 @@ view model =
 
                 workertable =
                     body workercolumns []
-                        (List.map workerrendertow (AL.values model.workers))
+                        (List.map (workerrendertow model.canwrite) (AL.values model.workers))
             in
             H.div [ topmargin ] [ title, head, domaintable, workertable ]
 
@@ -427,7 +437,7 @@ view model =
 
                 table =
                     body columns []
-                        (List.map schedulerrenderrow
+                        (List.map (schedulerrenderrow model)
                              (List.filter indomain (AL.values model.schedulers)))
 
             in
@@ -559,10 +569,13 @@ scheduleaction model =
     in
     case model.selectedservice of
         Nothing ->
-            H.button
-                [ HA.class "btn btn-primary"
-                , HE.onClick NewScheduler ]
-                [ H.text "Schedule Task" ]
+            if model.canwrite then
+                H.button
+                    [ HA.class "btn btn-primary"
+                    , HE.onClick NewScheduler ]
+                    [ H.text "Schedule Task" ]
+            else
+                H.span [] []
         Just service ->
             H.form [ HA.id "pre-schedule-form" ]
                 [ serviceinput
@@ -744,32 +757,37 @@ taskrenderrow model task =
             tsstatus status info
 
         user = user2String task.metadata
+
+        actions =
+            H.td [] <| rendertaskactions model task
+
+        row =
+            [ H.th [ HA.scope "row" ]
+                  [ H.text (String.fromInt task.id) ]
+            , renderresult task.result
+            , td task.domain
+            , td <| Maybe.withDefault "" task.input
+            , H.td [ HA.class "text-monospace", HA.style "font-size" ".8em" ]
+                [ H.span [ HA.style "color" "grey" ] [ H.text task.queued ]
+                , H.br [] []
+                , H.span [] [ H.text <| Maybe.withDefault "" task.started ]
+                , H.br [] []
+                , H.span [] [ H.text <| Maybe.withDefault "" task.finished ]
+                ]
+            , H.td
+                [ if user == unknownuser
+                  then HA.style "color" "grey"
+                  else HA.style "color" "blue"
+                ]
+                [ H.text user ]
+            , td <| case task.worker of
+                        Nothing -> "#"
+                        Just worker -> "#" ++ String.fromInt worker
+            , renderstatus
+            ]
+
     in
-    H.tr []
-        [ H.th [ HA.scope "row" ]
-            [ H.text (String.fromInt task.id) ]
-        , renderresult task.result
-        , td task.domain
-        , td <| Maybe.withDefault "" task.input
-        , H.td [ HA.class "text-monospace", HA.style "font-size" ".8em" ]
-            [ H.span [ HA.style "color" "grey" ] [ H.text task.queued ]
-            , H.br [] []
-            , H.span [] [ H.text <| Maybe.withDefault "" task.started ]
-            , H.br [] []
-            , H.span [] [ H.text <| Maybe.withDefault "" task.finished ]
-            ]
-        , H.td
-            [ if user == unknownuser
-              then HA.style "color" "grey"
-              else HA.style "color" "blue"
-            ]
-            [ H.text user ]
-        , td <| case task.worker of
-                    Nothing -> "#"
-                    Just worker -> "#" ++ String.fromInt worker
-        , renderstatus
-        , H.td [] <| rendertaskactions model task
-        ]
+    H.tr [] (if model.canwrite then row ++ [ actions ] else row)
 
 
 td : String -> H.Html msg
@@ -789,8 +807,8 @@ servicerenderrow service =
         ]
 
 
-schedulerrenderrow : Scheduler -> H.Html Msg
-schedulerrenderrow sched =
+schedulerrenderrow : Model -> Scheduler -> H.Html Msg
+schedulerrenderrow model sched =
     H.tr []
         [ H.th [ HA.scope "row" ]
             [ H.text (String.fromInt sched.id) ]
@@ -799,18 +817,20 @@ schedulerrenderrow sched =
         , td sched.host
         , td sched.rule
         , td (Maybe.withDefault "" sched.input)
-        , H.td [] [
-               H.button [ HA.class "btn btn-primary"
-                        , HA.type_ "button"
-                        , HE.onClick (LaunchNow sched.id)
-                        ]
-                   [ H.text "launch" ]
-              , H.button [ HA.class "btn btn-outline-danger"
-                         , HA.type_ "button"
-                         , HE.onClick (DeleteSched sched.id)
-                         ]
-                   [ H.text "delete" ]
-              ]
+        , H.td [] <|
+            if model.canwrite then
+                [ H.button [ HA.class "btn btn-primary"
+                           , HA.type_ "button"
+                           , HE.onClick (LaunchNow sched.id)
+                           ]
+                      [ H.text "launch" ]
+                , H.button [ HA.class "btn btn-outline-danger"
+                           , HA.type_ "button"
+                           , HE.onClick (DeleteSched sched.id)
+                           ]
+                    [ H.text "delete" ]
+                ]
+            else []
         ]
 
 
@@ -1030,8 +1050,8 @@ equaltuple tuple =
         ++ String.fromInt (Tuple.second tuple)
 
 
-workerrendertow : Worker -> H.Html Msg
-workerrendertow worker =
+workerrendertow : Bool -> Worker -> H.Html Msg
+workerrendertow canwrite worker =
     H.tr []
         [ H.th [ HA.scope "row" ]
             [ H.text (String.fromInt worker.id) ]
@@ -1041,7 +1061,10 @@ workerrendertow worker =
         , td (String.fromFloat (worker.cpu / 100))
         , td (Maybe.map String.fromInt worker.debugPort |> Maybe.withDefault "")
         , td worker.started
-        , H.td [] (List.map (renderaction worker.id) worker.actions)
+        , H.td [] <|
+            if canwrite
+            then (List.map (renderaction worker.id) worker.actions)
+            else []
         ]
 
 
