@@ -785,6 +785,7 @@ init jsonFlags =
 
         model =
             { baseurl = baseurl
+            , canwrite = False
             , tasks = AL.empty
             , tasksfilter =
                   { service = Nothing

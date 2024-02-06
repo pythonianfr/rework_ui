@@ -162,6 +162,7 @@ type alias TasksFilter =
 
 type alias Model =
     { baseurl : String
+    , canwrite : Bool
     , tasks : TaskDict
     , tasksfilter : TasksFilter
     , workers : WorkerDict
