@@ -186,6 +186,11 @@ def reworkui(engine,
         static_folder='rui_static',
     )
 
+    @bp.route('/canwrite')
+    def canwrite():
+        role = request.environ.get('ROLE')
+        return jsonify(role in ('admin', 'rw'))
+
     @bp.route('/schedule-task/<service>', methods=['PUT'])
     def schedule_task(service):
         if not has_permission('schedule'):

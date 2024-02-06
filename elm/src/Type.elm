@@ -235,6 +235,7 @@ type Msg
     | OnAbort Int
     | OnRelaunch Int
     | ForceLoad
+    | GotPermissions (Result Http.Error String)
     | GotTasks (Result Http.Error String)
     | GotInputFileHint (Result Http.Error String)
     | GotOutputFileHint (Result Http.Error String)

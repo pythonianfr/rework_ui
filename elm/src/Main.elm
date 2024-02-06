@@ -191,6 +191,18 @@ update msg model =
                 , nextcmd
                 )
 
+        -- perms
+
+        GotPermissions (Ok rawperm) ->
+            case JD.decodeString JD.bool rawperm of
+                Ok perms ->
+                   nocmd { model | canwrite = perms }
+                Err err ->
+                    nocmd <| log model ERROR <| JD.errorToString err
+
+        GotPermissions (Err err) ->
+            nocmd <| log model ERROR <| unwraperror err
+
         -- tasks
 
         ForceLoad ->
@@ -605,6 +617,11 @@ deletescheduler model sid =
         }
 
 
+writepermsquery model =
+    { expect = Http.expectString GotPermissions
+    , url = UB.crossOrigin model.baseurl [ "canwrite" ] [ ]
+    }
+
 
 groupbyid items =
     List.map (\item -> (item.id, item)) items
@@ -829,6 +846,7 @@ init jsonFlags =
     , Cmd.batch [ Http.get <| tasksquery model GotTasks Nothing Nothing
                 , Http.get <| lasteventquery model
                 , Http.get <| getservices model
+                , Http.get <| writepermsquery model
                 , Task.attempt initialvp getViewport
                 ]
     )
