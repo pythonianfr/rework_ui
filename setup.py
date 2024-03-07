@@ -48,8 +48,8 @@ setup(name='rework_ui',
           'flask',
           'python-icron',
           'pygments',
-          'werkzeug >= 1.0.0',
-          'lxml',
+          'werkzeug >= 2.3.7',
+          'lxml',  # for the tests
           'sqlalchemy',
       ],
       package_data={'rework_ui': [
