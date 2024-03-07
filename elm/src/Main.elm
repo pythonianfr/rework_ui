@@ -599,8 +599,11 @@ update msg model =
             nocmd <| log model ERROR <| unwraperror err
 
         Hours hours ->
-            ( { model | hours = Maybe.withDefault 1 <| String.toInt hours }
-            , Http.get <| getplans model
+            let
+                newmodel = { model | hours = Maybe.withDefault 1 <| String.toInt hours }
+            in
+            ( newmodel
+            , Http.get <| getplans newmodel
             )
 
 
