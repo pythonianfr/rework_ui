@@ -26,3 +26,10 @@
 .btn {
     margin-right: 2px;
 }
+
+#title-page {
+    font-size: 1.5em;
+    color: rgb(92, 91, 91);
+    justify-content: left;
+    margin-bottom: 3px;
+}

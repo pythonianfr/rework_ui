@@ -181,7 +181,7 @@ view : Model -> H.Html Msg
 view model =
     let
         title =
-            H.h1 [] [ H.text "Tasks Monitoring UI" ]
+            H.p [ HA.id "title-page" ] [ H.text "Tasks Monitoring UI" ]
 
         tablist =
             if model.canwrite then
