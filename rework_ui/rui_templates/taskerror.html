@@ -1,18 +1,46 @@
 {% extends "rui_base.html" %}
-
 {% block body %}
 
 <style>
  {{css}}
 </style>
+<link href="{{ url_for('tsview.static', filename='menu_stand_alone.css')}}" rel="stylesheet"/>
+<script src="{{ url_for('tsview.static', filename='menu_stand_alone_elm.js')}}"></script>
+<link
+    href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.0/css/bootstrap.min.css"
+    rel="stylesheet"
+    integrity="sha384-9aIt2nRpC12Uk9gS9baDl411NQApFmC26EwAOH8WgZl5MYYxFfc+NcPb1dKGj7Sk"
+    crossorigin="anonymous">
 
+<div class="grid-container">
+      <div id="menu-elm">
+      </div>
+      <div class="main-content">
+          <h1>Task #{{tid}}</h1>
+          <div id="error">
+            {{traceback | safe}}
+          </div>
+      </div>
+  </div>
 
-<h1>Task #{{tid}}</h1>
+<script>
+ var menuapp = Elm.StandAloneMenu.init(
+     {
+         node: document.getElementById('menu-elm'),
+         flags: {{flags_menu | safe}}
+     }
+ );
+</script>
+<script>
+ menuapp.ports.saveMenuData.subscribe(function (data) {
+     localStorage.setItem("menuData", JSON.stringify(data));
+ });
 
-<div id="error">
-  {{traceback | safe}}
-</div>
-
-
+ incache = localStorage.getItem("menuData")
+ if (incache === null) {
+     incache = '{"menuIsOpen": false}'
+ }
+ menuapp.ports.loadMenuData.send(incache);
+</script>
 
 {% endblock %}

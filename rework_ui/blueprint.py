@@ -526,11 +526,13 @@ def reworkui(engine,
         traceback = highlight(job.traceback,
                               PythonTracebackLexer(),
                               formatter)
+        flags_menu = json.dumps(['/', 'monitor-tasks'])
         return render_template(
             'taskerror.html',
             tid=taskid,
             css=formatter.get_style_defs(),
-            traceback=traceback
+            traceback=traceback,
+            flags_menu=flags_menu,
         )
 
     class tasksargs(uiargsdict):
@@ -607,10 +609,12 @@ def reworkui(engine,
         if not has_permission('read'):
             abort(403, 'Nothing to see there.')
 
+        flags_menu = json.dumps(['/', 'monitor-tasks'])
         return render_template(
             'tasklogs.html',
             taskid=taskid,
-            homeurl=homeurl()
+            homeurl=homeurl(),
+            flags_menu=flags_menu,
         )
 
     # info
@@ -620,10 +624,12 @@ def reworkui(engine,
         if not has_permission('read'):
             abort(403, 'Nothing to see there.')
 
+        flags_menu = json.dumps(['/', 'monitor-tasks'])
         return render_template(
             'taskinfo.html',
             taskid=taskid,
-            homeurl=homeurl()
+            homeurl=homeurl(),
+            flags_menu=flags_menu,
         )
 
     @bp.route('/info-for/<int:taskid>')
@@ -970,10 +976,12 @@ def reworkui(engine,
         if not len(domains):
             return 'No operation registered: nothing to see here'
 
+        flags_menu = json.dumps(['/', 'monitor-tasks'])
         return render_template(
             'rui_home.html',
             homeurl=homeurl(),
-            domains=json.dumps(domains)
+            domains=json.dumps(domains),
+            flags_menu=flags_menu,
         )
 
     return bp

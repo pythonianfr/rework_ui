@@ -17,9 +17,17 @@
             integrity="sha384-OgVRvuATP1z7JjHLkuOU7Xw704+h835Lr+6QL9UvYjZE3Ipu6Tp75j7Bh/kR0JKI"
             crossorigin="anonymous">
         </script>
+        <link href="{{ url_for('tsview.static', filename='menu_stand_alone.css')}}" rel="stylesheet"/>
+        <script src="{{ url_for('tsview.static', filename='menu_stand_alone_elm.js')}}"></script>
     </head>
     <body>
-        <div id="info"></div>
+        <div class="grid-container">
+            <div id="menu-elm">
+            </div>
+            <div class="main-content">
+                <div id="info"></div>
+            </div>
+        </div>
         <script src="{{ url_for('reworkui.static', filename='info.js') }}"></script>
         <script>
          var app = Elm.Info.init({
@@ -29,6 +37,25 @@
                  taskid: {{taskid}}
              }
          });
+        </script>
+        <script>
+         var menuapp = Elm.StandAloneMenu.init(
+             {
+                 node: document.getElementById('menu-elm'),
+                 flags: {{flags_menu | safe}}
+             }
+         );
+        </script>
+        <script>
+         menuapp.ports.saveMenuData.subscribe(function (data) {
+             localStorage.setItem("menuData", JSON.stringify(data));
+         });
+
+         incache = localStorage.getItem("menuData")
+         if (incache === null) {
+             incache = '{"menuIsOpen": false}'
+         }
+         menuapp.ports.loadMenuData.send(incache);
         </script>
     </body>
 </html>

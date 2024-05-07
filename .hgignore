@@ -7,3 +7,5 @@ build
 dist
 .cache
 elm-stuff
+# Default ignored files
+.idea/workspace.xml
