@@ -896,6 +896,16 @@ def reworkui(engine,
         host = args.pop('host', None)
         operation, domain = args.pop('service').split(':')
         rule = args.pop('rule', None)
+        specs = iospec(engine)
+        spec = filterio(specs, operation, domain, host)
+        try:
+            typed_args = convert_io(spec, args)
+        except Exception as err:
+            return make_response(
+                f'{err}',
+                400,
+                {'content-type': 'application/json'}
+            )
 
         try:
             api.prepare(
@@ -904,7 +914,7 @@ def reworkui(engine,
                 domain=domain,
                 host=host,
                 rule=rule,
-                inputdata=args,
+                inputdata=typed_args,
                 metadata=meta or None
             )
         except Exception as err:

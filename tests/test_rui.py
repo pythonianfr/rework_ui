@@ -333,7 +333,7 @@ def test_web_schedueler(engine, client):
             'service': 'with_inputs:default',
         }
     )
-    assert res.status_code == 400
+    assert res.status_code == 200
 
 
 def test_read_io(engine, client):
