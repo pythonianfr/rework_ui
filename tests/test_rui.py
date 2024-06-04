@@ -321,6 +321,21 @@ def test_schedulers(engine, client):
     ]
 
 
+def test_web_schedueler(engine, client):
+    res = client.put(
+        '/prepare-schedule',
+        {
+            'name': 'Celeste',
+            'babar.xlsx': b'the excel blob will eat you',
+            'weight': 78,
+            'birthdate': '2000-01-01',
+            'rule': '0 * * * * *',
+            'service': 'with_inputs:default',
+        }
+    )
+    assert res.status_code == 400
+
+
 def test_read_io(engine, client):
     res = client.put(
         '/schedule2/with_inputs?user=Babar',
