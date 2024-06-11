@@ -18,6 +18,7 @@ from flask import (
     send_file,
     url_for
 )
+import werkzeug
 from icron import croniter_range
 
 from pygments import highlight
@@ -172,6 +173,26 @@ def none_as_empty_str(alist):
         elt if elt is not None else ""
         for elt in alist
     ]
+
+
+def build_menu_links():
+    """These links can only be evaluated if
+    this blueprint is associated with the
+    tsview blueprint
+    """
+    try:
+        url_style_menu_css = url_for(
+            'tsview.static',
+            filename='menu_stand_alone.css'
+        )
+        url_js_menu_elm = url_for(
+            'tsview.static',
+            filename='menu_stand_alone_elm.js'
+        )
+    except werkzeug.routing.exceptions.BuildError:
+        url_style_menu_css = ''
+        url_js_menu_elm = ''
+    return url_style_menu_css, url_js_menu_elm
 
 
 def reworkui(engine,
@@ -527,12 +548,15 @@ def reworkui(engine,
                               PythonTracebackLexer(),
                               formatter)
         flags_menu = json.dumps(['/', 'monitor-tasks'])
+        url_style_menu_css, url_js_menu_elm = build_menu_links()
         return render_template(
             'taskerror.html',
             tid=taskid,
             css=formatter.get_style_defs(),
             traceback=traceback,
             flags_menu=flags_menu,
+            url_style_menu_css=url_style_menu_css,
+            url_js_menu_elm=url_js_menu_elm
         )
 
     class tasksargs(uiargsdict):
@@ -610,11 +634,14 @@ def reworkui(engine,
             abort(403, 'Nothing to see there.')
 
         flags_menu = json.dumps(['/', 'monitor-tasks'])
+        url_style_menu_css, url_js_menu_elm = build_menu_links()
         return render_template(
             'tasklogs.html',
             taskid=taskid,
             homeurl=homeurl(),
             flags_menu=flags_menu,
+            url_style_menu_css=url_style_menu_css,
+            url_js_menu_elm=url_js_menu_elm,
         )
 
     # info
@@ -625,11 +652,14 @@ def reworkui(engine,
             abort(403, 'Nothing to see there.')
 
         flags_menu = json.dumps(['/', 'monitor-tasks'])
+        url_style_menu_css, url_js_menu_elm = build_menu_links()
         return render_template(
             'taskinfo.html',
             taskid=taskid,
             homeurl=homeurl(),
             flags_menu=flags_menu,
+            url_style_menu_css=url_style_menu_css,
+            url_js_menu_elm=url_js_menu_elm,
         )
 
     @bp.route('/info-for/<int:taskid>')
@@ -987,11 +1017,14 @@ def reworkui(engine,
             return 'No operation registered: nothing to see here'
 
         flags_menu = json.dumps(['/', 'monitor-tasks'])
+        url_style_menu_css, url_js_menu_elm = build_menu_links()
         return render_template(
             'rui_home.html',
             homeurl=homeurl(),
             domains=json.dumps(domains),
             flags_menu=flags_menu,
+            url_style_menu_css=url_style_menu_css,
+            url_js_menu_elm=url_js_menu_elm,
         )
 
     return bp
