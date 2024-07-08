@@ -1013,9 +1013,6 @@ def reworkui(engine,
             abort(403, 'Nothing to see there.')
 
         domains = alldomains(engine)
-        if not len(domains):
-            return 'No operation registered: nothing to see here'
-
         flags_menu = json.dumps(['/', 'monitor-tasks'])
         url_style_menu_css, url_js_menu_elm = build_menu_links()
         return render_template(
