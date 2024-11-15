@@ -405,5 +405,5 @@ def test_validate_schedule_rule(engine, client):
             'rule': '0 * * * *'
         }
     )
-    assert res.status_code == 500
+    assert res.status_code == 200
 

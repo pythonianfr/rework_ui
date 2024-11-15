@@ -1002,7 +1002,7 @@ def reworkui(engine,
     def test_cron_rule():
         args = argsdict(request.args)
         try:
-            assert croniter.is_valud(args.rule)
+            assert croniter.is_valid(args.rule)
             return make_response('', 200)
         except AssertionError as err:
             return make_response(str(err), 200)
