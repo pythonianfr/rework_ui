@@ -406,4 +406,13 @@ def test_validate_schedule_rule(engine, client):
         }
     )
     assert res.status_code == 200
+    assert res.text == ''
 
+    res = client.get(
+        '/test-cron-rule',
+        params={
+            'rule': 'NOPE'
+        }
+    )
+    assert res.status_code == 200
+    assert res.text == 'bad rule'
