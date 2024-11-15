@@ -396,3 +396,14 @@ def test_read_io(engine, client):
     assert res.json == {
         f'{tid}': 'babar.xlsx'
     }
+
+
+def test_validate_schedule_rule(engine, client):
+    res = client.get(
+        '/test-cron-rule',
+        params={
+            'rule': '0 * * * *'
+        }
+    )
+    assert res.status_code == 500
+
