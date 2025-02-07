@@ -19,7 +19,7 @@ def engine(request):
     db.setup_local_pg_cluster(request, DATADIR, PORT)
     uri = 'postgresql://localhost:{}/postgres'.format(PORT)
     e = create_engine(uri)
-    reworkschema.init(e, drop=True)
+    reworkschema.init(e)
     ruischema.init(e)
     api.freeze_operations(e)
     return e
