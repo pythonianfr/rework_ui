@@ -94,12 +94,17 @@ type alias Launcher =
     }
 
 
+type OptionValue
+    = IntValue Int
+    | StringValue String
+
+
 type alias Monitor =
     { id : Int
     , domain : String
     , delta : Float
     , lastSeen : String
-    , options : List ( String, Int )
+    , options : List ( String, OptionValue )
     }
 
 

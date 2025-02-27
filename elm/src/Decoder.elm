@@ -26,6 +26,7 @@ import Type
         , JsonStatus
         , Launcher
         , Msg(..)
+        , OptionValue(..)
         , Plan
         , Scheduler
         , Service
@@ -235,14 +236,22 @@ decodemonitor =
         (D.field "domain" D.string)
         (D.field "delta" D.float)
         (D.field "lastseen" D.string)
-        (D.field "options" (D.list decodeoption))
+        (D.field "options" (D.list <| D.oneOf [ decodeintoption, decodestroption ]))
 
 
-decodeoption : D.Decoder ( String, Int )
-decodeoption =
+decodeintoption : D.Decoder ( String, OptionValue )
+decodeintoption =
     D.map2 Tuple.pair
         (D.index 0 D.string)
-        (D.index 1 D.int)
+        (D.index 1 (D.int |> (D.map IntValue)))
+
+
+decodestroption : D.Decoder ( String, OptionValue )
+decodestroption =
+    D.map2 Tuple.pair
+        (D.index 0 D.string)
+        (D.index 1 (D.string |> (D.map StringValue)))
+
 
 
 map9 :

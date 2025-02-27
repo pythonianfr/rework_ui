@@ -23,6 +23,7 @@ import Type
         , Monitor
         , Model
         , Msg(..)
+        , OptionValue(..)
         , Scheduler
         , Service
         , SpecType(..)
@@ -1043,11 +1044,16 @@ formatdatecolor stringDate delta =
     H.td [ HA.style "color" color ] [ H.text stringDate ]
 
 
-equaltuple : ( String, Int ) -> String
+equaltuple : ( String, OptionValue ) -> String
 equaltuple tuple =
-    Tuple.first tuple
+    let
+        val =
+            case Tuple.second tuple of
+                IntValue v -> String.fromInt v
+                StringValue v -> v
+    in Tuple.first tuple
         ++ "="
-        ++ String.fromInt (Tuple.second tuple)
+        ++ val
 
 
 workerrendertow : Bool -> Worker -> H.Html Msg
