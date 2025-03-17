@@ -1,7 +1,7 @@
 from pathlib import Path
 
 import pytest
-from sqlalchemy import create_engine
+from sqlhelp.pgapi import pgdb as create_engine
 from pytest_sa_pg import db
 import webtest
 

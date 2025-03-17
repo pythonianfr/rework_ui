@@ -2,7 +2,7 @@ from threading import Thread
 import webbrowser
 
 import click
-from sqlalchemy import create_engine
+from sqlhelp.pgapi import pgdb as create_engine
 
 from rework import schema as baseschema, helper
 from rework.helper import find_dburi

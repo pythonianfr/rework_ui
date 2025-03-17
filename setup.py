@@ -50,7 +50,7 @@ setup(name='rework_ui',
           'pygments',
           'werkzeug >= 2.3.7',
           'lxml',  # for the tests
-          'sqlalchemy',
+          'sqlhelp',
       ],
       package_data={'rework_ui': [
           'rui_static/*',

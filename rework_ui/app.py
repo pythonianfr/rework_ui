@@ -1,4 +1,4 @@
-from sqlalchemy import create_engine
+from sqlhelp.pgapi import pgdb as create_engine
 from flask import Flask
 
 from rework_ui.blueprint import reworkui

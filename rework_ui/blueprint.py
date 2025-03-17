@@ -103,7 +103,8 @@ def schedule_plan(engine, delta, domain=None):
     ).where('s.operation = op.id')
     if domain:
         q.where('s.domain = %(domain)s', domain=domain)
-    out = q.do(engine).fetchall()
+    with engine.begin() as cn:
+        out = q.do(cn).fetchall()
     now = datetime.now(tz)
 
     for stamp, op, spec, inputdata, domain in sorted(
@@ -146,16 +147,18 @@ def _schedule_job(engine,
                             domain=domain,
                             metadata=metadata)
     except Exception as err:
+        import traceback as tb; tb.print_exc()
         abort(400, str(err))
     return json.dumps(task.tid)
 
 
 def alldomains(engine):
-    return [
-        dom for dom, in engine.execute(
-            'select domain from rework.operation group by domain order by domain'
-        ).fetchall()
-    ]
+    with engine.begin() as cn:
+        return [
+            dom for dom, in cn.execute(
+                'select domain from rework.operation group by domain order by domain'
+            ).fetchall()
+        ]
 
 
 def initialdomain(domains):
@@ -247,7 +250,8 @@ def reworkui(engine,
         domain = args.pop('domain', None)
         meta = argsdict(request.args)
 
-        specs = iospec(engine)
+        with engine.begin() as cn:
+            specs = iospec(cn)
         spec = filterio(specs, service, domain, hostid)
         typed_args = convert_io(spec, args)
 
@@ -273,15 +277,16 @@ def reworkui(engine,
         if t is None:
             return json.dumps(0)
 
-        op = select(
-            'name', 'host', 'domain'
-        ).table(
-            'rework.operation'
-        ).join(
-            'rework.task as task on (task.operation = operation.id)'
-        ).where(
-            'task.id = %(tid)s', tid=t.tid
-        ).do(engine).fetchone()
+        with engine.begin() as cn:
+            op = select(
+                'name', 'host', 'domain'
+            ).table(
+                'rework.operation'
+            ).join(
+                'rework.task as task on (task.operation = operation.id)'
+            ).where(
+                'task.id = %(tid)s', tid=t.tid
+            ).do(cn).fetchone()
 
         newtask = api.schedule(
             engine,
@@ -303,7 +308,8 @@ def reworkui(engine,
         ).table('rework.sched as s', 'rework.operation as op'
         ).where('s.operation = op.id'
         ).where('s.id = %(sid)s', sid=sid)
-        sched = q.do(engine).fetchone()
+        with engine.begin() as cn:
+            sched = q.do(cn).fetchone()
 
         t = api.schedule(
             engine,
@@ -455,7 +461,8 @@ def reworkui(engine,
         if domain != 'all':
             q.where(domain=domain)
 
-        workers = q.do(engine).fetchall()
+        with engine.begin() as cn:
+            workers = q.do(cn).fetchall()
 
         # monitors
         q = select(
@@ -464,10 +471,11 @@ def reworkui(engine,
         if domain != 'all':
             q.where(domain=domain)
 
-        monitors = {
-            row.domain: row
-            for row in q.do(engine).fetchall()
-        }
+        with engine.begin() as cn:
+            monitors = {
+                row.domain: row
+                for row in q.do(cn).fetchall()
+            }
         now = utcnow().astimezone(TZ)
         domains_list = []
         for domain, row in sorted(monitors.items()):
@@ -664,14 +672,15 @@ def reworkui(engine,
 
     @bp.route('/info-for/<int:taskid>')
     def info_for(taskid):
-        res = select(
-            'status', 'abort', 'traceback',
-            'queued', 'started', 'finished',
-            'inputs', 'outputs'
-        ).table('rework.task as t', 'rework.operation as o'
-        ).where('t.id = %(taskid)s', taskid=taskid
-        ).where('o.id = t.operation'
-        ).do(engine).fetchone()
+        with engine.begin() as cn:
+            res = select(
+                'status', 'abort', 'traceback',
+                'queued', 'started', 'finished',
+                'inputs', 'outputs'
+            ).table('rework.task as t', 'rework.operation as o'
+            ).where('t.id = %(taskid)s', taskid=taskid
+            ).where('o.id = t.operation'
+            ).do(cn).fetchone()
 
         info = {
             'state': _task_state(
@@ -699,19 +708,20 @@ def reworkui(engine,
             'rework.task'
         ).where(id=taskid)
 
-        return q.do(engine).scalar()
+        with engine.begin() as cn:
+            return q.do(cn).scalar()
 
     def _io_spec(taskid, direction):
-        return select(
-            f'{direction}s'
-        ).table(
-            'rework.task as t', 'rework.operation as o'
-        ).where(
-            't.id = %(taskid)s', taskid=taskid
-        ).where(
-            'o.id = t.operation'
-        ).do(engine).scalar()
-
+        with engine.begin() as cn:
+            return select(
+                f'{direction}s'
+            ).table(
+                'rework.task as t', 'rework.operation as o'
+            ).where(
+                't.id = %(taskid)s', taskid=taskid
+            ).where(
+                'o.id = t.operation'
+            ).do(cn).scalar()
 
     @bp.route('/read_io/<int:taskid>')
     def read_io(taskid):
@@ -825,14 +835,15 @@ def reworkui(engine,
             q.where(domain=args.domain)
 
         out = []
-        for opid, host, name, path, domain in q.do(engine).fetchall():
-            out.append({
-                'opid': opid,
-                'host': host,
-                'name': name,
-                'path': path,
-                'domain': domain
-            })
+        with engine.begin() as cn:
+            for opid, host, name, path, domain in q.do(cn).fetchall():
+                out.append({
+                    'opid': opid,
+                    'host': host,
+                    'name': name,
+                    'path': path,
+                    'domain': domain
+                })
         return make_response(
             json.dumps(out),
             200,
@@ -844,7 +855,8 @@ def reworkui(engine,
         if not has_permission('read'):
             abort(403, 'Nothing to see there.')
 
-        spec = iospec(engine)
+        with engine.begin() as cn:
+            spec = iospec(cn)
         return make_response(
             json.dumps(spec),
             200,
@@ -926,7 +938,8 @@ def reworkui(engine,
         host = args.pop('host', None)
         operation, domain = args.pop('service').split(':')
         rule = args.pop('rule', None)
-        specs = iospec(engine)
+        with engine.begin() as cn:
+            specs = iospec(cn)
         spec = filterio(specs, operation, domain, host)
         try:
             typed_args = convert_io(spec, args)
@@ -967,33 +980,36 @@ def reworkui(engine,
 
     @bp.route('/lasteventid')
     def lasteventid():
-        eid = select('max(id)').table(
-            'rework.events'
-        ).do(engine).scalar() or 0
+        with engine.begin() as cn:
+            eid = select('max(id)').table(
+                'rework.events'
+            ).do(cn).scalar() or 0
         return json.dumps(eid)
 
     @bp.route('/events/<int:fromid>')
     def events(fromid):
-        knownid = select('id').table(
-            'rework.events'
-        ).where(
-            id=fromid
-        ).do(engine).scalar()
-        if not knownid:
-            # this signals to the client
-            # he is needs a full refresh
-            return 'null'
+        with engine.begin() as cn:
+            knownid = select('id').table(
+                'rework.events'
+            ).where(
+                id=fromid
+            ).do(cn).scalar()
+            if not knownid:
+                # this signals to the client
+                # he is needs a full refresh
+                return 'null'
 
-        q = select(
-            'id', 'action', 'taskid'
-        ).table('rework.events'
-        ).where('id > %(eid)s', eid=fromid
-        ).order('id')
+            q = select(
+                'id', 'action', 'taskid'
+            ).table('rework.events'
+            ).where('id > %(eid)s', eid=fromid
+            ).order('id')
 
-        events = [
-            dict(item)
-            for item in q.do(engine).fetchall()
-        ]
+            events = [
+                dict(item)
+                for item in q.do(cn).fetchall()
+            ]
+
         return json.dumps(
             events
         )
