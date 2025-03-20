@@ -613,7 +613,7 @@ def reworkui(engine,
                 [
                     {'tid': row.id,
                      'name' : row.name,
-                     'status': row.status,
+                     'status': row.status.decode(),
                      'abort': row.abort,
                      'domain': row.domain,
                      'operation': row.operation,

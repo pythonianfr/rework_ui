@@ -9,4 +9,4 @@ SCHEMAFILE = Path(__file__).parent / 'schema.sql'
 def init(engine):
     sql = sqlfile(SCHEMAFILE, ns='rework')
     with engine.begin() as cn:
-        cn.execute(sql)
+        cn.execute(sql, binary=False)
