@@ -8,6 +8,14 @@ unit-test-job:
   tags:
     - clever-cloud
   script:
+    - cd ..
+    - hg clone https://heptapod.host/pythonian/timeseries-refinery/sqlhelp
+    - hg -R sqlhelp update tip
+    - pip install -e sqlhelp
+    - hg clone https://heptapod.host/pythonian/timeseries-refinery/rework
+    - hg -R rework update tip
+    - pip install -e rework
+    - cd rework_ui
     - pip install -e .
     - ruff check .
     - pytest
