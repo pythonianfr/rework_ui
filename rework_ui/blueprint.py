@@ -1006,7 +1006,7 @@ def reworkui(engine,
             ).order('id')
 
             events = [
-                dict(item)
+                item.as_dict()
                 for item in q.do(cn).fetchall()
             ]
 
