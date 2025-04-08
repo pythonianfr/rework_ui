@@ -147,7 +147,7 @@ def _schedule_job(engine,
                             domain=domain,
                             metadata=metadata)
     except Exception as err:
-        import traceback as tb; tb.print_exc()
+        import traceback as tb; tb.print_exc()  # noqa
         abort(400, str(err))
     return json.dumps(task.tid)
 
