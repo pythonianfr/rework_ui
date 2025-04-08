@@ -2,7 +2,7 @@ from pathlib import Path
 
 import pytest
 from sqlhelp.pgapi import pgdb as create_engine
-from pytest_sa_pg import db
+from sqlhelp.testutil import setup_local_pg_cluster
 import webtest
 
 from rework import schema as reworkschema
@@ -16,7 +16,7 @@ PORT = 2346
 
 @pytest.fixture(scope='session')
 def engine(request):
-    db.setup_local_pg_cluster(request, DATADIR, PORT)
+    setup_local_pg_cluster(request, DATADIR, PORT)
     uri = 'postgresql://localhost:{}/postgres'.format(PORT)
     e = create_engine(uri)
     reworkschema.init(e)
