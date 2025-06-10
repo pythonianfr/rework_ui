@@ -626,7 +626,7 @@ Each one specifies a part of the rule.
 │ │ ┌───────────── hour (0 - 23)
 │ │ │ ┌───────────── day of the month (1 - 31)
 │ │ │ │ ┌───────────── month (1 - 12)
-│ │ │ │ │ ┌───────────── day of the week (0 - 6 or mon,tue,wed,thu,fri,sat,sun)
+│ │ │ │ │ ┌───────────── day of the week (0 - 6 or sun,mon,tue,wed,thu,fri,sat)
 │ │ │ │ │ │
 │ │ │ │ │ │
 │ │ │ │ │ │
