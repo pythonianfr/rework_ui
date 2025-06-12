@@ -982,7 +982,7 @@ def reworkui(engine,
     def lasteventid():
         with engine.begin() as cn:
             eid = select('max(id)').table(
-                'rework.events'
+                'rework.task_events'
             ).do(cn).scalar() or 0
         return json.dumps(eid)
 
@@ -990,7 +990,7 @@ def reworkui(engine,
     def events(fromid):
         with engine.begin() as cn:
             knownid = select('id').table(
-                'rework.events'
+                'rework.task_events'
             ).where(
                 id=fromid
             ).do(cn).scalar()
@@ -1001,7 +1001,7 @@ def reworkui(engine,
 
             q = select(
                 'id', 'action', 'taskid'
-            ).table('rework.events'
+            ).table('rework.task_events'
             ).where('id > %(eid)s', eid=fromid
             ).order('id')
 
