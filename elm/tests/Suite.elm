@@ -2,22 +2,22 @@ module Suite exposing (testParser)
 
 import Expect
 import Json.Decode as D
-import ReworkUI.Decoder
+import Decoder
     exposing
-        ( decodeWorker
-        , matchTaskResult
-        , statusDecoder
-        , taskDecoder
-        , userDecoder
-        , workerActionsDecoder
+        ( decodeworkers
+        , matchactionresult
+        , decodetask
+        , decodeworkeraction
+        , decodestatus
+        , matchtaskresult
+        , decodeworker
         )
-import ReworkUI.Type
+import Type
     exposing
         ( Action(..)
         , Status(..)
         , Task
         , TaskResult(..)
-        , User(..)
         , Worker
         )
 import Test as T
@@ -40,7 +40,8 @@ inputHello =
     "metadata": null,
     "worker": 14,
     "deathinfo": "Got a TERMINATE/15",
-    "traceback": null
+    "traceback": null,
+    "input": null
   }
 ]
 """
@@ -48,19 +49,20 @@ inputHello =
 
 taskHello : Task
 taskHello =
-    Task
-        1
-        Success
-        "hello"
-        "default"
-        "2020-03-24 20:24:37+0100"
-        "2020-03-24 20:24:37+0100"
-        "2020-03-24 20:24:51+0100"
-        UnknownUser
-        14
-        Done
-        (Just "Got a TERMINATE/15")
-        [ Relaunch, Delete ]
+    { id = 1
+    , result = Success
+    , name = "hello"
+    , domain = "default"
+    , queued = "2020-03-24 20:24:37+0100"
+    , started = Just "2020-03-24 20:24:37+0100"
+    , finished = Just "2020-03-24 20:24:51+0100"
+    , metadata = Nothing
+    , worker = Just 14
+    , status = Done
+    , deathInfo = Just "Got a TERMINATE/15"
+    , actions = [ Relaunch, Delete ]
+    , input = Nothing
+    }
 
 
 userInput : String
@@ -130,9 +132,9 @@ taskResultDecoder =
     let
         decodeTaskResult : Status -> D.Decoder TaskResult
         decodeTaskResult status =
-            D.succeed (matchTaskResult status)
+            D.succeed (matchtaskresult status)
     in
-    statusDecoder |> D.andThen decodeTaskResult
+    decodestatus |> D.andThen decodeTaskResult
 
 
 statusFailure : String
@@ -168,13 +170,13 @@ inputWorker =
       "shutdown": true
   },
   "cpu": 0,
-  "debugPort": null,
+  "debugport": null,
   "domain": "default",
   "host": "51.15.183.93",
   "mem": 45,
   "pid": 966593,
   "started": "2020-04-27 17:49:57+0200",
-  "wId": 142
+  "wid": 142
 }
 """
 
@@ -185,13 +187,13 @@ testParser =
         [ T.test "taskHello"
             (\_ ->
                 Expect.equal
-                    (D.decodeString (D.list taskDecoder) inputHello)
+                    (D.decodeString (D.list decodetask) inputHello)
                     (Ok [ taskHello ])
             )
         , T.test "statusParser"
             (\_ ->
                 Expect.equal
-                    (D.decodeString (D.list statusDecoder) statusInput)
+                    (D.decodeString (D.list decodestatus) statusInput)
                     (Ok
                         [ Queued
                         , Aborting
@@ -206,7 +208,7 @@ testParser =
         , T.test "statusParser failure"
             (\_ ->
                 Expect.equal
-                    (D.decodeString statusDecoder statusFailure
+                    (D.decodeString decodestatus statusFailure
                         |> Result.mapError D.errorToString
                         |> Result.mapError (String.contains "Unknown status :")
                     )
@@ -227,46 +229,33 @@ testParser =
                         ]
                     )
             )
-        , T.test "userDecoder"
-            (\_ ->
-                Expect.equal
-                    (D.decodeString (D.list userDecoder) userInput)
-                    (Ok
-                        [ UnknownUser
-                        , NamedUser "toto"
-                        , NamedUser "titi"
-                        , RunUser "titi" "tutu"
-                        , UnknownUser
-                        ]
-                    )
-            )
         , T.test "workerActionsDecoder"
             (\_ ->
                 Expect.equal
-                    (D.decodeString (D.list workerActionsDecoder) buttonsInput)
+                    (D.decodeString (D.list decodeworkeraction) buttonsInput)
                     (Ok
                         [ [ Kill, Shutdown ]
-                        , [ Pending Kill, Pending Shutdown ]
-                        , [ Pending Kill, Shutdown ]
-                        , [ Kill, Pending Shutdown ]
+                        , [ Disabled Kill, Disabled Shutdown ]
+                        , [ Disabled Kill, Shutdown ]
+                        , [ Kill, Disabled Shutdown ]
                         ]
                     )
             )
         , T.test "decodeWorker"
             (\_ ->
                 Expect.equal
-                    (D.decodeString decodeWorker inputWorker)
+                    (D.decodeString decodeworker inputWorker)
                     (Ok <|
-                        Worker
-                            142
-                            "51.15.183.93"
-                            966593
-                            "default"
-                            45
-                            0
-                            Nothing
-                            "2020-04-27 17:49:57+0200"
-                            [ Kill, Pending Shutdown ]
+                        { id = 142
+                        , host = "51.15.183.93"
+                        , pid = 966593
+                        , domain = "default"
+                        , mem = 45
+                        , cpu = 0
+                        , debugPort = Nothing
+                        , started = "2020-04-27 17:49:57+0200"
+                        , actions = [ Kill, Disabled Shutdown ]
+                        }
                     )
             )
         ]

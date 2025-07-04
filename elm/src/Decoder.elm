@@ -10,6 +10,9 @@ module Decoder exposing
     , matchactionresult
     , decodetask
     , decodeworkeraction
+    , decodestatus
+    , matchtaskresult
+    , decodeworker
     )
 
 import Json.Decode as D
