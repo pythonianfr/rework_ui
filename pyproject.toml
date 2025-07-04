@@ -1,0 +1,5 @@
+[tool.pytype]
+inputs = ['rework_ui']
+
+[tool.ruff]
+lint.ignore = ["E501", "E702", "E722", "E731"]
