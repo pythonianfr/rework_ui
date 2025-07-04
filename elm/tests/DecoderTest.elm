@@ -78,22 +78,39 @@ suite =
                     (D.decodeString decodeinputspec validSpecJson)
                     (Ok expectedValidSpec)
             )
-        , test "Invalid spec type silently defaults to Str (demonstrates the bug)"
+        , test "Invalid spec type now properly fails (bug fixed!)"
             (\_ ->
-                Expect.equal
-                    (D.decodeString decodeinputspec invalidSpecJson)
-                    (Ok expectedInvalidSpec)
+                let
+                    result = D.decodeString decodeinputspec invalidSpecJson
+                in
+                case result of
+                    Ok _ ->
+                        Expect.fail "Expected decoder to fail on unknown spec type, but it succeeded"
+                    Err error ->
+                        let
+                            errorString = D.errorToString error
+                        in
+                        if String.contains "Unknown spec type: unknown_type" errorString then
+                            Expect.pass
+                        else
+                            Expect.fail <| "Expected error about unknown spec type, but got: " ++ errorString
             )
-        , test "Another invalid spec type also defaults to Str"
+        , test "Another invalid spec type also properly fails"
             (\_ ->
                 let
                     result = D.decodeString decodeinputspec anotherInvalidSpecJson
                 in
                 case result of
-                    Ok spec ->
-                        Expect.equal spec.spectype Str
-                    Err _ ->
-                        Expect.fail "Expected success with default Str type, but got error"
+                    Ok _ ->
+                        Expect.fail "Expected decoder to fail on custom spec type, but it succeeded"
+                    Err error ->
+                        let
+                            errorString = D.errorToString error
+                        in
+                        if String.contains "Unknown spec type: custom_type" errorString then
+                            Expect.pass
+                        else
+                            Expect.fail <| "Expected error about custom spec type, but got: " ++ errorString
             )
         , test "All known spec types decode correctly"
             (\_ ->
@@ -122,19 +139,23 @@ suite =
                 else
                     Expect.fail "Some spec types did not decode correctly"
             )
-        , test "EXPECTED BEHAVIOR: Invalid spec types should fail (this test shows what we want)"
+        , test "Type safety improvement: decoder fails fast on invalid input"
             (\_ ->
-                -- This test documents what the behavior SHOULD be after fixing the decoder
+                -- This test demonstrates that the decoder now properly validates input
                 let
-                    result = D.decodeString decodeinputspec invalidSpecJson
+                    invalidTypes = ["unknown", "typo", "invalid", "random"]
+                    testInvalidType typeName =
+                        let
+                            json = """{"type": \"""" ++ typeName ++ """", "name": "test", "required": true, "default": null, "choices": null}"""
+                            result = D.decodeString decodeinputspec json
+                        in
+                        case result of
+                            Ok _ -> False  -- Should not succeed
+                            Err _ -> True  -- Should fail
                 in
-                case result of
-                    Ok spec ->
-                        -- Currently this succeeds with Str, but we want it to fail
-                        Expect.equal spec.spectype Str
-                            |> Expect.onFail "This test passes now but should fail after fixing the decoder"
-                    Err _ ->
-                        -- This is what we want to happen
-                        Expect.pass
+                if List.all testInvalidType invalidTypes then
+                    Expect.pass
+                else
+                    Expect.fail "Some invalid spec types were incorrectly accepted"
             )
         ]

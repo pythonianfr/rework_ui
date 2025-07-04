@@ -177,6 +177,18 @@ decodeservice =
         (D.field "domain" D.string)
 
 
+decodespectype : String -> D.Decoder SpecType
+decodespectype stype =
+    case stype of
+        "file" -> D.succeed File
+        "string" -> D.succeed Str
+        "number" -> D.succeed Num
+        "boolean" -> D.succeed Bool
+        "datetime" -> D.succeed Datetime
+        "moment" -> D.succeed Moment
+        _ -> D.fail <| "Unknown spec type: " ++ stype
+
+
 decodeinputspec : D.Decoder IOSpec
 decodeinputspec =
     F.require "type" D.string <| \stype ->
@@ -185,20 +197,15 @@ decodeinputspec =
     F.require "default" (D.nullable D.string) <| \default ->
     F.require "choices" (D.nullable (D.list D.string)) <| \choices ->
 
-    D.succeed
-        { spectype = case stype of
-                         "file" -> File
-                         "string" -> Str
-                         "number" -> Num
-                         "boolean" -> Bool
-                         "datetime" -> Datetime
-                         "moment" -> Moment
-                         _ -> Str
-        , name = name
-        , required = required
-        , default = default
-        , choices = choices
-        }
+    decodespectype stype |> D.andThen (\spectype ->
+        D.succeed
+            { spectype = spectype
+            , name = name
+            , required = required
+            , default = default
+            , choices = choices
+            }
+    )
 
 
 decodelauncher : D.Decoder Launcher
