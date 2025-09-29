@@ -1,3 +1,63 @@
+[build-system]
+requires = ["setuptools >= 70.0.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "rework_ui"
+dynamic = ["version"]
+authors = [
+    {name = "Aurélien Campéas", email = "aurelien.campeas@pythonian.fr"},
+]
+description = "A web ui for the rework distributed task dispatcher"
+readme = "README.md"
+requires-python = ">= 3.10"
+license = "LGPL-3.0-or-later"
+keywords = ["database", "task-queue", "distributed", "web-ui"]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Developers",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: ML",
+    "Environment :: Web Environment",
+    "Topic :: System :: Distributed Computing",
+    "Topic :: Software Development :: User Interfaces",
+]
+dependencies = [
+    "rework",
+    "flask",
+    "python-icron",
+    "pygments",
+    "werkzeug >= 2.3.7",
+    "lxml",
+    "sqlhelp",
+]
+
+[project.urls]
+Homepage = "https://hg.sr.ht/~pythonian/rework_ui"
+Repository = "https://heptapod.host/pythonian/timeseries-refinery/rework_ui"
+Documentation = "https://refinery.docs.pythonian.fr"
+
+[project.entry-points."rework.subcommands"]
+view = "rework_ui.cli:view"
+init-db = "rework_ui.cli:init_db"
+
+[tool.setuptools.packages.find]
+include = ["rework_ui*"]
+
+[tool.setuptools.package-data]
+rework_ui = [
+    "rui_static/*",
+    "rui_templates/*",
+    "schema.sql",
+]
+
+[tool.setuptools.dynamic]
+version = {attr = "rework_ui.__version__"}
+
 [tool.pytype]
 inputs = ['rework_ui']
 

@@ -3,8 +3,6 @@ from pathlib import Path
 from setuptools import setup
 from setuptools.command.build_ext import build_ext
 
-from rework_ui import __version__
-
 
 WORKING_DIR = Path(__file__).resolve().parent
 STATIC_DIR = WORKING_DIR / 'rework_ui' / 'rui_static'
@@ -29,48 +27,6 @@ class ElmBuild(build_ext):
         super().run()
 
 
-doc = Path(__file__).parent / 'README.md'
-
-
-setup(name='rework_ui',
-      version=__version__,
-      author='Aurelien Campeas',
-      author_email='aurelien.campeas@pythonian.fr',
-      description='A web ui for the rework distributed task dispatcher',
-      long_description=doc.read_text(),
-      long_description_content_type='text/markdown',
-      url='https://hg.sr.ht/~pythonian/rework_ui',
-
-      packages=['rework_ui'],
-      zip_safe=False,
-      install_requires=[
-          'rework',
-          'flask',
-          'python-icron',
-          'pygments',
-          'werkzeug >= 2.3.7',
-          'lxml',  # for the tests
-          'sqlhelp',
-      ],
-      package_data={'rework_ui': [
-          'rui_static/*',
-          'rui_templates/*',
-          'schema.sql'
-      ]},
-      entry_points={'rework.subcommands': [
-          'view=rework_ui.cli:view',
-          'init-db=rework_ui.cli:init_db'
-      ]},
-      classifiers=[
-          'Development Status :: 4 - Beta',
-          'Intended Audience :: Developers',
-          'License :: OSI Approved :: GNU Lesser General Public License v3 (LGPLv3)',
-          'Operating System :: OS Independent',
-          'Programming Language :: Python :: 3',
-          'Programming Language :: ML',
-          'Environment :: Web Environment',
-          'Topic :: System :: Distributed Computing',
-          'Topic :: Software Development :: User Interfaces'
-      ],
-      cmdclass={'build_ext': ElmBuild}
-)
+# minimal setup.py for backward compatibility and custom build commands
+# all metadata is now in pyproject.toml
+setup(cmdclass={'build_ext': ElmBuild})
