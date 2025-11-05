@@ -1,0 +1,285 @@
+# Changelog
+
+## [Unreleased]
+
+## [0.18.1] - 2025-11-05
+
+### Changed
+- packaging: migrated metadata to pyproject.toml
+
+### Fixed
+- ui/scheduler: error in cronrule explanation
+
+## [0.18.0] - 2025-08-29
+
+### Changed
+- replaced sqlalchemy with sqlhelp throughout
+- schema: follow changes in sqlhelp
+- tests: postgresql db handling moved to sqlhelp
+- decoder: more intolerant spec decoder
+- elm: repaired tests
+
+### Fixed
+- blueprint: missing .to_dict call on a row
+
+## [0.17.0] - 2025-02-27
+
+### Added
+- monitor: show vacuum policy
+
+### Fixed
+- blueprint: cron rule validation
+- cli: follow simplification in rework
+
+## [0.16.0] - 2024-10-25
+
+### Changed
+- ci: moved to heptapod
+- blueprint: webapp instanciable without tsview
+- blueprint: show ui even when nothing registered
+- headers: title changes and removed unnecessary CDNs
+
+### Fixed
+- scheduling: typing bug for web schedule definition
+- blueprint: cron rule validation tests
+
+## [0.15.1] - 2024-08-23
+
+### Fixed
+- makefile: optimized js output
+
+## [0.15.0] - 2024-03-07
+
+### Added
+- menu: stand alone menu for main view, logs, errors and info
+- plan: tab showing next hour schedule plan with configurable hours
+- inputs/bool: improved true state handling
+
+### Changed
+- templates: removed unused cruft
+- elm: added style to page title
+- model: canwrite attribute for permission control
+- elm: forbid mutating actions when canwrite is false
+
+### Fixed
+- getiofilehint: transformed to POST
+- plan: refresh plan list at hours change
+
+## [0.14.0] - 2023-11-20
+
+### Added
+- ui: decode default field for launchers
+- plan tab for schedule visualization
+- permission controls with canwrite attribute
+
+### Changed
+- replaced apscheduler with croniter (python-icron)
+- templates: avoid browser quirks mode
+- build: basic CI system with linter checks
+- main/init: use record for readability
+
+### Fixed
+- inputs/bool: handling of true state
+- lazy loading repairs
+- used new unprepare rework api call
+
+## [0.13.0] - 2023-10-17
+
+### Added
+- launcher: boolean input support
+- __version__ attribute in package root
+
+### Changed
+- tasks: lazy loading with batch loads
+- tasks: filters on service name and inputs
+- initial tasks table load by batches to avoid long loading times
+
+### Fixed
+- blueprint/formatinput: stop cutting long content
+
+## [0.12.0] - 2023-09-29
+
+### Added
+- scheduler: button to immediately launch prepared tasks
+- complete action to launch prepared task
+
+### Changed
+- style: improved scheduler buttons
+
+### Fixed
+- blueprint/iofilehint: crash when no task list
+
+## [0.11.0] - 2022-10-11
+
+### Changed
+- blueprint/schedule2: use type converter for well-typed inputs
+
+### Fixed
+- pkg: lxml needed for tests
+
+## [0.10.1] - 2022-05-23
+
+### Fixed
+- pkg: missing pygments dependency
+
+## [0.10.0] - 2022-04-11
+
+### Added
+- info: new view providing complete task information
+  - basic info display
+  - input and output specs exposure
+  - download links for task io blocks
+  - links from tasks list to task info page
+- tasks: singleton input/output file display
+- elm: build files at pip install time
+
+### Changed
+- view/defaultrule: non "*" default value
+- types: InputSpec renamed to IOSpec
+- job_results: better mime type
+- tasks: collapsed queued/started/finished columns into one
+
+### Fixed
+- followed internal changes in rework
+
+## [0.9.0] - 2021-06-14
+
+### Added
+- complete Elm rewrite of UI
+  - task table with server-side json endpoints
+  - services and workers tables
+  - domain filtering and management
+  - refresh every 2s with timer management
+  - action pending management
+  - event table for task cud events
+- launcher: tab for web-launchable operations
+  - full input spec form generation
+  - datetime and moment field support
+  - required fields visual cues
+  - form open/close/cancel functionality
+- scheduler: comprehensive UI for task scheduling
+  - schedulers table with creation/deletion
+  - form with service/domain selection
+  - crontab-like rules with inline documentation
+  - rule validation with step-by-step feedback
+  - prepared task input display
+- logging: simple logging facility
+  - log levels filtering
+  - identical log lines folding
+- log view: replacement task log view with lazy loading
+- domains: "all" filter for multi-domain setups
+
+### Changed
+- replaced javascript with full Elm implementation
+- bootstrap upgraded to 4.5
+- ui: numerous refactorings and simplifications
+- tasks: order by id
+- ui: more precise naming throughout
+
+### Fixed
+- cli/view: use find_uri to exploit rework.cfg
+- schedule-task: handle no-input file case
+- ui: proper domain handling
+- ui: user handling fixes
+- adjust for werkzeug 1 release
+
+## [0.8.0] - 2020-07-03
+
+### Added
+- app: accept prefix parameter
+- permission predicate
+
+### Changed
+- tasks/table: fetch data in parallel using thread pool
+
+### Fixed
+- pkg: README available for pypi
+
+## [0.7.0] - 2020-05-26
+
+### Added
+- basic web ui for rework
+- tasks, workers, services tables
+- domain filtering
+- kill action for workers
+- tabs for easier layout
+- ability to schedule jobs
+- show debug ports for services
+
+### Changed
+- web: tabs-based layout
+
+### Fixed
+- initial release features
+
+## [0.6.0] - 2020-04-08
+
+### Added
+- cpu usage display
+- cpu percents
+
+### Changed
+- replaced sqlalchemy core api with sqlhelp
+- cli: adjust to rework changes
+
+### Fixed
+- tasks: proper timestamp display
+- tasks/table: loop when task is gone
+- task title: expose deathinfo
+
+## [0.5.0] - 2020-03-27
+
+### Added
+- monitors table: worker start time display
+
+### Changed
+- tabs: ponies renamed to monitors
+- use rework.helper.utcnow
+
+### Fixed
+- adapt to tasks new fields
+
+## [0.4.0] - 2020-01-13
+
+### Added
+- test suite
+
+### Changed
+- cli: replace complete-db with init-db override
+- use transactions
+- better nomenclature for task scheduling
+
+### Fixed
+- blueprint: task abortion
+- view: use non-resolving host helper
+- view: signal where to orient browser when no DISPLAY
+
+## [0.3.0] - 2019-10-05
+
+### Added
+- monitors tab
+- tasks table: expose finished attribute
+
+### Fixed
+- tasks: proper display
+
+## [0.2.0] - 2019-07-16
+
+### Added
+- monitors status in tasks table
+- browser credential forwarding in javascript requests
+
+### Fixed
+- pkg: missing __init__.py
+- pkg: packaging issue
+
+## [0.1.0] - 2019-06-06
+
+### Added
+- initial web ui for rework
+- tasks table with actions
+- workers and services display
+- domain filtering (server side)
+- ability to schedule jobs
+- three new endpoints for task management
+- safety belt when no services
