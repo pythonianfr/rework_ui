@@ -27,13 +27,13 @@ classifiers = [
     "Topic :: Software Development :: User Interfaces",
 ]
 dependencies = [
-    "rework",
+    "rework >= 0.19.1",
     "flask",
     "python-icron",
     "pygments",
     "werkzeug >= 2.3.7",
     "lxml",
-    "sqlhelp",
+    "sqlhelp >= 0.4.0",
 ]
 
 [project.urls]
